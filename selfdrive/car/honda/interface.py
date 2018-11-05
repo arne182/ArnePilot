@@ -294,6 +294,10 @@ class CarInterface(object):
       ret.wheelbase = 2.81
       ret.centerToFront = ret.wheelbase * 0.41
       ret.steerRatio = 16.0         # as spec
+      ret.longitudinalKpBP = [0., 5., 35.]
+      ret.longitudinalKpV = [1.2, 0.8, 0.5]
+      ret.longitudinalKiBP = [0., 35.]
+      ret.longitudinalKiV = [0.18, 0.12]
       #tire_stiffness_factor = 0.444 # not optimized yet  
       tire_stiffness_factor = 0.82  # trying same as odyssey
       #ret.steerKpV, ret.steerKiV = [[0.38], [0.11]] #original model: OS 30%, risetime: 1.75s, Max Output 0.8 of 1  
@@ -301,9 +305,7 @@ class CarInterface(object):
       #ret.steerKpV, ret.steerKiV = [[0.38], [0.3]]  #model: OS 5%, risetime 3.5s  - NOT TESTED
       #ret.steerKpV, ret.steerKiV = [[0.38], [0.25]] #model: OS 7%, risetime 3s    - NOT TESTED
       #ret.steerKpV, ret.steerKiV = [[0.38], [0.35]] #model: OS 2%, risetime 4s    - NOT TESTED
-      #ret.steerKpV, ret.steerKiV = [[0.5], [0.15]]  #@rickbias suggestion         - RESULT: Fast lane left side bias ok.  Fast turn centering ok.  Slow lane hugs right. 
-      #ret.steerKpV, ret.steerKiV = [[0.6], [0.18]]  #@rickbias suggestion         - RESULT: Fast lane left side hug.  Fast turn ok.  Slow lane hugs right.
-      ret.steerKpV, ret.steerKiV = [[0.5], [0.22]]  #tweaking optimal result     - RESULT: Seems to fix slow / fast lane hug!
+      ret.steerKpV, ret.steerKiV = [[0.5], [0.22]]   #tweaking optimal result      - RESULT: Seems to fix slow / fast lane hug!
       #ret.steerKpV, ret.steerKiV = [[0.5], [0.23]]  #model: OS 8%, risetime 2.75s - RESULT: Great centering on fast turns. Fixes fast lane but slow lane still hugs.
       #ret.steerKpV, ret.steerKiV = [[0.5], [0.24]]  #tweaking optimal result      - RESULT: Does not fix slow lane hug
       #ret.steerKpV, ret.steerKiV = [[0.5], [0.3]]   #model: OS 3%, risetime 3.5s  - NOT TESTED
@@ -321,10 +323,6 @@ class CarInterface(object):
       #ret.steerKf = 0.00024 # - NOT TESTED
       #ret.steerKf = 0.00027 # - NOT TESTED
       #ret.steerKf = 0.00030 # - NOT TESTED
-      ret.longitudinalKpBP = [0., 5., 35.]
-      ret.longitudinalKpV = [1.2, 0.8, 0.5]
-      ret.longitudinalKiBP = [0., 35.]
-      ret.longitudinalKiV = [0.18, 0.12]
 
     elif candidate == CAR.RIDGELINE:
       stop_and_go = False
@@ -496,7 +494,7 @@ class CarInterface(object):
       # TODO: more buttons?
       buttonEvents.append(be)
     ret.buttonEvents = buttonEvents
-
+    ret.gasbuttonstatus = self.CS.cstm_btns.get_button_status("gas")
     # events
     # TODO: I don't like the way capnp does enums
     # These strings aren't checked at compile time

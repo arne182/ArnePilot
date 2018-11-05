@@ -105,8 +105,15 @@ class AlertManager(object):
             "TAKE CONTROL",
             "Steering Temporarily Unavailable",
             AlertStatus.userPrompt, AlertSize.mid,
-            Priority.LOW, None, None, .2, .2, .2),
-
+            Priority.LOW, None, None, .2, .2, .2
+),
+        Alert(
+            "steerTempUnavailableMuteNoEntry",
+            "TAKE CONTROL",
+            "Steering Temporarily Unavailable",
+            AlertStatus.userPrompt, AlertSize.mid,
+            Priority.LOW, None, None, .2, .2, .2
+),
         Alert(
             "preDriverDistracted",
             "KEEP EYES ON ROAD: User Appears Distracted",

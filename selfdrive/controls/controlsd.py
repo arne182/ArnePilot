@@ -280,7 +280,10 @@ def state_control(plan, CS, CP, state, events, v_cruise_kph, v_cruise_kph_last, 
     angle_offset = learn_angle_offset(active, CS.vEgo, angle_offset,
                                       PL.PP.c_poly, PL.PP.c_prob, CS.steeringAngle,
                                       CS.steeringPressed)
-
+  if CS.gasbuttonstatus == 0:
+    CP.gasMaxV = [0.2, 0.3, 0.4]
+  else:
+    CP.gasMaxV = [0.5, 0.7, 0.9]
   # *** gas/brake PID loop ***
   actuators.gas, actuators.brake = LoC.update(active, CS.vEgo, CS.brakePressed, CS.standstill, CS.cruiseState.standstill,
                                               v_cruise_kph, plan.vTarget, plan.vTargetFuture, plan.aTarget,
@@ -288,8 +291,9 @@ def state_control(plan, CS, CP, state, events, v_cruise_kph, v_cruise_kph_last, 
 
   # *** steering PID loop ***
   actuators.steer, actuators.steerAngle = LaC.update(active, CS.vEgo, CS.steeringAngle,
-                                                     CS.steeringPressed, plan.dPoly, angle_offset, VM, PL)
-
+                                                     CS.steeringPressed, plan.dPoly, angle_offset, VM, PL,CS.blindspot,CS.leftBlinker,CS.rightBlinker)
+ #BB added for ALCA support
+  #CS.pid = LaC.pid
   # send a "steering required alert" if saturation count has reached the limit
   if LaC.sat_flag and CP.steerLimitAlert:
     AM.add("steerSaturated", enabled)

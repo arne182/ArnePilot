@@ -48,11 +48,14 @@ class LatControl(object):
     self.angle_steers_des_mpc = 0.0
     self.angle_steers_des_prev = 0.0
     self.angle_steers_des_time = 0.0
+    self.blindspot_blink_counter_left_check = 0
+    self.blindspot_blink_counter_right_check = 0
+    
 
   def reset(self):
     self.pid.reset()
 
-  def update(self, active, v_ego, angle_steers, steer_override, d_poly, angle_offset, VM, PL):
+  def update(self, active, v_ego, angle_steers, steer_override, d_poly, angle_offset, VM, PL,blindspot,leftBlinker,rightBlinker):
     cur_time = sec_since_boot()
     self.mpc_updated = False
     # TODO: this creates issues in replay when rewinding time: mpc won't run
@@ -83,6 +86,12 @@ class LatControl(object):
       self.cur_state[0].delta = delta_desired
 
       self.angle_steers_des_mpc = float(math.degrees(delta_desired * VM.CP.steerRatio) + angle_offset)
+      if leftBlinker:
+        if self.blindspot_blink_counter_left_check > 150:
+          self.angle_steers_des_mpc += 0#15
+      if rightBlinker:
+        if self.blindspot_blink_counter_right_check > 150:
+          self.angle_steers_des_mpc -= 0#15
       self.angle_steers_des_time = cur_time
       self.mpc_updated = True
 
@@ -113,8 +122,27 @@ class LatControl(object):
       if VM.CP.steerControlType == car.CarParams.SteerControlType.torque:
         steer_feedforward *= v_ego**2  # proportional to realigning tire momentum (~ lateral accel)
       deadzone = 0.0
-      output_steer = self.pid.update(self.angle_steers_des, angle_steers, check_saturation=(v_ego > 10), override=steer_override,
-                                     feedforward=steer_feedforward, speed=v_ego, deadzone=deadzone)
+      output_steer = self.pid.update(self.angle_steers_des, angle_steers, check_saturation=(v_ego > 10), override=steer_override, feedforward=steer_feedforward, speed=v_ego, deadzone=deadzone)
+      if rightBlinker:
+        if blindspot:
+          self.blindspot_blink_counter_right_check = 0
+          print "debug: blindspot detected"
+        self.blindspot_blink_counter_right_check += 1
+        if self.blindspot_blink_counter_right_check > 150:
+          self.angle_steers_des -= 0#15
+
+      else:
+        self.blindspot_blink_counter_right_check = 0
+      
+      if leftBlinker:
+        if blindspot:
+          self.blindspot_blink_counter_left_check = 0
+          print "debug: blindspot detected"
+        self.blindspot_blink_counter_left_check += 1
+        if self.blindspot_blink_counter_left_check > 150:
+          self.angle_steers_des += 0#15
+      else:
+        self.blindspot_blink_counter_left_check = 0
 
     self.sat_flag = self.pid.saturated
     return output_steer, float(self.angle_steers_des)
