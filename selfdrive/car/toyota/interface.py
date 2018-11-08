@@ -121,16 +121,9 @@ class CarInterface(object):
       ret.wheelbase = 2.65
       tire_stiffness_factor = 0.5533
       ret.steerKf = 0.00006 # full torque for 10 deg at 80mph means 0.00007818594
-      if ret.enableGasInterceptor:
-        ret.gasMaxV = [0.2, 0.5, 0.7]
-        ret.longitudinalKpV = [1.2, 0.8, 0.5]
-        ret.longitudinalKiV = [0.18, 0.12]
-      else:
-        ret.gasMaxV = [0.2, 0.5, 0.7]
-        ret.longitudinalKpV = [3.6, 1.1, 1.0]
-        ret.longitudinalKiV = [0.5, 0.24]
+      
 
-    elif candidate == CAR.COROLLA:
+      elif candidate == CAR.COROLLA:
       stop_and_go = False
       ret.safetyParam = 100 # see conversion factor for STEER_TORQUE_EPS in dbc file
       ret.wheelbase = 2.70
@@ -253,14 +246,14 @@ class CarInterface(object):
     ret.steerRatioRear = 0.
     ret.steerControlType = car.CarParams.SteerControlType.torque
 
-    # steer, gas, brake limitations VS speed
+   # steer, gas, brake limitations VS speed
     ret.steerMaxBP = [16. * CV.KPH_TO_MS, 45. * CV.KPH_TO_MS]  # breakpoints at 1 and 40 kph
     ret.steerMaxV = [1., 1.]  # 2/3rd torque allowed above 45 kph
-    ret.gasMaxBP = [0., 9., 35.]
-    #ret.gasMaxV = [0.2, 0.5, 0.7]
+    ret.gasMaxBP = [0.]
+    ret.gasMaxV = [0.5]
     ret.brakeMaxBP = [5., 20.]
     ret.brakeMaxV = [1., 0.8]
-
+    
     ret.enableCamera = not check_ecu_msgs(fingerprint, ECU.CAM)
     ret.enableDsu = not check_ecu_msgs(fingerprint, ECU.DSU)
     ret.enableApgs = False #not check_ecu_msgs(fingerprint, ECU.APGS)
