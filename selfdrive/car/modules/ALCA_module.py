@@ -145,10 +145,10 @@ class ALCAController(object):
     self.alcaEnabled = alcaEnabled
 
   def set_pid(self,CS):
-    self.laneChange_steerr = CS.CP.steerRatio
-    self.pid = PIController((CS.CP.steerKpBP, CS.CP.steerKpV),
-                            (CS.CP.steerKiBP, CS.CP.steerKiV),
-                            k_f=CS.CP.steerKf, pos_limit=1.0)
+    self.laneChange_steerr = CP.steerRatio
+    self.pid = PIController((CP.steerKpBP, CP.steerKpV),
+                            (CP.steerKiBP, CP.steerKiV),
+                            k_f=CP.steerKf, pos_limit=1.0)
 
   def update_angle(self,enabled,CS,frame,actuators):
     alca_m1 = 1.
