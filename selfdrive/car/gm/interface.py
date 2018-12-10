@@ -361,7 +361,7 @@ class CarInterface(object):
     # In GM, PCM faults out if ACC command overlaps user gas.
     enabled = c.enabled and not self.CS.user_gas_pressed
 
-    self.CC.update(self.sendcan, enabled, self.CS, self.frame, \
+    self.CC.update(self.sendcan, enabled, self.CS, self.CP, self.frame, \
       c.actuators,
       hud_v_cruise, c.hudControl.lanesVisible, \
       c.hudControl.leadVisible, \
