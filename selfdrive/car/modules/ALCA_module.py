@@ -144,7 +144,7 @@ class ALCAController(object):
   def update_status(self,alcaEnabled):
     self.alcaEnabled = alcaEnabled
 
-  def set_pid(self,CS):
+  def set_pid(self,CP):
     self.laneChange_steerr = CP.steerRatio
     self.pid = PIController((CP.steerKpBP, CP.steerKpV),
                             (CP.steerKiBP, CP.steerKiV),
