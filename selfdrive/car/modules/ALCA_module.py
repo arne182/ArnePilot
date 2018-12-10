@@ -194,7 +194,7 @@ class ALCAController(object):
       #self.laneChange_enabled = 1
       #self.laneChange_counter = self.laneChange_counter
      
-    #self.laneChange_steerr = CS.CP.steerRatio
+    #self.laneChange_steerr = CP.steerRatio
     actuator_delta = 0.
     laneChange_angle = 0.
     turn_signal_needed = 0 # send 1 for left, 2 for right 0 for not needed
@@ -470,7 +470,7 @@ class ALCAController(object):
         output_steer = 0.
         if new_ALCA_Enabled and (self.laneChange_enabled < 5 ) and not self.laneChange_steerByAngle:
           #self.angle_steers_des = self.angle_steers_des_mpc # not declared
-          steers_max = interp(CS.v_ego, CS.CP.steerMaxBP, CS.CP.steerMaxV)
+          steers_max = interp(CS.v_ego, CP.steerMaxBP, CP.steerMaxV)
           self.pid.pos_limit = steers_max
           self.pid.neg_limit = -steers_max
           output_steer = self.pid.update(new_angle, CS.angle_steers , check_saturation=(CS.v_ego > 10), override=CS.steer_override, feedforward=new_angle * (CS.v_ego ** 2), speed=CS.v_ego, deadzone=0.0)
@@ -480,4 +480,3 @@ class ALCAController(object):
     else:
       # ALCA disabled
       return [actuators.steerAngle,actuators.steer,False,0]
- 
