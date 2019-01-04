@@ -217,7 +217,7 @@ class CarState(object):
     btns = []
     btns.append(UIButton("sound", "SND", 0, "", 0))
     btns.append(UIButton("alca", "ALC", 1, self.alcaLabels[self.alcaMode], 1))
-    btns.append(UIButton("slow", "SLO", 1, "", 2))
+    btns.append(UIButton("slow", "SLO", 0, "", 2))
     btns.append(UIButton("lka", "LKA", 1, "", 3))
     btns.append(UIButton("tr", "TR", 0, "", 4))
     btns.append(UIButton("gas", "GAS", 0, "", 5))
@@ -352,10 +352,10 @@ class CarState(object):
         self.cstm_btns.set_button_status("slow", 0)
       self.acc_slow_on_prev = self.acc_slow_on
     else:
-      if self.cstm_btns.get_button_status("slow") == 0:
+      if self.cstm_btns.get_button_status("slow") == 1:
         self.acc_slow_on = False
       else:
-        self.acc_slow_on = True
+        self.acc_slow_on = False
 
     # we could use the override bit from dbc, but it's triggered at too high torque values
     self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
