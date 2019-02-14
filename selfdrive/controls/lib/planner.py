@@ -218,13 +218,13 @@ class LongitudinalMpc(object):
     acceleration_code = self.acceleration_status()
     if acceleration_code == 1:
       x = [0, 20, 60, 70, 90]
-      y = [.9, 1.2, 1.4, 1.9, 2.2]
+      y = [1.8, 1.2, 1.4, 1.9, 2.2]
     elif acceleration_code == -1:
       x = [0, 10, 20, 40, 60, 70, 90]
-      y = [1.2, 1.8, 1.7, 1.8, 1.8, 2.2, 2.5]
+      y = [1.8, 1.8, 1.7, 1.8, 1.8, 2.2, 2.5]
     else: # constant speed
       x = [0, 20, 60, 70, 90]
-      y = [1.2, 1.6, 1.8, 2.0, 2.5]
+      y = [1.8, 1.6, 1.8, 2.0, 2.5]
     # return round(np.interp(speed, x, y), 2)
     f = interpolate.interp1d(x, y, fill_value='extrapolate') # interpolate above array
     return round(float(f(speed)[()]), 2)
@@ -271,7 +271,7 @@ class LongitudinalMpc(object):
 
     # Calculate mpc
     t = sec_since_boot()
-    if CS.vEgo < 11.4:
+    if CS.vEgo < 2.0:
       TR=1.8 # under 41km/hr use a TR of 1.8 seconds
       #if self.lastTR > 0:
         #self.libmpc.init(MPC_COST_LONG.TTC, 0.1, PC_COST_LONG.ACCELERATION, MPC_COST_LONG.JERK)
