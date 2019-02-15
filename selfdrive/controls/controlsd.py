@@ -271,7 +271,7 @@ def state_control(plan, CS, CP, state, events, v_cruise_kph, v_cruise_kph_last, 
   if CS.gasbuttonstatus == 0:
     CP.gasMaxV = [0.2, 0.2, 0.2]
   else:
-    CP.gasMaxV = [0.3, 0.7, 0.9]
+    CP.gasMaxV = [0.5, 0.5, 0.7]
   # Gas/Brake PID loop
   actuators.gas, actuators.brake = LoC.update(active, CS.vEgo, CS.brakePressed, CS.standstill, CS.cruiseState.standstill,
                                               v_cruise_kph, plan.vTarget, plan.vTargetFuture, plan.aTarget,
