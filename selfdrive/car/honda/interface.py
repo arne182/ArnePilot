@@ -1,7 +1,8 @@
+
 #!/usr/bin/env python
 import os
 import numpy as np
-from cereal import car, log
+from cereal import car
 from common.numpy_fast import clip, interp
 from common.realtime import sec_since_boot
 from selfdrive.swaglog import cloudlog
@@ -273,6 +274,19 @@ class CarInterface(object):
       ret.longitudinalKiBP = [0., 35.]
       ret.longitudinalKiV = [0.18, 0.12]
 
+    elif candidate == CAR.INSIGHT:
+      stop_and_go = True
+      ret.mass = 2987. * CV.LB_TO_KG + std_cargo
+      ret.wheelbase = 2.7
+      ret.centerToFront = ret.wheelbase * 0.39
+      ret.steerRatio = 15  # 12.58 is spec end-to-end
+      tire_stiffness_factor = 0.82
+      ret.steerKpV, ret.steerKiV = [[0.6], [0.18]]
+      ret.longitudinalKpBP = [0., 5., 35.]
+      ret.longitudinalKpV = [1.2, 0.8, 0.5]
+      ret.longitudinalKiBP = [0., 35.]
+      ret.longitudinalKiV = [0.18, 0.12]
+
     elif candidate == CAR.ODYSSEY:
       stop_and_go = False
       ret.mass = 4471 * CV.LB_TO_KG + std_cargo
@@ -292,35 +306,12 @@ class CarInterface(object):
       ret.wheelbase = 2.81
       ret.centerToFront = ret.wheelbase * 0.41
       ret.steerRatio = 16.0         # as spec
+      tire_stiffness_factor = 0.82
+      ret.steerKpV, ret.steerKiV = [[0.45], [0.135]]
       ret.longitudinalKpBP = [0., 5., 35.]
       ret.longitudinalKpV = [1.2, 0.8, 0.5]
       ret.longitudinalKiBP = [0., 35.]
       ret.longitudinalKiV = [0.18, 0.12]
-      #tire_stiffness_factor = 0.444 # not optimized yet  
-      tire_stiffness_factor = 0.82  # trying same as odyssey
-      #ret.steerKpV, ret.steerKiV = [[0.38], [0.11]] #original model: OS 30%, risetime: 1.75s, Max Output 0.8 of 1  
-      #ret.steerKpV, ret.steerKiV = [[0.38], [0.23]] #model: OS 10%,risetime 2.75s - RESULT: Better than default stock values.
-      #ret.steerKpV, ret.steerKiV = [[0.38], [0.3]]  #model: OS 5%, risetime 3.5s  - NOT TESTED
-      #ret.steerKpV, ret.steerKiV = [[0.38], [0.25]] #model: OS 7%, risetime 3s    - NOT TESTED
-      #ret.steerKpV, ret.steerKiV = [[0.38], [0.35]] #model: OS 2%, risetime 4s    - NOT TESTED
-      ret.steerKpV, ret.steerKiV = [[0.5], [0.22]]   #tweaking optimal result      - RESULT: Seems to fix slow / fast lane hug!
-      #ret.steerKpV, ret.steerKiV = [[0.5], [0.23]]  #model: OS 8%, risetime 2.75s - RESULT: Great centering on fast turns. Fixes fast lane but slow lane still hugs.
-      #ret.steerKpV, ret.steerKiV = [[0.5], [0.24]]  #tweaking optimal result      - RESULT: Does not fix slow lane hug
-      #ret.steerKpV, ret.steerKiV = [[0.5], [0.3]]   #model: OS 3%, risetime 3.5s  - NOT TESTED
-      #ret.steerKpV, ret.steerKiV = [[0.8], [0.23]]  #model: OS 5%, risetime 3s    - NOT TESTED
-      #ret.steerKpV, ret.steerKiV = [[0.8], [0.3]]   #model: OS 2%, risetime 3.8s  - RESULT: Fast lane left hugging recurrence. Wheel jiggles after fast turn.     
-      #ret.steerKpV, ret.steerKiV = [[1], [0.14]]    #model: OS 18%,risetime 2s    - NOT TESTED - CAUTION Large kP
-      #ret.steerKpV, ret.steerKiV = [[1.5], [0.2]]   #model: OS 5%, risetime 2.3s  - NOT TESTED - CAUTION Large kP
-      #ret.steerKpV, ret.steerKiV = [[2], [0.24]]    #model: OS 0%, risetime 3s    - NOT TESTED - CAUTION Large kP
-      #ret.steerKpV, ret.steerKiV = [[2], [0.21]]    #model: OS 3%, risetime 2.3s  - NOT TESTED - CAUTION Large kP
-      #ret.steerKf = 0.00009 # - NOT TESTED
-      #ret.steerKf = 0.00012 # - NOT TESTED - RESULT: 0.5,0.23 makes fast lane hug left side 
-      #ret.steerKf = 0.00015 # - NOT TESTED
-      #ret.steerKf = 0.00018 # - NOT TESTED
-      #ret.steerKf = 0.00021 # - NOT TESTED
-      #ret.steerKf = 0.00024 # - NOT TESTED
-      #ret.steerKf = 0.00027 # - NOT TESTED
-      #ret.steerKf = 0.00030 # - NOT TESTED
 
     elif candidate == CAR.RIDGELINE:
       stop_and_go = False
@@ -328,8 +319,8 @@ class CarInterface(object):
       ret.wheelbase = 3.18
       ret.centerToFront = ret.wheelbase * 0.41
       ret.steerRatio = 15.59        # as spec
-      tire_stiffness_factor = 0.444 # not optimized yet
-      ret.steerKpV, ret.steerKiV = [[0.38], [0.11]]
+      tire_stiffness_factor = 0.82
+      ret.steerKpV, ret.steerKiV = [[0.45], [0.135]]
       ret.longitudinalKpBP = [0., 5., 35.]
       ret.longitudinalKpV = [1.2, 0.8, 0.5]
       ret.longitudinalKiBP = [0., 35.]
@@ -367,8 +358,18 @@ class CarInterface(object):
     ret.steerMaxBP = [0.]  # m/s
     ret.steerMaxV = [1.]   # max steer allowed
 
-    ret.gasMaxBP = [0.]  # m/s
-    ret.gasMaxV = [0.6] if ret.enableGasInterceptor else [0.] # max gas allowed
+    # prevent lurching when resuming
+    if ret.enableGasInterceptor:
+      ret.gasMaxBP = [0., 8, 35]
+      ret.gasMaxV = [0.2, 0.6, 0.6]
+      ret.longitudinalKpBP = [0., 5., 35.]
+      ret.longitudinalKpV = [1.2, 0.8, 0.5]
+    else:
+      ret.gasMaxBP = [0.]  # m/s
+      ret.gasMaxV = [0.] # max gas allowed
+    
+    #ret.gasMaxBP = [0.]  # m/s
+    #ret.gasMaxV = [0.6] if ret.enableGasInterceptor else [0.] # max gas allowed
     ret.brakeMaxBP = [5., 20.]  # m/s
     ret.brakeMaxV = [1., 0.8]   # max brake allowed
 
@@ -441,6 +442,7 @@ class CarInterface(object):
     ret.cruiseState.standstill = False
     
     ret.readdistancelines = self.CS.read_distance_lines
+    ret.lkMode = self.CS.lkMode
 
     # TODO: button presses
     buttonEvents = []
@@ -495,7 +497,7 @@ class CarInterface(object):
       # TODO: more buttons?
       buttonEvents.append(be)
     ret.buttonEvents = buttonEvents
-    ret.gasbuttonstatus = self.CS.cstm_btns.get_button_status("gas")
+
     # events
     # TODO: event names aren't checked at compile time.
     # Maybe there is a way to use capnp enums directly
@@ -515,7 +517,11 @@ class CarInterface(object):
     else:
       self.cam_can_invalid_count = 0
 
-    if self.CS.steer_error:
+    if not self.CS.lkMode:
+      events.append(create_event('manualSteeringRequired', [ET.WARNING]))
+    elif self.CS.lkMode and (self.CS.left_blinker_on or self.CS.right_blinker_on):
+      events.append(create_event('manualSteeringRequiredBlinkersOn', [ET.WARNING]))
+    elif self.CS.steer_error:
       events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
     elif self.CS.steer_warning:
       events.append(create_event('steerTempUnavailable', [ET.WARNING]))
@@ -542,11 +548,11 @@ class CarInterface(object):
       events.append(create_event('speedTooLow', [ET.NO_ENTRY]))
 
     # disable on pedals rising edge or when brake is pressed and speed isn't zero
-    if (ret.gasPressed and not self.gas_pressed_prev) or \
+    if ((not self.CS.CP.carFingerprint in HONDA_BOSCH) and ret.gasPressed and not self.gas_pressed_prev) or \
        (ret.brakePressed and (not self.brake_pressed_prev or ret.vEgo > 0.001)):
       events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
 
-    if ret.gasPressed:
+    if (not self.CS.CP.carFingerprint in HONDA_BOSCH) and ret.gasPressed:
       events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
 
     # it can happen that car cruise disables while comma system is enabled: need to
@@ -554,9 +560,10 @@ class CarInterface(object):
     if self.CP.enableCruise and not ret.cruiseState.enabled and c.actuators.brake <= 0.:
       # non loud alert if cruise disbales below 25mph as expected (+ a little margin)
       if ret.vEgo < self.CP.minEnableSpeed + 2.:
-        events.append(create_event('speedTooLow', [ET.IMMEDIATE_DISABLE]))
-      else:
-        events.append(create_event("cruiseDisabled", [ET.IMMEDIATE_DISABLE]))
+      #  events.append(create_event('speedTooLow', [ET.IMMEDIATE_DISABLE]))
+      #else:
+        events.append(create_event("cruiseDisabled", [ET.IMMEDIATE_DISABLE]))   # send loud alert if slow and cruise disables during braking
+      
     if self.CS.CP.minEnableSpeed > 0 and ret.vEgo < 0.001:
       events.append(create_event('manualRestart', [ET.WARNING]))
 
@@ -600,7 +607,7 @@ class CarInterface(object):
 
   # pass in a car.CarControl
   # to be called @ 100hz
-  def apply(self, c, perception_state=log.Live20Data.new_message()):
+  def apply(self, c):
     if c.hudControl.speedVisible:
       hud_v_cruise = c.hudControl.setSpeed * CV.MS_TO_KPH
     else:
@@ -609,19 +616,19 @@ class CarInterface(object):
     hud_alert = VISUAL_HUD[c.hudControl.visualAlert.raw]
     snd_beep, snd_chime = AUDIO_HUD[c.hudControl.audibleAlert.raw]
 
-    pcm_accel = int(clip(c.cruiseControl.accelOverride,0,1)*0xc6)
+    pcm_accel = int(clip(c.cruiseControl.accelOverride, 0, 1) * 0xc6)
 
-    self.CC.update(self.sendcan, c.enabled, self.CS, self.frame, \
-      c.actuators, \
-      c.cruiseControl.speedOverride, \
-      c.cruiseControl.override, \
-      c.cruiseControl.cancel, \
-      pcm_accel, \
-      perception_state.radarErrors, \
-      hud_v_cruise, c.hudControl.lanesVisible, \
-      hud_show_car = c.hudControl.leadVisible, \
-      hud_alert = hud_alert, \
-      snd_beep = snd_beep, \
-      snd_chime = snd_chime)
+    self.CC.update(self.sendcan, c.enabled, self.CS, self.frame,
+                   c.actuators,
+                   c.cruiseControl.speedOverride,
+                   c.cruiseControl.override,
+                   c.cruiseControl.cancel,
+                   pcm_accel,
+                   hud_v_cruise,
+                   c.hudControl.lanesVisible,
+                   hud_show_car=c.hudControl.leadVisible,
+                   hud_alert=hud_alert,
+                   snd_beep=snd_beep,
+                   snd_chime=snd_chime)
 
     self.frame += 1
