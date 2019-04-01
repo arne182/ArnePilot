@@ -255,14 +255,14 @@ def state_control(plan, path_plan, CS, CP, state, events, v_cruise_kph, v_cruise
     elif CS.gasbuttonstatus == 1:
       CP.gasMaxV = [0.25, 0.9, 0.9]
     elif CS.gasbuttonstatus == 2:
-      CP.gasMaxV = [0.2, 0.2, 0.2]    
+      CP.gasMaxV = [0.2, 0.4, 0.6]    
   else:
     if CS.gasbuttonstatus == 0:
       CP.gasMaxV = [0.5, 0.7, 0.9]
     elif CS.gasbuttonstatus == 1:
       CP.gasMaxV = [0.7, 0.9, 0.9]
     elif CS.gasbuttonstatus == 2:
-      CP.gasMaxV = [0.2, 0.2, 0.2]
+      CP.gasMaxV = [0.2, 0.3, 0.5]
 
   cur_time = sec_since_boot()  # TODO: This won't work in replay
   mpc_time = plan.l20MonoTime / 1e9
