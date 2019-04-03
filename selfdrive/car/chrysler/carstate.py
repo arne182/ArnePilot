@@ -79,7 +79,7 @@ def get_camera_parser(CP):
 
 class CarState(object):
   def __init__(self, CP):
-    self.alcaLabels = ["MadMax","Normal","Wifey"]
+    self.alcaLabels = ["MadMax","Normal","Wifey","Off"]
     self.alcaMode = 2     # default to wifey on startup
     self.prev_distance_button = 0
     self.distance_button = 0
@@ -169,7 +169,7 @@ class CarState(object):
     if self.cstm_btns.btns[id].btn_status > 0:
       if (id == 1) and (btn_status == 0) and self.cstm_btns.btns[id].btn_name=="alca":
           if self.cstm_btns.btns[id].btn_label2 == self.alcaLabels[self.alcaMode]:
-            self.alcaMode = (self.alcaMode + 1 ) % 3
+            self.alcaMode = (self.alcaMode + 1 ) % 4
           else:
             self.alcaMode = 0
           self.cstm_btns.btns[id].btn_label2 = self.alcaLabels[self.alcaMode]
