@@ -156,6 +156,7 @@ class ALCAController(object):
                             k_f=CS.CP.steerKf, pos_limit=1.0)
 
   def update_angle(self,enabled,CS,frame,actuators):
+    self.alcaEnabled = True
     alca_m1 = 1.
     alca_m2 = 1.
     alca_m3 = 1.
@@ -167,6 +168,8 @@ class ALCAController(object):
       alca_m1 = 0.9
       alca_m2 = 1.7
       alca_m3 = 0.5
+    if CS.alcaMode == 3:
+      self.alcaEnabled = False
     # speed variable parameters
     cl_max_angle_delta = interp(CS.v_ego,CS.CL_MAX_ANGLE_DELTA_BP,CS.CL_MAX_ANGLE_DELTA) * alca_m1
     cl_maxd_a =  interp(CS.v_ego, CS.CL_MAXD_BP, CS.CL_MAXD_A) * alca_m3
