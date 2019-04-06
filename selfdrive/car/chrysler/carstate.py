@@ -86,7 +86,7 @@ class CarState(object):
     self.prev_lka_button = 0
     self.lka_button = 0
     self.lkMode = True
-    
+    self.main_last_on = False
     # ALCA PARAMS
     self.blind_spot_on = bool(0)
     # max REAL delta angle for correction vs actuator
@@ -220,7 +220,13 @@ class CarState(object):
     self.angle_steers = cp.vl["STEERING"]['STEER_ANGLE']
     self.angle_steers_rate = cp.vl["STEERING"]['STEERING_RATE']
     self.gear_shifter = parse_gear_shifter(cp.vl['GEAR']['PRNDL'])
-    self.main_on = cp.vl["ACC_2"]['ACC_STATUS_2'] == 7 or cp.vl["ACC_2"]['ACC_STATUS_2'] == 3 # ACC is green.
+    if self.main_last_on:
+      self.main_on = cp.vl["ACC_2"]['ACC_STATUS_2'] == 7 or cp.vl["ACC_2"]['ACC_STATUS_2'] == 3 # ACC is green.
+      if not self.main_on:
+        self.main_last_on = False
+    else:
+      self.main_on = cp.vl["ACC_2"]['ACC_STATUS_2'] == 7
+      self.main_last_on = True
     self.left_blinker_on = cp.vl["STEERING_LEVERS"]['TURN_SIGNALS'] == 1
     self.right_blinker_on = cp.vl["STEERING_LEVERS"]['TURN_SIGNALS'] == 2
 
