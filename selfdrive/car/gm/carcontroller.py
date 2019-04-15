@@ -125,7 +125,7 @@ class CarController(object):
 
       self.apply_steer_last = apply_steer
       idx = (frame / P.STEER_STEP) % 4
-      if CS.lane_departure_toggle_on:
+      if not CS.lane_departure_toggle_on:
         apply_steer = 0
 
       if self.car_fingerprint in SUPERCRUISE_CARS:
