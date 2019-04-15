@@ -257,9 +257,9 @@ class CarState(object):
     self.lkas_status_ok = cp_cam.vl["LKAS_HEARTBIT"]['LKAS_STATUS_OK']
     
     if self.cstm_btns.get_button_status("lka") == 0:
-        self.lane_departure_toggle_on = False
-      else:
-        self.lane_departure_toggle_on = True
+      self.lane_departure_toggle_on = False
+    else:
+      self.lane_departure_toggle_on = True
 
     if self.alcaMode == 0 and (self.left_blinker_on or self.right_blinker_on):
       self.lane_departure_toggle_on = False
