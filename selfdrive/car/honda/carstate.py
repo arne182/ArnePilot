@@ -453,7 +453,15 @@ class CarState(object):
       if self.read_distance_lines == 3:
         self.UE.custom_alert_message(2,"Following distance set to 2.7s",200,3)
       self.read_distance_lines_prev = self.read_distance_lines
+    if self.cstm_btns.get_button_status("lka") == 0:
+        self.lane_departure_toggle_on = False
+      else:
+        self.lane_departure_toggle_on = True
 
+    if self.alcaMode == 0 and (self.left_blinker_on or self.right_blinker_on):
+      self.lane_departure_toggle_on = False
+    else:
+      self.lane_departure_toggle_on = True
     # Gets rid of Pedal Grinding noise when brake is pressed at slow speeds for some models
     # TODO: this should be ok for all cars. Verify it.
     if self.CP.carFingerprint in (CAR.PILOT, CAR.PILOT_2019, CAR.RIDGELINE):
