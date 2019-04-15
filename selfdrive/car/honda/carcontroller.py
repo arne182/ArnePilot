@@ -166,13 +166,14 @@ class CarController(object):
     # steer torque
     alca_angle, alca_steer, alca_enabled, turn_signal_needed = self.ALCA.update(enabled, CS, frame, actuators)
 
-
+    if not CS.lane_departure_toggle_on:
+      apply_steer = 0
     # steer torque is converted back to CAN reference (positive when steering right)
     apply_gas = clip(actuators.gas, 0., 1.)
     apply_brake = int(clip(self.brake_last * BRAKE_MAX, 0, BRAKE_MAX - 1))
     apply_steer = int(clip(-alca_steer * STEER_MAX, -STEER_MAX, STEER_MAX))
     # any other cp.vl[0x18F]['STEER_STATUS'] is common and can happen during user override. sending 0 torque to avoid EPS sending error 5
-    lkas_active = enabled and not CS.steer_not_allowed and CS.lane_departure_toggle_on
+    lkas_active = enabled and not CS.steer_not_allowed and CS.lkMode
 
     # Send CAN commands.
     can_sends = []
