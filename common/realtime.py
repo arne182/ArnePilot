@@ -6,6 +6,8 @@ import threading
 import subprocess
 import multiprocessing
 
+from selfdrive.kegman_conf import kegman_conf
+
 from cffi import FFI
 ffi = FFI()
 ffi.cdef("""
@@ -71,6 +73,8 @@ def set_realtime_priority(level):
 
 class Ratekeeper(object):
   def __init__(self, rate, print_delay_threshold=0.):
+    self.kegman = kegman_conf()
+    self.lagTime = int(self.kegman.conf['lagTime'])
     """Rate in Hz for ratekeeping. print_delay_threshold must be nonnegative."""
     self._interval = 1. / rate
     self._next_frame_time = sec_since_boot() + self._interval
@@ -101,6 +105,10 @@ class Ratekeeper(object):
     self._next_frame_time += self._interval
     if remaining < -self._print_delay_threshold:
       print("%s lagging by %.2f ms" % (self._process_name, -remaining * 1000))
+      if -remaining * 1000 > self.lagTime:
+        self.lagTime = -remaining * 1000
+        self.kegman.conf['lagTime'] = str(self.lagTime)   # write lagTime to file
+        self.kegman.write_config(self.kegman.conf)
       lagged = True
     self._frame += 1
     self._remaining = remaining
