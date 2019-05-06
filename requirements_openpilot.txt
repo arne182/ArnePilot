@@ -53,8 +53,8 @@ pyyaml==3.12
 pyzmq==15.4.0
 raven==5.23.0
 recordclass==0.4.1
-requests==2.18.4
-scipy==1.0.0
+requests==2.10.0
+scipy==0.19.1
 service-identity==16.0.0
 setproctitle==1.1.10
 simplejson==3.8.2
@@ -66,3 +66,4 @@ tqdm==4.23.1
 ujson==1.35
 v4l2==0.2
 websocket_client==0.55.0
+matplotlib==2.1.2
