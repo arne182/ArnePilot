@@ -57,7 +57,7 @@ class CarInterface(object):
     ret.enableCamera = True
 
     std_cargo = 136
-    ret.steerRateCost = 0.7
+    ret.steerRateCost = 0.15
 
     if candidate in [CAR.IMPREZA, CAR.XV]:
       ret.mass = 1568 + std_cargo
@@ -65,7 +65,7 @@ class CarInterface(object):
       ret.centerToFront = ret.wheelbase * 0.5
       ret.steerRatio = 15
       tire_stiffness_factor = 1.0
-      ret.steerActuatorDelay = 0.4   # end-to-end angle controller
+      ret.steerActuatorDelay = 0.1   # end-to-end angle controller
       ret.lateralTuning.pid.kf = 0.00005
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20.], [0., 20.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2, 0.3], [0.02, 0.03]]
@@ -78,7 +78,7 @@ class CarInterface(object):
       ret.centerToFront = ret.wheelbase * 0.5
       ret.steerRatio = 20            # learned, 14 stock
       tire_stiffness_factor = 0.78
-      ret.steerActuatorDelay = 0.4
+      ret.steerActuatorDelay = 0.1
       ret.lateralTuning.pid.kf = 0.00003
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.,10.], [0.,10.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.07,0.15], [0.02,0.02]]
@@ -91,7 +91,7 @@ class CarInterface(object):
       ret.centerToFront = ret.wheelbase * 0.5
       ret.steerRatio = 14.5
       tire_stiffness_factor = 1.0
-      ret.steerActuatorDelay = 0.4
+      ret.steerActuatorDelay = 0.1
       ret.lateralTuning.pid.kf = 0.00005
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20.], [0., 20.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.1, 0.2], [0.01, 0.02]]
@@ -185,7 +185,7 @@ class CarInterface(object):
     ret.rightBlinker = self.CS.right_blinker_on
     ret.seatbeltUnlatched = self.CS.seatbelt_unlatched
     ret.doorOpen = self.CS.door_open
-    
+
     ret.gasbuttonstatus = self.CS.gasMode
     ret.readdistancelines = 1
     ret.genericToggle = False
@@ -194,7 +194,7 @@ class CarInterface(object):
     ret.accSlowToggle = False
     ret.blindspot = False
     ret.brakeLights = False
-    
+
     buttonEvents = []
 
     # blinkers
@@ -224,7 +224,7 @@ class CarInterface(object):
 
     if self.CS.steer_not_allowed:
       events.append(create_event('steerUnavailable', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
-      
+
     if ret.seatbeltUnlatched and (self.CS.acc_active and not self.acc_active_prev):
       events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
 

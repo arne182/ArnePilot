@@ -10,7 +10,7 @@ from selfdrive.swaglog import cloudlog
 import selfdrive.kegman_conf as kegman
 
 steeringAngleoffset = float(kegman.conf['angle_steers_offset'])  # deg offset
-   
+
 try:
   from selfdrive.car.toyota.carcontroller import CarController
 except ImportError:
@@ -97,7 +97,7 @@ class CarInterface(object):
       ret.longitudinalTuning.kpV = [2.0, 1.0, 0.5]  # braking tune from rav4h
       ret.longitudinalTuning.kiV = [0.30, 0.20]
 
-    ret.steerActuatorDelay = 0.12  # Default delay, Prius has larger delay
+    ret.steerActuatorDelay = 0.1  # Default delay, Prius has larger delay
     if candidate != CAR.PRIUS:
       ret.lateralTuning.init('pid')
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
@@ -110,7 +110,7 @@ class CarInterface(object):
       ret.steerRatio = 15.00   # unknown end-to-end spec
       tire_stiffness_factor = 0.6371   # hand-tune
       ret.mass = 3045 * CV.LB_TO_KG + std_cargo
-      
+
       ret.lateralTuning.init('indi')
       ret.lateralTuning.indi.innerLoopGain = 4.0
       ret.lateralTuning.indi.outerLoopGain = 3.0
@@ -126,10 +126,11 @@ class CarInterface(object):
       ret.wheelbase = 2.66 # 2.65 default
       ret.steerRatio = 17.28 # Rav4 0.5.10 tuning value
       ret.mass = 4100./2.205 + std_cargo  # mean between normal and hybrid
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.03]] #0.6 0.05 default
+      #ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.03]] #0.6 0.05 default
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.4], [0.05]] #0.6 0.05 default
       ret.wheelbase = 2.65
       tire_stiffness_factor = 0.5533
-      ret.lateralTuning.pid.kf = 0.00001 # full torque for 10 deg at 80mph means 0.00007818594
+      ret.lateralTuning.pid.kf = 0.00007 # full torque for 10 deg at 80mph means 0.00007818594
 
     elif candidate in [CAR.RAV4H]:
       stop_and_go = True
@@ -137,10 +138,10 @@ class CarInterface(object):
       ret.wheelbase = 2.65 # 2.65 default
       ret.steerRatio = 16.53 # 0.5.10 tuning
       ret.mass = 4100./2.205 + std_cargo  # mean between normal and hybrid
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.03]] #0.6 0.05 default
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.4], [0.05]] #0.6 0.05 default
       ret.wheelbase = 2.65
       tire_stiffness_factor = 0.5533
-      ret.lateralTuning.pid.kf = 0.0001 # full torque for 10 deg at 80mph means 0.00007818594
+      ret.lateralTuning.pid.kf = 0.00007 # full torque for 10 deg at 80mph means 0.00007818594
 
     elif candidate == CAR.RAV4_2019:
       stop_and_go = True
@@ -149,8 +150,8 @@ class CarInterface(object):
       ret.steerRatio = 17.0
       tire_stiffness_factor = 0.7933
       ret.mass = 3370. * CV.LB_TO_KG + std_cargo
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.05]]
-      ret.lateralTuning.pid.kf = 0.0001
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.4], [0.05]]
+      ret.lateralTuning.pid.kf = 0.00007
 
     elif candidate == CAR.COROLLA_HATCH:
       stop_and_go = True
@@ -181,7 +182,7 @@ class CarInterface(object):
       ret.mass = 4481 * CV.LB_TO_KG + std_cargo  # mean between min and max
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2], [0.02]]
       ret.lateralTuning.pid.kf = 0.00007   # full torque for 10 deg at 80mph means 0.00007818594
-      
+
     elif candidate == CAR.LEXUS_IS:
       stop_and_go = False
       ret.safetyParam = 100
@@ -263,10 +264,10 @@ class CarInterface(object):
     if candidate == CAR.OLD_CAR:
       ret.centerToFront = ret.wheelbase * 0.5
     else:
-      ret.centerToFront = ret.wheelbase * 0.44  
+      ret.centerToFront = ret.wheelbase * 0.44
 
 
-    ret.steerRateCost = 1.
+    ret.steerRateCost = 0.1
 
 
     #detect the Pedal address
@@ -339,7 +340,7 @@ class CarInterface(object):
     canMonoTimes = []
 
     self.cp.update(int(sec_since_boot() * 1e9), False)
-    
+
     self.cp_cam.update(int(sec_since_boot() * 1e9), False)
 
     self.CS.update(self.cp, self.cp_cam)

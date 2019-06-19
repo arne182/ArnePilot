@@ -200,7 +200,7 @@ class CarInterface(object):
     ret.startAccel = 0.0
 
     ret.steerActuatorDelay = 0.1  # Default delay, not measured yet
-    ret.steerRateCost = 1.0
+    ret.steerRateCost = 0.15
     ret.steerControlType = car.CarParams.SteerControlType.torque
 
     return ret
@@ -298,13 +298,13 @@ class CarInterface(object):
       buttonEvents.append(be)
 
     ret.buttonEvents = buttonEvents
-    
+
     if self.CS.lka_button and self.CS.lka_button != self.CS.prev_lka_button:
       if self.CS.lkMode:
         self.CS.lkMode = False
       else:
         self.CS.lkMode = True
-        
+
     if self.CS.distance_button and self.CS.distance_button != self.CS.prev_distance_button:
       self.CS.follow_level -= 1
       if self.CS.follow_level < 1:

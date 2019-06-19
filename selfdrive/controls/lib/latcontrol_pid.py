@@ -20,10 +20,10 @@ class LatControlPID(object):
     self.rate_ff_gain = 0.01
     self.angle_ff_bp = [[0.5, 5.0],[0.0, 1.0]]
     self.sat_time = 0.0
-    
+
   def reset(self):
     self.pid.reset()
-    
+
   def adjust_angle_gain(self):
     if (self.pid.f > 0) == (self.pid.i > 0) and abs(self.pid.i) >= abs(self.previous_integral):
       self.angle_ff_gain *= 1.0001
@@ -43,8 +43,8 @@ class LatControlPID(object):
       self.pid.reset()
       self.previous_integral = 0.0
     else:
-      self.angle_steers_des = interp(sec_since_boot(), path_plan.mpcTimes, path_plan.mpcAngles)
-      
+      self.angle_steers_des = path_plan.angleSteers  #  interp(sec_since_boot(), path_plan.mpcTimes, path_plan.mpcAngles)
+
       steers_max = get_steer_max(CP, v_ego)
       self.pid.pos_limit = steers_max
       self.pid.neg_limit = -steers_max
@@ -55,13 +55,13 @@ class LatControlPID(object):
         angle_feedforward *= self.angle_ff_ratio * self.angle_ff_gain
         rate_feedforward = (1.0 - self.angle_ff_ratio) * self.rate_ff_gain * path_plan.rateSteers
         steer_feedforward = v_ego**2 * (rate_feedforward + angle_feedforward)
-        
+
         if v_ego > 10.0:
           if abs(angle_steers) > (self.angle_ff_bp[0][1] / 2.0):
             self.adjust_angle_gain()
           else:
             self.previous_integral = self.pid.i
-        
+
       deadzone = 0.0
       output_steer = self.pid.update(self.angle_steers_des, angle_steers, check_saturation=(v_ego > 10), override=steer_override,
                                      feedforward=steer_feedforward, speed=v_ego, deadzone=deadzone)

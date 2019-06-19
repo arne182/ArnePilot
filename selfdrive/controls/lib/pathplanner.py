@@ -15,7 +15,8 @@ _DT_HALF_MPC = 0.025
 
 def calc_states_after_delay(states, v_ego, steer_angle, curvature_factor, steer_ratio, delay):
   states[0].x = v_ego * delay
-  states[0].psi = v_ego * curvature_factor * math.radians(steer_angle) / steer_ratio * delay
+  states[0].delta = math.radians(steer_angle) / steer_ratio
+  states[0].psi = curvature_factor * states[0].x * states[0].delta
   return states
 
 
@@ -25,7 +26,7 @@ class PathPlanner(object):
 
     self.l_poly = [0., 0., 0., 0.]
     self.r_poly = [0., 0., 0., 0.]
-    
+
     self.last_cloudlog_t = 0
 
     context = zmq.Context()
@@ -48,7 +49,7 @@ class PathPlanner(object):
     self.cur_state[0].delta = 0.0
     self.mpc_angles = [0.0, 0.0, 0.0]
     self.mpc_times = [0.0, 0.0, 0.0]
-    
+
     self.angle_steers_des = 0.0
     self.angle_steers_des_mpc = 0.0
     self.angle_steers_des_prev = 0.0
@@ -73,13 +74,11 @@ class PathPlanner(object):
     p_poly = libmpc_py.ffi.new("double[4]", list(self.MP.p_poly))
 
     # account for actuation delay
-    self.cur_state = calc_states_after_delay(self.cur_state, v_ego, angle_steers - angle_offset_average, curvature_factor, VM.sR, CP.steerActuatorDelay)
+    self.cur_state = calc_states_after_delay(self.cur_state, v_ego, angle_steers - angle_offset_bias, curvature_factor, VM.sR, CP.steerActuatorDelay)
     self.angle_steers_des_prev = np.interp(cur_time, self.mpc_times, self.mpc_angles)
 
     # reset to current steer angle if not active or overriding
-    if active:
-      self.cur_state[0].delta = math.radians(self.angle_steers_des_prev - angle_offset_bias) / VM.sR
-    else:
+    if not active:
       rate_desired = 0.0
       self.cur_state[0].delta = math.radians(angle_steers - angle_offset_bias) / VM.sR
 
@@ -147,11 +146,11 @@ class PathPlanner(object):
     dat.liveMpc.delta = list(self.mpc_solution[0].delta)
     dat.liveMpc.cost = self.mpc_solution[0].cost
     self.livempc.send(dat.to_bytes())
-    
+
     dat2 = messaging.new_message()
     dat2.init('latControl')
     dat2.latControl.anglelater = math.degrees(list(self.mpc_solution[0].delta)[-1])
     self.latControl_sock.send(dat2.to_bytes())
-    
+
     self.l_poly = l_poly
     self.r_poly = r_poly

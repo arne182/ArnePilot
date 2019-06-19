@@ -394,7 +394,7 @@ class CarInterface(object):
     ret.startAccel = 0.5
 
     ret.steerActuatorDelay = 0.1
-    ret.steerRateCost = 0.5
+    ret.steerRateCost = 0.2
 
     return ret
 
@@ -453,7 +453,7 @@ class CarInterface(object):
     ret.cruiseState.available = bool(self.CS.main_on)
     ret.cruiseState.speedOffset = self.CS.cruise_speed_offset
     ret.cruiseState.standstill = False
-    
+
     ret.readdistancelines = self.CS.read_distance_lines
 
     # TODO: button presses

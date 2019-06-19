@@ -77,12 +77,12 @@ class CarInterface(object):
     ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.15,0.30], [0.03,0.05]]
     ret.lateralTuning.pid.kf = 0.00006   # full torque for 10 deg at 80mph means 0.00007818594
     ret.steerActuatorDelay = 0.1
-    ret.steerRateCost = 0.7
+    ret.steerRateCost = 0.15
 
     if candidate in (CAR.JEEP_CHEROKEE_2017, CAR.JEEP_CHEROKEE_2018, CAR.JEEP_CHEROKEE_2019):
       ret.wheelbase = 2.91  # in meters
       ret.steerRatio = 11.6 # 0.5.10
-      ret.steerActuatorDelay = 0.2  # in seconds
+      ret.steerActuatorDelay = 0.1  # in seconds
 
     ret.centerToFront = ret.wheelbase * 0.44
 
@@ -185,7 +185,7 @@ class CarInterface(object):
     # ignore standstill in hybrid rav4, since pcm allows to restart without
     # receiving any special command
     ret.cruiseState.standstill = False
-    
+
     ret.readdistancelines = 1
     ret.genericToggle = False
     ret.laneDepartureToggle = False
@@ -224,7 +224,7 @@ class CarInterface(object):
       disengage_event = True
     else:
       disengage_event = False
-    
+
     ret.gasbuttonstatus = self.CS.gasMode
     # events
     events = []
