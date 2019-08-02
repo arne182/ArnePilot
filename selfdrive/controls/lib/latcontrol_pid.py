@@ -10,9 +10,20 @@ class LatControlPID(object):
                             (CP.lateralTuning.pid.kiBP, CP.lateralTuning.pid.kiV),
                             k_f=CP.lateralTuning.pid.kf, pos_limit=1.0)
     self.angle_steers_des = 0.
+    self.has_overridden = False
 
   def reset(self):
     self.pid.reset()
+
+  def tesla_disengage(self, angle_steers, steer_override, v_ego, deadzone, steer_feedforward):
+    if steer_override:
+      self.has_overridden = True
+    if self.has_overridden:
+      output_steer = 0.0
+    else:
+      output_steer = self.pid.update(self.angle_steers_des, angle_steers, check_saturation=(v_ego > 10), override=steer_override,
+                                     feedforward=steer_feedforward, speed=v_ego, deadzone=deadzone)
+    return output_steer
 
   def update(self, active, v_ego, angle_steers, angle_steers_rate, steer_override, CP, VM, path_plan):
     pid_log = log.ControlsState.LateralPIDState.new_message()
@@ -35,9 +46,7 @@ class LatControlPID(object):
         steer_feedforward -= path_plan.angleOffset   # subtract the offset, since it does not contribute to resistive torque
         steer_feedforward *= v_ego**2  # proportional to realigning tire momentum (~ lateral accel)
       deadzone = 0.0
-      '''output_steer = self.pid.update(self.angle_steers_des, angle_steers, check_saturation=(v_ego > 10), override=steer_override,
-                                     feedforward=steer_feedforward, speed=v_ego, deadzone=deadzone)'''
-      output_steer = 0.0
+      output_steer = self.tesla_disengage(angle_steers, steer_override, v_ego, deadzone, steer_feedforward)
       pid_log.active = True
       pid_log.p = self.pid.p
       pid_log.i = self.pid.i
