@@ -16,6 +16,7 @@ class LatControlPID(object):
     self.pid.reset()
 
   def tesla_disengage(self, angle_steers, steer_override, v_ego, deadzone, steer_feedforward):
+    self.has_overridden = False
     if steer_override:
       self.has_overridden = True
     if self.has_overridden:
