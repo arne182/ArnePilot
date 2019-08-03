@@ -13,17 +13,18 @@ class LatControlPID(object):
     self.angle_steers_des = 0.
     self.to_disengage = False
     self.t_since_override = time.time()
+    self.disengage_time = 0.5
 
   def reset(self):
     self.pid.reset()
 
   def tesla_disengage(self, angle_steers, steer_override, v_ego, deadzone, steer_feedforward):
-    if steer_override and (time.time() - self.t_since_override) > 2:  # make sure to enable steering after 2 seconds
+    if steer_override and (time.time() - self.t_since_override) > self.disengage_time:  # make sure to enable steering after 2 seconds
       self.t_since_override = time.time()
       self.to_disengage = True
-    elif (time.time() - self.t_since_override) > 2:
+    elif (time.time() - self.t_since_override) > self.disengage_time:
       self.to_disengage = False
-    if self.to_disengage and (time.time() - self.t_since_override) <= 2:
+    if self.to_disengage and (time.time() - self.t_since_override) <= self.disengage_time:
       output_steer = 0.0
     else:
       self.to_disengage = False
