@@ -2,6 +2,7 @@ from selfdrive.controls.lib.pid import PIController
 from selfdrive.controls.lib.drive_helpers import get_steer_max
 from cereal import car
 from cereal import log
+import time
 
 
 class LatControlPID(object):
@@ -10,18 +11,22 @@ class LatControlPID(object):
                             (CP.lateralTuning.pid.kiBP, CP.lateralTuning.pid.kiV),
                             k_f=CP.lateralTuning.pid.kf, pos_limit=1.0)
     self.angle_steers_des = 0.
-    self.has_overridden = False
+    self.to_disengage = False
+    self.t_since_override = time.time()
 
   def reset(self):
     self.pid.reset()
 
   def tesla_disengage(self, angle_steers, steer_override, v_ego, deadzone, steer_feedforward):
-    self.has_overridden = False
-    if steer_override:
-      self.has_overridden = True
-    if self.has_overridden:
+    if steer_override and (time.time() - self.t_since_override) > 2:  # make sure to enable steering after 2 seconds
+      self.t_since_override = time.time()
+      self.to_disengage = True
+    elif (time.time() - self.t_since_override) > 2:
+      self.to_disengage = False
+    if self.to_disengage and (time.time() - self.t_since_override) <= 2:
       output_steer = 0.0
     else:
+      self.to_disengage = False
       output_steer = self.pid.update(self.angle_steers_des, angle_steers, check_saturation=(v_ego > 10), override=steer_override,
                                      feedforward=steer_feedforward, speed=v_ego, deadzone=deadzone)
     return output_steer
