@@ -258,7 +258,7 @@ def prepare_managed_process(p):
     except subprocess.CalledProcessError:
       # make clean if the build failed
       if proc == ('selfdrive/mapd', ['./start.py']):
-        continue
+        break
         #if it's not mapd jump to else
       else:
         cloudlog.warning("building %s failed, make clean" % (proc, ))
