@@ -1,8 +1,11 @@
 #include <time.h>
+//#include <dirent.h>
 
 #define CAPTURE_STATE_NONE 0
 #define CAPTURE_STATE_CAPTURING 1
 #define CAPTURE_STATE_NOT_CAPTURING 2
+#define CAPTURE_STATE_PAUSED 3
+#define CLICK_TIME 0.2
 #define RECORD_INTERVAL 180 // Time in seconds to rotate recordings; Max for screenrecord is 3 minutes
 #define RECORD_FILES 40 // Number of files to create before looping over
 
@@ -19,25 +22,14 @@ int captureState = CAPTURE_STATE_NOT_CAPTURING;
 int captureNum = 0;
 int start_time = 0;
 int elapsed_time = 0; // Time of current recording
+int click_elapsed_time = 0;
+int click_time = 0;
 char filenames[RECORD_FILES][50]; // Track the filenames so they can be deleted when rotating
 
 bool lock_current_video = false; // If true save the current video before rotating
 bool locked_files[RECORD_FILES]; // Track which files are locked
 int lock_image; // Stores reference to the PNG
 int files_created = 0;
-
-void stop_capture() {
-  if (captureState == CAPTURE_STATE_CAPTURING) {
-    //printf("Stop capturing screen\n");
-    system("killall -SIGINT screenrecord");
-    captureState = CAPTURE_STATE_NOT_CAPTURING;
-    captureNum++;
-
-    if (captureNum > RECORD_FILES-1) {
-      captureNum = 0;
-    }
-  }
-}
 
 int get_time() {
   // Get current time (in seconds)
@@ -90,6 +82,26 @@ void save_file(char *videos_dir, char *filename) {
   system(cmd);
 }
 
+void stop_capture() {
+  char videos_dir[50] = "/sdcard/videos";
+
+  if (captureState == CAPTURE_STATE_CAPTURING) {
+    system("killall -SIGINT screenrecord");
+    captureState = CAPTURE_STATE_NOT_CAPTURING;
+    elapsed_time = get_time() - start_time;
+    if (elapsed_time < 3) {
+      remove_file(videos_dir, filenames[captureNum]);
+    } else {
+      //printf("Stop capturing screen\n");
+      captureNum++;
+
+      if (captureNum > RECORD_FILES-1) {
+        captureNum = 0;
+      }
+    }
+  }
+}
+
 void start_capture() {
   captureState = CAPTURE_STATE_CAPTURING;
   char cmd[128] = "";
@@ -102,6 +114,17 @@ void start_capture() {
   if (stat(videos_dir, &st) == -1) {
     mkdir(videos_dir,0700);
   }
+  /*if (captureNum == 0 && files_created == 0) {
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir ("/sdcard/videos")) != NULL) {
+      while ((ent = readdir (dir)) != NULL) {
+        strcpy(filenames[files_created++], ent->d_name);
+      }
+      captureNum = files_created;
+      closedir (dir);
+    }
+  }*/
 
   if (strlen(filenames[captureNum]) && files_created >= RECORD_FILES) {
     if (locked_files[captureNum] > 0) {
@@ -217,18 +240,18 @@ void draw_lock_button(UIState *s) {
   }
 
   nvgBeginPath(s->vg);
-    NVGpaint imgPaint = nvgImagePattern(s->vg, btn_x-125, btn_y-45, 150, 150, 0, lock_image, alpha);
-    nvgRoundedRect(s->vg, btn_x-125, btn_y-45, 150, 150, 100);
-    nvgFillPaint(s->vg, imgPaint);
-    nvgFill(s->vg);
+  NVGpaint imgPaint = nvgImagePattern(s->vg, btn_x-125, btn_y-45, 150, 150, 0, lock_image, alpha);
+  nvgRoundedRect(s->vg, btn_x-125, btn_y-45, 150, 150, 100);
+  nvgFillPaint(s->vg, imgPaint);
+  nvgFill(s->vg);
 
 
-    lock_button = (dashcam_element){
-      .pos_x = 1500,
-      .pos_y = 920,
-      .width = 150,
-      .height = 150
-    };
+  lock_button = (dashcam_element){
+    .pos_x = 1500,
+    .pos_y = 920,
+    .width = 150,
+    .height = 150
+  };
 }
 
 static void screen_draw_button(UIState *s, int touch_x, int touch_y) {
@@ -298,8 +321,14 @@ void screen_toggle_lock() {
 void dashcam( UIState *s, int touch_x, int touch_y ) {
   screen_draw_button(s, touch_x, touch_y);
   if (screen_button_clicked(touch_x,touch_y)) {
-    screen_toggle_record_state();
+    click_elapsed_time = get_time() - click_time;
+
+    if (click_elapsed_time > 0) {
+      click_time = get_time() + 1;
+      screen_toggle_record_state();
+    }
   }
+
   if (screen_lock_button_clicked(touch_x,touch_y,lock_button)) {
     screen_toggle_lock();
   }
@@ -307,4 +336,11 @@ void dashcam( UIState *s, int touch_x, int touch_y ) {
     // Assume car is not in drive so stop recording
     stop_capture();
   }
+  if (s->scene.v_ego > 3.1 && captureState == CAPTURE_STATE_PAUSED) {
+    start_capture();
+  } else if (s->scene.v_ego < 2.9 && captureState == CAPTURE_STATE_CAPTURING) {
+    stop_capture();
+    captureState = CAPTURE_STATE_PAUSED;
+  }
+  s->scene.recording = (captureState != CAPTURE_STATE_NOT_CAPTURING);
 }
