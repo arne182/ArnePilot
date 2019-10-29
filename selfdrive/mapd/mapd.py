@@ -258,7 +258,7 @@ def mapsd_thread():
             curvature = 1. / radii
           rate = [rate_curvature_points(*p) for p in zip(pnts[1:], pnts[2:],curvature[0:],curvature[1:])]
           rate = ([0] + rate)
-          curvature = np.multiply(np.multiply(rate,2000)+0.9,curvature)
+          curvature = np.multiply(np.minimum(np.multiply(rate,4000)+0.7,1.1),curvature)
           # Index of closest point
           closest = np.argmin(np.linalg.norm(pnts, axis=1))
           dist_to_closest = pnts[closest, 0]  # We can use x distance here since it should be close
