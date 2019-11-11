@@ -11,7 +11,7 @@ class Phantom:
   def __init__(self, timeout=1.):
     context = zmq.Context()
     self.op_params = opParams()
-    self.phantom_Data_sock = messaging_arne.sub_sock(service_list['phantomData'].port, conflate=True)
+    self.phantom_Data_sock = messaging_arne.sub_sock('phantomData', conflate=True)
     self.data = {"status": False, "speed": 0.0}
     self.last_receive_time = time.time()
     self.last_phantom_data = {"status": False, "speed": 0.0}
