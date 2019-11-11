@@ -381,64 +381,10 @@ class Way:
       #print(way_pts)
 
       try:
-        if backwards:
-          if way.way.nodes[0].tags['highway']=='mini_roundabout':
-            if way_pts[0,0] < 0 and way_pts[-1,0] < 0:
-              pass
-            elif way_pts[0,0] < 0:
-              speed_ahead_dist = np.linalg.norm(way_pts[-1, :])
-              speed_ahead = 15/3.6
-              break
-            elif way_pts[-1,0] < 0:
-              speed_ahead_dist = np.linalg.norm(way_pts[0, :])
-              speed_ahead = 15/3.6
-              break
-        else:
-          if way.way.nodes[-1].tags['highway']=='mini_roundabout':
-            if way_pts[0,0] < 0 and way_pts[-1,0] < 0:
-              pass
-            elif way_pts[0,0] < 0:
-              speed_ahead_dist = np.linalg.norm(way_pts[-1, :])
-              speed_ahead = 15/3.6
-              break
-            elif way_pts[-1,0] < 0:
-              speed_ahead_dist = np.linalg.norm(way_pts[0, :])
-              speed_ahead = 15/3.6
-              break
-      except KeyError:
-        pass
-      try:
-        if backwards:
-          if way.way.nodes[0].tags['traffic_calming']=='bump':
-            if way_pts[0,0] < 0 and way_pts[-1,0] < 0:
-              pass
-            elif way_pts[0,0] < 0:
-              speed_ahead_dist = np.linalg.norm(way_pts[-1, :])
-              speed_ahead = 2.24
-              break
-            elif way_pts[-1,0] < 0:
-              speed_ahead_dist = np.linalg.norm(way_pts[0, :])
-              speed_ahead = 2.24
-              break
-        else:
-          if way.way.nodes[-1].tags['traffic_calming']=='bump':
-            if way_pts[0,0] < 0 and way_pts[-1,0] < 0:
-              pass
-            elif way_pts[0,0] < 0:
-              speed_ahead_dist = np.linalg.norm(way_pts[-1, :])
-              speed_ahead = 2.24
-              break
-            elif way_pts[-1,0] < 0:
-              speed_ahead_dist = np.linalg.norm(way_pts[0, :])
-              speed_ahead = 2.24
-              break
-      except KeyError:
-        pass
-      try:
         count = 0
         loop_must_break = False
         for n in way.way.nodes:
-          if 'highway' in n.tags and (n.tags['highway']=='stop' or n.tags['highway']=='give_way' or n.tags['highway']=='traffic_signals') and way_pts[count,0] > 0:
+          if 'highway' in n.tags and (n.tags['highway']=='stop' or n.tags['highway']=='give_way' or n.tags['highway']=='mini_roundabout' or n.tags['highway']=='traffic_signals') and way_pts[count,0] > 0:
             if 'direction' in n.tags:
               if backwards and (n.tags['direction']=='backward' or n.tags['direction']=='both'):
                 print("backward")
@@ -518,6 +464,13 @@ class Way:
               except (KeyError, ValueError):
                 pass
             else:
+              if n.tags['highway']=='mini_roundabout':
+                if way_pts[count, 0] > 0:
+                  speed_ahead_dist = way_pts[count, 0]
+                  print(speed_ahead_dist)
+                  speed_ahead = 15/3.6
+                  loop_must_break = True
+                  break
               if way_pts[count, 0] > 0 and Traffic_Debug:
                 print("no direction")
                 speed_ahead_dist = max(0. , way_pts[count, 0] - 10.0)
@@ -528,9 +481,23 @@ class Way:
                 loop_must_break = True
                 break
           if 'railway' in n.tags and n.tags['railway']=='level_crossing':
-            speed_ahead = 0
-            speed_ahead_dist = max(0. , way_pts[count, 0] - 10.0)
-            loop_must_break = True
+            if way_pts[count, 0] > 0:
+              speed_ahead = 0
+              speed_ahead_dist = max(0. , way_pts[count, 0] - 10.0)
+              loop_must_break = True
+              break
+          if 'traffic_calming' in n.tags:
+            if way_pts[count, 0] > 0:
+              if n.tags['traffic_calming']=='bump' or n.tags['traffic_calming']=='hump':
+                speed_ahead = 2.24
+                speed_ahead_dist = way_pts[count, 0]
+                loop_must_break = True
+                break
+              elif n.tags['traffic_calming']=='chicane' or n.tags['traffic_calming']=='choker':
+                speed_ahead = 20/3.6
+                speed_ahead_dist = way_pts[count, 0]
+                loop_must_break = True
+                break
           count += 1
         if loop_must_break: break
       except (KeyError, IndexError, ValueError):

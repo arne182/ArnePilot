@@ -8,6 +8,7 @@ import signal
 import subprocess
 import datetime
 from common.spinner import Spinner
+import selfdrive.messaging as messaging
 
 from common.basedir import BASEDIR
 sys.path.append(os.path.join(BASEDIR, "pyextra"))
@@ -331,7 +332,7 @@ def system(cmd):
 def manager_thread():
   # now loop
   thermal_sock = messaging.sub_sock('thermal')
-
+  gps_sock = messaging.sub_sock('gpsLocation', conflate=True)
   cloudlog.info("manager start")
   cloudlog.info({"environ": os.environ})
 
@@ -359,8 +360,13 @@ def manager_thread():
   logger_dead = False
 
   while 1:
+    gps = messaging.recv_one_or_none(gps_sock)
     msg = messaging.recv_sock(thermal_sock, wait=True)
-
+    if gps:
+      if 47.3024876979 < gps.gpsLocation.latitude < 54.983104153 and 5.98865807458 < gps.gpsLocation.longitude < 15.0169958839:
+        logger_dead = True
+      else:
+        logger_dead = False
     # uploader is gated based on the phone temperature
     if msg.thermal.thermalStatus >= ThermalStatus.yellow:
       kill_managed_process("uploader")
