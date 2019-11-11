@@ -5,7 +5,7 @@ can_dir = os.path.dirname(os.path.abspath(__file__))
 subprocess.check_call(["make"], cwd=can_dir)
 from .messaging_pyx import Context, Poller, SubSocket, PubSocket # pylint: disable=no-name-in-module, import-error
 
-from cereal import log
+from cereal import arne182 as log
 from common.realtime import sec_since_boot
 from selfdrive.services import service_list
 
@@ -13,7 +13,7 @@ from selfdrive.services import service_list
 context = Context()
 
 def new_message():
-  dat = log.Event.new_message()
+  dat = log.EventArne182.new_message()
   dat.logMonoTime = int(sec_since_boot() * 1e9)
   dat.valid = True
   return dat
@@ -64,7 +64,7 @@ def drain_sock(sock, wait_for_one=False):
     if dat is None: # Timeout hit
       break
 
-    dat = log.Event.from_bytes(dat)
+    dat = log.EventArne182.from_bytes(dat)
     ret.append(dat)
 
   return ret
@@ -87,20 +87,20 @@ def recv_sock(sock, wait=False):
     dat = rcv
 
   if dat is not None:
-    dat = log.Event.from_bytes(dat)
+    dat = log.EventArne182.from_bytes(dat)
 
   return dat
 
 def recv_one(sock):
   dat = sock.receive()
   if dat is not None:
-    dat = log.Event.from_bytes(dat)
+    dat = log.EventArne182.from_bytes(dat)
   return dat
 
 def recv_one_or_none(sock):
   dat = sock.receive(non_blocking=True)
   if dat is not None:
-    dat = log.Event.from_bytes(dat)
+    dat = log.EventArne182.from_bytes(dat)
   return dat
 
 def recv_one_retry(sock):
@@ -108,7 +108,7 @@ def recv_one_retry(sock):
   while True:
     dat = sock.receive()
     if dat is not None:
-      return log.Event.from_bytes(dat)
+      return log.EventArne182.from_bytes(dat)
 
 def get_one_can(logcan):
   while True:
