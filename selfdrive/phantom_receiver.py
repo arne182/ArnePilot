@@ -21,7 +21,7 @@ class PhantomReceiver:
     self.phantom_data_sock.send(phantom_data.to_bytes())
 
   def enable_phantom(self):
-    self.phantom_data_sock = messaging_arne.pub_sock(service_list['phantomData'].port)
+    self.phantom_data_sock = messaging_arne.pub_sock('phantomData')
     return "ENABLED"  # needed to tell the app we're all done with this function
 
   def disable_phantom(self):
