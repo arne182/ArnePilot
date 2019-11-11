@@ -11,7 +11,6 @@ from common.params import Params
 from selfdrive.swaglog import cloudlog
 from common.op_params import opParams
 import selfdrive.messaging as messaging
-from selfdrive.services import service_list
 
 op_params = opParams()
 

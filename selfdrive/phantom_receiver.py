@@ -1,4 +1,3 @@
-from selfdrive.services import service_list
 import selfdrive.messaging_arne as messaging_arne
 
 

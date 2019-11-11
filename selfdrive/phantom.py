@@ -1,6 +1,5 @@
 import zmq
 import selfdrive.messaging_arne as messaging_arne
-from selfdrive.services import service_list
 from common.op_params import opParams
 import subprocess
 from common.travis_checker import travis

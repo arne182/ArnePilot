@@ -1,6 +1,5 @@
 import numpy as np
 import math
-from selfdrive.services import service_list
 from cereal import arne182
 import selfdrive.messaging as messaging
 from common.numpy_fast import interp
