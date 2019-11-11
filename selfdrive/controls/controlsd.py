@@ -4,7 +4,6 @@ import gc
 import capnp
 import zmq
 import selfdrive.messaging_arne as messaging_arne
-from selfdrive.services import service_list
 from cereal import car, log, arne182
 from common.numpy_fast import clip
 from common.realtime import sec_since_boot, set_realtime_priority, Ratekeeper, DT_CTRL
@@ -461,7 +460,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
                               'gpsLocation', 'radarState'], ignore_alive=['gpsLocation'])
 
   poller = zmq.Poller()
-  arne182Status = messaging_arne.sub_sock(service_list['arne182Status'].port, poller, conflate=True)  # todo: can we use messaging_arne here?
+  arne182Status = messaging_arne.sub_sock('arne182Status', poller, conflate=True)
   if can_sock is None:
     can_timeout = None if os.environ.get('NO_CAN_TIMEOUT', False) else 100
     can_sock = messaging.sub_sock('can', timeout=can_timeout)

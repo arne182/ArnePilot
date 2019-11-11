@@ -2,7 +2,6 @@
 import math
 from datetime import datetime
 import time
-from selfdrive.services import service_list
 import zmq
 import numpy as np
 from cereal import arne182
@@ -99,8 +98,8 @@ class Planner():
   def __init__(self, CP):
     self.CP = CP
     self.poller = zmq.Poller()
-    self.arne182Status = messaging_arne.sub_sock(service_list['arne182Status'].port, poller=self.poller, conflate=True)
-    self.latcontolStatus = messaging_arne.sub_sock(service_list['latControl'].port, poller=self.poller, conflate=True)
+    self.arne182Status = messaging_arne.sub_sock('arne182Status', poller=self.poller, conflate=True)
+    self.latcontolStatus = messaging_arne.sub_sock('latControl', poller=self.poller, conflate=True)
     self.mpc1 = LongitudinalMpc(1)
     self.mpc2 = LongitudinalMpc(2)
 
