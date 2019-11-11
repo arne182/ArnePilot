@@ -38,7 +38,8 @@ DEPS=$(OBJS:.o=.d)
 .PHONY: all clean
 all: messaging.a messaging_pyx.so
 
-
+demo: messaging.a demo.o
+	$(CC) $^ $(LDLIBS) -L. -l:messaging.a -o '$@'
 
 messaging_pyx.so: messaging.a messaging_pyx_setup.py messaging_pyx.pyx messaging.pxd
 	python3 messaging_pyx_setup.py build_ext --inplace
