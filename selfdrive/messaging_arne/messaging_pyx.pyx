@@ -5,11 +5,11 @@ from libcpp.string cimport string
 from libcpp cimport bool
 
 
-from messaging_arne cimport Context as cppContext
-from messaging_arne cimport SubSocket as cppSubSocket
-from messaging_arne cimport PubSocket as cppPubSocket
-from messaging_arne cimport Poller as cppPoller
-from messaging_arne cimport Message as cppMessage
+from messaging cimport Context as cppContext
+from messaging cimport SubSocket as cppSubSocket
+from messaging cimport PubSocket as cppPubSocket
+from messaging cimport Poller as cppPoller
+from messaging cimport Message as cppMessage
 
 
 cdef class Context:
