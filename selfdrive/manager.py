@@ -8,7 +8,6 @@ import signal
 import subprocess
 import datetime
 from common.spinner import Spinner
-import selfdrive.messaging as messaging
 
 from common.basedir import BASEDIR
 sys.path.append(os.path.join(BASEDIR, "pyextra"))
