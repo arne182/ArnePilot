@@ -20,7 +20,6 @@ class Phantom:
     self.sm.update(0)
     phantom_data = self.sm['phantomData']
     self.data = {"status": phantom_data.status, "speed": phantom_data.speed, "angle": phantom_data.angle}
-    print(self.data)
 
     if self.sm.updated['phantomData']:
       self.last_receive_time = time.time()
@@ -30,8 +29,6 @@ class Phantom:
       self.lost_connection = True
     else:
       self.lost_connection = False
-
-    print(self.lost_connection)
 
   def __getitem__(self, s):
     return self.data[s]
