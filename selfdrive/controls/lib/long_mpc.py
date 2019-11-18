@@ -34,7 +34,7 @@ class LongitudinalMpc():
     self.lead_data = {'v_lead': None, 'x_lead': None, 'a_lead': None}
     self.df_frame = 0
     self.rate = 20
-    self.phantom = Phantom(timeout=1.)
+    self.phantom = Phantom()
 
     self.last_cloudlog_t = 0.0
 

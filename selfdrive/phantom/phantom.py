@@ -1,4 +1,3 @@
-import zmq
 import selfdrive.messaging_arne as messaging_arne
 from common.op_params import opParams
 import subprocess
@@ -21,6 +20,7 @@ class Phantom:
     self.sm.update(0)
     phantom_data = self.sm['phantomData']
     self.data = {"status": phantom_data.status, "speed": phantom_data.speed, "angle": phantom_data.angle}
+    print(self.data)
 
     if self.sm.updated['phantomData']:
       self.last_receive_time = time.time()
@@ -28,6 +28,10 @@ class Phantom:
     if time.time() - self.last_receive_time >= self.timeout and self.data['status']:
       self.data = {"status": True, "speed": 0.0, "angle": 0.0}
       self.lost_connection = True
+    else:
+      self.lost_connection = False
+
+    print(self.lost_connection)
 
   def __getitem__(self, s):
     return self.data[s]
