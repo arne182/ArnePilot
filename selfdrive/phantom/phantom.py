@@ -28,7 +28,8 @@ class Phantom:
     if time.time() - self.last_receive_time >= self.timeout and self.data['status']:
       self.data = {"status": True, "speed": 0.0, "angle": 0.0, "time": 0.0, "lost_connection": True}
 
-    print(self.data)
+  def __getitem__(self, s):
+    return self.data[s]
 
   def mod_sshd_config(self):
     # this disables dns lookup when connecting to EON to speed up commands from phantom app, reboot required
