@@ -32,7 +32,7 @@ class LongitudinalMpc():
     self.car_data = {"lead_vels": [], "traffic_vels": []}
     self.mpc_frame = 0  # idea thanks to kegman
     self.last_time = None
-    self.lead_data = {'v_lead': None, 'x_lead': None, 'a_lead': None, 'status': False}
+    self.lead_data = {'v_lead': None, 'x_lead': None, 'a_lead': None}
     self.df_frame = 0
     self.rate = 20
     self.phantom = Phantom(timeout=1.)

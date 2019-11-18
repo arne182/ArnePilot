@@ -219,7 +219,7 @@ def state_transition(frame, CS, CP, state, events, soft_disable_timer, v_cruise_
 
 
 def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cruise_kph, v_cruise_kph_last,
-                  AM, rk, driver_status, LaC, LoC, read_only, is_metric, cal_perc, sm, poller, arne182Status):
+                  AM, rk, driver_status, LaC, LoC, read_only, is_metric, cal_perc, radar_state, arne_sm):
   """Given the state, this function returns an actuators packet"""
 
   actuators = car.CarControl.Actuators.new_message()
@@ -262,27 +262,16 @@ def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cr
   a_acc_sol = plan.aStart + (dt / LON_MPC_STEP) * (plan.aTarget - plan.aStart)
   v_acc_sol = plan.vStart + dt * (a_acc_sol + plan.aStart) / 2.0
   
-  try:
-    gasinterceptor = CP.enableGasInterceptor
-  except AttributeError:
-    gasinterceptor = False
+
     
   # Gas/Brake PID loop
-  try:
-    leadOne = sm['radarState'].leadOne
-  except KeyError:
-    leadOne = None
-  gasstatus = None
-  for socket, _ in poller.poll(0):
-    if socket is arne182Status:
-      gasstatus = arne182.Arne182Status.from_bytes(socket.recv())
-  if gasstatus is None:
-    gasbuttonstatus = 0
-  else:
-    gasbuttonstatus = gasstatus.gasbuttonstatus
-  actuators.gas, actuators.brake = LoC.update(active, CS.vEgo, CS.brakePressed, CS.standstill, CS.cruiseState.standstill,
-                                              v_cruise_kph, v_acc_sol, plan.vTargetFuture, a_acc_sol, CP, gasinterceptor, gasbuttonstatus, plan.decelForTurn, plan.longitudinalPlanSource,
-                                              leadOne, CS.gasPressed, plan.fcw)
+  arne_sm.update(0)
+  gas_button_status = arne_sm['arne182Status'].gasbuttonstatus
+  actuators.gas, actuators.brake = LoC.update(active, CS.vEgo, CS.brakePressed, CS.standstill,
+                                              CS.cruiseState.standstill,
+                                              v_cruise_kph, v_acc_sol, plan.vTargetFuture, a_acc_sol, CP,
+                                              gas_button_status, plan.decelForTurn, plan.longitudinalPlanSource,
+                                              radar_state.leadOne, CS.gasPressed, plan.fcw)
   # Steering PID loop and lateral MPC
   actuators.steer, actuators.steerAngle, lac_log = LaC.update(active, CS.vEgo, CS.steeringAngle, CS.steeringRate, CS.steeringTorqueEps, CS.steeringPressed, CP, path_plan)
 
@@ -459,6 +448,8 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
     sm = messaging.SubMaster(['thermal', 'health', 'liveCalibration', 'driverMonitoring', 'plan', 'pathPlan', \
                               'gpsLocation', 'radarState'], ignore_alive=['gpsLocation'])
 
+  arne_sm = messaging_arne.SubMaster(['arne182Status'])
+
   arne182Status = messaging_arne.sub_sock('arne182Status', conflate=True)
   if can_sock is None:
     can_timeout = None if os.environ.get('NO_CAN_TIMEOUT', False) else 100
@@ -574,7 +565,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
     # Compute actuators (runs PID loops and lateral MPC)
     actuators, v_cruise_kph, driver_status, v_acc, a_acc, lac_log = \
       state_control(sm.frame, sm.rcv_frame, sm['plan'], sm['pathPlan'], CS, CP, state, events, v_cruise_kph, v_cruise_kph_last, AM, rk,
-                    driver_status, LaC, LoC, read_only, is_metric, cal_perc, sm, poller, arne182Status)
+                    driver_status, LaC, LoC, read_only, is_metric, cal_perc, sm['radarState'], arne_sm)
 
     prof.checkpoint("State Control")
 
