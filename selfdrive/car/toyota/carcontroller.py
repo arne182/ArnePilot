@@ -8,7 +8,7 @@ from selfdrive.car.toyota.toyotacan import make_can_msg, \
                                            create_acc_cancel_command, create_fcw_command
 from selfdrive.car.toyota.values import CAR, ECU, STATIC_MSGS, TSS2_CAR, SteerLimitParams
 from selfdrive.can.packer import CANPacker
-from selfdrive.phantom import Phantom
+from selfdrive.phantom.phantom import Phantom
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
