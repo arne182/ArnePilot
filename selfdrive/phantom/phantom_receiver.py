@@ -3,8 +3,7 @@ import selfdrive.messaging_arne as messaging_arne
 
 class PhantomReceiver:
   def __init__(self):
-    # self.phantom_data_sock = None
-    self.pm = None
+    self.pm = messaging_arne.PubMaster('phantomData')
 
   def receive_data(self, speed, angle, time):
     self.broadcast_data(True, speed, angle, time)
@@ -17,14 +16,7 @@ class PhantomReceiver:
     phantom_data.phantomData.angle = angle
     phantom_data.phantomData.time = time
     self.pm.send('phantomData', phantom_data)
-    # self.phantom_data_sock.send(phantom_data.to_bytes())
-
-  def enable_phantom(self):
-    self.pm = messaging_arne.PubMaster('phantomData')
-    # self.phantom_data_sock = messaging_arne.pub_sock('phantomData')
-    return "ENABLED"  # needed to tell the app we're all done with this function
 
   def disable_phantom(self):
     self.broadcast_data(False, 0.0, 0.0, 0.0)
-    self.phantom_data_sock.close()
-    return "DISABLED"
+    return 'DISABLED'

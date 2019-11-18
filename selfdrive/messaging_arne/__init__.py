@@ -117,7 +117,18 @@ def get_one_can(logcan):
       return can
 
 class SubMaster():
-  def __init__(self, services, ignore_alive=None, addr="127.0.0.1"):
+  def __init__(self, services, ignore_alive=None, addr="127.0.0.1", conflate=True):
+    '''
+    :param services:
+    :param ignore_alive:
+    :param addr:
+    :param conflate: if set to true, SubMaster will return only the last available message. If you send two messages
+                     before SubMaster has a chance to update, it will only return the last message. However, if set
+                     to false, SubMaster would return the first message on the first update call, and the second message
+                     on the second update. This could this cause SubMaster to get behind if we're sending at a higher rate
+                     than receiving/updating
+    '''
+
     self.poller = Poller()
     if isinstance(services, str):
       services = [services]
@@ -140,7 +151,7 @@ class SubMaster():
     for s in services:
       # TODO: get address automatically from service_list
       if addr is not None:
-        self.sock[s] = sub_sock(s, poller=self.poller, addr=addr, conflate=False)
+        self.sock[s] = sub_sock(s, poller=self.poller, addr=addr, conflate=conflate)
       self.freq[s] = service_list[s].frequency
 
       data = new_message()
