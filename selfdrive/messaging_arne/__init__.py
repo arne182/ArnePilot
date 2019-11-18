@@ -119,6 +119,8 @@ def get_one_can(logcan):
 class SubMaster():
   def __init__(self, services, ignore_alive=None, addr="127.0.0.1"):
     self.poller = Poller()
+    if isinstance(services, str):
+      services = [services]
     self.frame = -1
     self.updated = {s : False for s in services}
     self.rcv_time = {s : 0. for s in services}
@@ -204,6 +206,8 @@ class SubMaster():
 class PubMaster():
   def __init__(self, services):
     self.sock = {}
+    if isinstance(services, str):
+      services = [services]
     for s in services:
       self.sock[s] = pub_sock(s)
 
