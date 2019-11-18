@@ -459,8 +459,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
     sm = messaging.SubMaster(['thermal', 'health', 'liveCalibration', 'driverMonitoring', 'plan', 'pathPlan', \
                               'gpsLocation', 'radarState'], ignore_alive=['gpsLocation'])
 
-  poller = zmq.Poller()
-  arne182Status = messaging_arne.sub_sock('arne182Status', poller, conflate=True)
+  arne182Status = messaging_arne.sub_sock('arne182Status', conflate=True)
   if can_sock is None:
     can_timeout = None if os.environ.get('NO_CAN_TIMEOUT', False) else 100
     can_sock = messaging.sub_sock('can', timeout=can_timeout)
