@@ -20,7 +20,7 @@ class PhantomReceiver:
     # self.phantom_data_sock.send(phantom_data.to_bytes())
 
   def enable_phantom(self):
-    self.pm = messaging_arne.SubMaster('phantomData')
+    self.pm = messaging_arne.PubMaster('phantomData')
     # self.phantom_data_sock = messaging_arne.pub_sock('phantomData')
     return "ENABLED"  # needed to tell the app we're all done with this function
 
