@@ -11,6 +11,7 @@ class Phantom:
     self.op_params = opParams()
     self.sm = messaging_arne.SubMaster('phantomData')
     self.data = {"status": False, "speed": 0.0}
+    self.lost_connection = False
     self.last_receive_time = time.time()
     self.timeout = timeout  # in seconds
     if not travis and not self.op_params.get("UseDNS", None):  # ensure we only run once
@@ -19,14 +20,14 @@ class Phantom:
   def update(self):
     self.sm.update(0)
     phantom_data = self.sm['phantomData']
-    self.data = {"status": phantom_data.status, "speed": phantom_data.speed,
-                 "angle": phantom_data.angle, "time": phantom_data.time}
+    self.data = {"status": phantom_data.status, "speed": phantom_data.speed, "angle": phantom_data.angle}
 
     if self.sm.updated['phantomData']:
       self.last_receive_time = time.time()
 
     if time.time() - self.last_receive_time >= self.timeout and self.data['status']:
-      self.data = {"status": True, "speed": 0.0, "angle": 0.0, "time": 0.0, "lost_connection": True}
+      self.data = {"status": True, "speed": 0.0, "angle": 0.0}
+      self.lost_connection = True
 
   def __getitem__(self, s):
     return self.data[s]
