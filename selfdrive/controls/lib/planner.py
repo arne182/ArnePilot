@@ -97,6 +97,7 @@ def limit_accel_in_turns(v_ego, angle_steers, a_target, CP, angle_later):
 class Planner():
   def __init__(self, CP):
     self.CP = CP
+    self.poller = zmq.Poller()
     self.arne182Status = messaging_arne.sub_sock('arne182Status', conflate=True)
     self.latcontolStatus = messaging_arne.sub_sock('latControl', conflate=True)
     self.mpc1 = LongitudinalMpc(1)
