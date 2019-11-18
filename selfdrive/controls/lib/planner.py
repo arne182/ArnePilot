@@ -4,7 +4,6 @@ from datetime import datetime
 import time
 import zmq
 import numpy as np
-from cereal import arne182
 from common.params import Params
 from common.numpy_fast import interp
 import selfdrive.messaging_arne as messaging_arne
@@ -97,9 +96,11 @@ def limit_accel_in_turns(v_ego, angle_steers, a_target, CP, angle_later):
 class Planner():
   def __init__(self, CP):
     self.CP = CP
-    self.poller = zmq.Poller()
-    self.arne182Status = messaging_arne.sub_sock('arne182Status', conflate=True)
-    self.latcontolStatus = messaging_arne.sub_sock('latControl', conflate=True)
+    self.arne_sm = messaging_arne.SubMaster(['arne182Status', 'latControl'])
+    self.arne182 = None
+    self.latcontrol = None
+    # self.arne182Status = messaging_arne.sub_sock('arne182Status', conflate=True)
+    # self.latcontolStatus = messaging_arne.sub_sock('latControl', conflate=True)
     self.mpc1 = LongitudinalMpc(1)
     self.mpc2 = LongitudinalMpc(2)
 
@@ -150,11 +151,9 @@ class Planner():
   def update(self, sm, pm, CP, VM, PP):
     self.arne182 = None
     self.latcontrol = None
-    for socket, _ in self.poller.poll(0):
-      if socket is self.arne182Status:
-        self.arne182 = arne182.Arne182Status.from_bytes(socket.recv())
-      elif socket is self.latcontolStatus:
-        self.latcontrol = arne182.LatControl.from_bytes(socket.recv())
+    self.arne_sm.update(0)
+    self.arne182 = self.arne_sm['arne182Status']
+    self.latcontrol = self.arne_sm['latControl']
     if self.arne182 is None:
       gasbuttonstatus = 0
     else:
