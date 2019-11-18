@@ -282,7 +282,7 @@ def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cr
     gasbuttonstatus = gasstatus.gasbuttonstatus
   actuators.gas, actuators.brake = LoC.update(active, CS.vEgo, CS.brakePressed, CS.standstill, CS.cruiseState.standstill,
                                               v_cruise_kph, v_acc_sol, plan.vTargetFuture, a_acc_sol, CP, gasinterceptor, gasbuttonstatus, plan.decelForTurn, plan.longitudinalPlanSource,
-                                              leadOne, CS.gasPressed)
+                                              leadOne, CS.gasPressed, plan.fcw)
   # Steering PID loop and lateral MPC
   actuators.steer, actuators.steerAngle, lac_log = LaC.update(active, CS.vEgo, CS.steeringAngle, CS.steeringRate, CS.steeringTorqueEps, CS.steeringPressed, CP, path_plan)
 

@@ -65,6 +65,7 @@ class LongControl():
                             sat_limit=0.8,
                             convert=compute_gb)
     self.v_pid = 0.0
+    self.fcw_countdown = 0
     self.last_output_gb = 0.0
     self.lastdecelForTurn = False
     self.last_lead = None
@@ -126,7 +127,7 @@ class LongControl():
     return round(max(min(accel, max_return), min_return), 5)  # ensure we return a value between range
 
   def update(self, active, v_ego, brake_pressed, standstill, cruise_standstill, v_cruise, v_target, v_target_future, a_target, CP, gas_interceptor,
-             gas_button_status, decelForTurn, longitudinalPlanSource, lead_one, gas_pressed):
+             gas_button_status, decelForTurn, longitudinalPlanSource, lead_one, gas_pressed, fcw):
     """Update longitudinal control. This updates the state machine and runs a PID loop"""
     # Actuation limits
     if lead_one is not None:
@@ -213,5 +214,10 @@ class LongControl():
     self.last_output_gb = output_gb
     final_gas = clip(output_gb, 0., gas_max)
     final_brake = -clip(output_gb, -brake_max, 0.)
-
+    if fcw:
+      self.fcw_countdown = 200
+    if self.fcw_countdown > 0:
+      self.fcw_countdown = self.fcw_countdown -1
+      final_gas = 0.
+      final_brake = 1.0
     return final_gas, final_brake

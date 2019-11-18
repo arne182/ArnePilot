@@ -185,6 +185,8 @@ def mapsd_thread():
         if abs(speedLimittraffic_prev - speedLimittraffic) > 0.1:
           speedLimittrafficvalid = True
           speedLimittraffic_prev = speedLimittraffic
+      else:
+        speedLimittrafficvalid = False
       if traffic.speedAdvisoryValid:
         speedLimittrafficAdvisory = traffic.speedAdvisory
         speedLimittrafficAdvisoryvalid = True
@@ -192,7 +194,7 @@ def mapsd_thread():
         speedLimittrafficAdvisoryvalid = False
     else:
       speedLimittrafficAdvisoryvalid = False
-      speedLimittrafficvalid = False
+      
     if gps_ext is not None:
       gps = gps_ext.gpsLocationExternal
     else:

@@ -120,8 +120,8 @@ class LongitudinalMpc():
       TR = interp(self.v_ego, x, y)
 
     if self.v_lead is not None:  # since the new mpc now handles braking nicely, simplify mods
-      x = [0, 0.61, 1.26, 2.1, 2.68]  # relative velocity values todo: add back negative values to get farther away from lead when it's slower
-      y = [0, -0.017, -0.053, -0.154, -0.272]  # modification values
+      x = [2.68, 2.1, 1.26, 0.61, 0, 0.61, 1.26, 2.1, 2.68]  # relative velocity values todo: add back negative values to get farther away from lead when it's slower
+      y = [0.272, 0.154, 0.053, 0.017, 0, -0.017, -0.053, -0.154, -0.272]  # modification values
       TR_mod = interp(self.v_lead - self.v_ego, x, y)  # quicker acceleration/don't brake when lead is overtaking
 
       # x = [-1.49, -1.1, -0.67, 0.0, 0.67, 1.1, 1.49]  # todo: work on adding this back

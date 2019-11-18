@@ -14,7 +14,7 @@ const uint32_t TOYOTA_RT_INTERVAL = 250000;    // 250ms between real time checks
 
 // longitudinal limits
 const int TOYOTA_MAX_ACCEL = 4000;        // 4.0 m/s2
-const int TOYOTA_MIN_ACCEL = -4000;       // 4.0 m/s2
+const int TOYOTA_MIN_ACCEL = -8000;       // 8.0 m/s2
 
 const int TOYOTA_GAS_INTERCEPTOR_THRESHOLD = 475;  // ratio between offset and gain from dbc file
 
