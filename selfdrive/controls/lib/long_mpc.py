@@ -184,10 +184,10 @@ class LongitudinalMpc():
       # if radar lead is available, ensure we use that as the real lead rather than ignoring it and running into it
       # todo: this is buggy and probably needs to be looked at
       x_lead = min(9.144, lead.dRel)
-      v_lead = min(self.phantom.data["speed"], v_lead)
+      v_lead = min(self.phantom["speed"], v_lead)
     else:
       x_lead = 9.144
-      v_lead = self.phantom.data["speed"]
+      v_lead = self.phantom["speed"]
     return x_lead, v_lead
 
   def update(self, pm, CS, lead, v_cruise_setpoint):
@@ -199,17 +199,23 @@ class LongitudinalMpc():
     # Setup current mpc state
     self.cur_state[0].x_ego = 0.0
 
-    if self.phantom.data["status"]:
-      if self.phantom.data["speed"] != 0.0:
+    if self.phantom["status"]:
+      a_lead = 0.0
+      if self.phantom["speed"] != 0.0:
         x_lead, v_lead = self.process_phantom(lead)
-      elif 'lost_connection' in self.phantom.data:
-        x_lead = 1.5
-        v_lead = 0.  # stop as quickly as possible
+      elif self.phantom.lost_connection:
+        x = [0, 14.3053]  # 32 mph
+        y = [0.6096, 6.096]  # 2, 20 feet
+        x_lead = interp(v_ego, x, y)
+        v_lead = max(v_ego - 4.4704, 0)  # stop at a quick pace
+        x = [0, 14.3053]
+        y = [0, -2.2352]
+        a_lead = interp(v_ego, x, y)
       else:  # else, smooth deceleration
         x_lead = 3.75
-        v_lead = max(self.v_ego - (.7 / max(max(self.v_ego, 0) ** .4, .01)), 0.0)  # smoothly decelerate to 0 todo: tune this!
+        v_lead = max(v_ego - 1.34112, 0)  # smoothly decelerate to 0
+        a_lead = -0.44704
 
-      a_lead = 0.0
       self.a_lead_tau = lead.aLeadTau
       self.new_lead = False
       if not self.prev_lead_status or abs(x_lead - self.prev_lead_x) > 2.5:
