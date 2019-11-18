@@ -58,7 +58,7 @@ _MODEL_V_K = [[0.07068858], [0.04826294]]
 # 75th percentile
 SPEED_PERCENTILE_IDX = 7
 
-def calc_cruise_accel_limits(v_ego, following, gasbuttonstatus):
+def calc_cruise_accel_limits(v_ego, following, gas_button_status):
   if following:
     a_cruise_min = interp(v_ego, _A_CRUISE_MIN_BP, _A_CRUISE_MIN_V_FOLLOWING)
   else:
@@ -67,9 +67,9 @@ def calc_cruise_accel_limits(v_ego, following, gasbuttonstatus):
   if following:
     a_cruise_max = interp(v_ego, _A_CRUISE_MAX_BP, _A_CRUISE_MAX_V_FOLLOWING)
   else:
-    if gasbuttonstatus == 1:
+    if gas_button_status == 1:
       a_cruise_max = interp(v_ego, _A_CRUISE_MAX_BP, _A_CRUISE_MAX_V_SPORT)
-    elif gasbuttonstatus == 2:
+    elif gas_button_status == 2:
       a_cruise_max = interp(v_ego, _A_CRUISE_MAX_BP, _A_CRUISE_MAX_V_ECO)
     else:
       a_cruise_max = interp(v_ego, _A_CRUISE_MAX_BP, _A_CRUISE_MAX_V)
@@ -98,7 +98,7 @@ class Planner():
     self.CP = CP
     self.arne_sm = messaging_arne.SubMaster(['arne182Status', 'latControl'])
     self.arne182 = None
-    self.latcontrol = None
+    self.lat_control = None
     # self.arne182Status = messaging_arne.sub_sock('arne182Status', conflate=True)
     # self.latcontolStatus = messaging_arne.sub_sock('latControl', conflate=True)
     self.mpc1 = LongitudinalMpc(1)
@@ -150,14 +150,14 @@ class Planner():
 
   def update(self, sm, pm, CP, VM, PP):
     self.arne182 = None
-    self.latcontrol = None
+    self.lat_control = None
     self.arne_sm.update(0)
     self.arne182 = self.arne_sm['arne182Status']
-    self.latcontrol = self.arne_sm['latControl']
+    self.lat_control = self.arne_sm['latControl']
     if self.arne182 is None:
-      gasbuttonstatus = 0
+      gas_button_status = 0
     else:
-      gasbuttonstatus = self.arne182.gasbuttonstatus
+      gas_button_status = self.arne182.gasbuttonstatus
     """Gets called when new radarState is available"""
     cur_time = sec_since_boot()
     v_ego = sm['carState'].vEgo
@@ -167,14 +167,14 @@ class Planner():
       angle_later = 0.
     else:
       steering_angle = sm['carState'].steeringAngle
-      if self.latcontrol is None or v_ego < 11:
+      if self.lat_control is None or v_ego < 11:
         angle_later = 0.
       else:
-        angle_later = self.latcontrol.anglelater
+        angle_later = self.lat_control.anglelater
     
-    if gasbuttonstatus == 1:
+    if gas_button_status == 1:
       speed_ahead_distance = 150
-    elif gasbuttonstatus == 2:
+    elif gas_button_status == 2:
       speed_ahead_distance = 350
     else:
       speed_ahead_distance = 250
@@ -260,7 +260,7 @@ class Planner():
     
     # Calculate speed for normal cruise control
     if enabled:
-      accel_limits = [float(x) for x in calc_cruise_accel_limits(v_ego, following, gasbuttonstatus)]
+      accel_limits = [float(x) for x in calc_cruise_accel_limits(v_ego, following, gas_button_status)]
       jerk_limits = [min(-0.1, accel_limits[0]), max(0.1, accel_limits[1])]  # TODO: make a separate lookup for jerk tuning
       accel_limits_turns = limit_accel_in_turns(v_ego, steering_angle, accel_limits, self.CP, angle_later)
 

@@ -4,7 +4,7 @@ import gc
 import capnp
 import zmq
 import selfdrive.messaging_arne as messaging_arne
-from cereal import car, log, arne182
+from cereal import car, log
 from common.numpy_fast import clip
 from common.realtime import sec_since_boot, set_realtime_priority, Ratekeeper, DT_CTRL
 from common.profiler import Profiler
@@ -450,7 +450,6 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
 
   arne_sm = messaging_arne.SubMaster('arne182Status')
 
-  arne182Status = messaging_arne.sub_sock('arne182Status', conflate=True)
   if can_sock is None:
     can_timeout = None if os.environ.get('NO_CAN_TIMEOUT', False) else 100
     can_sock = messaging.sub_sock('can', timeout=can_timeout)
