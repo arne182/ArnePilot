@@ -97,10 +97,6 @@ class Planner():
   def __init__(self, CP):
     self.CP = CP
     self.arne_sm = messaging_arne.SubMaster(['arne182Status', 'latControl'])
-    self.arne182 = None
-    self.lat_control = None
-    # self.arne182Status = messaging_arne.sub_sock('arne182Status', conflate=True)
-    # self.latcontolStatus = messaging_arne.sub_sock('latControl', conflate=True)
     self.mpc1 = LongitudinalMpc(1)
     self.mpc2 = LongitudinalMpc(2)
 
@@ -149,15 +145,8 @@ class Planner():
     self.v_acc_future = min([self.mpc1.v_mpc_future, self.mpc2.v_mpc_future, v_cruise_setpoint])
 
   def update(self, sm, pm, CP, VM, PP):
-    self.arne182 = None
-    self.lat_control = None
     self.arne_sm.update(0)
-    self.arne182 = self.arne_sm['arne182Status']
-    self.lat_control = self.arne_sm['latControl']
-    if self.arne182 is None:
-      gas_button_status = 0
-    else:
-      gas_button_status = self.arne182.gasbuttonstatus
+    gas_button_status = self.arne_sm['arne182Status'].gasbuttonstatus
     """Gets called when new radarState is available"""
     cur_time = sec_since_boot()
     v_ego = sm['carState'].vEgo
@@ -167,10 +156,10 @@ class Planner():
       angle_later = 0.
     else:
       steering_angle = sm['carState'].steeringAngle
-      if self.lat_control is None or v_ego < 11:
+      if v_ego < 11:
         angle_later = 0.
       else:
-        angle_later = self.lat_control.anglelater
+        angle_later = self.arne_sm['latControl'].anglelater
     
     if gas_button_status == 1:
       speed_ahead_distance = 150

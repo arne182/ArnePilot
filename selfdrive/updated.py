@@ -20,7 +20,7 @@ NICE_LOW_PRIORITY = ["nice", "-n", "19"]
 def main(gctx=None):
   params = Params()
   NEED_REBOOT = False
-  health_sock = messaging.sub_sock('health')
+  sm = messaging.SubMaster(['thermal', 'health'])  # comma messaging still needs list even if it's just 1 service
   while True:
     # try network
     ping_failed = subprocess.call(["ping", "-W", "4", "-c", "1", "8.8.8.8"])
@@ -73,11 +73,9 @@ def main(gctx=None):
     params.put("LastUpdateTime", t.encode('utf8'))
     
     if NEED_REBOOT:
-      health = messaging.recv_sock(health_sock, wait=True)
-      if health is not None:
-        if not health.health.started:
-          NEED_REBOOT = False
-          os.system('reboot')
+      sm.update(1)
+      if not sm['thermal'].started and not (sm['health'].ignitionLine or sm['health'].ignitionCan):
+        os.system('reboot')
 
     time.sleep(30*60)
 
