@@ -32,7 +32,7 @@ class opParams:
     self.read_timeout = 1.0  # max frequency to read with self.get(...) (sec)
     self.default_params = {'camera_offset': 0.06, 'awareness_factor': 2.0, 'lane_hug_direction': None,
                            'lane_hug_mod': 1.2, 'lane_hug_angle': 10, 'use_car_caching': True, 'osm': True,
-                           'speed_offset': 0, 'keep_openpilot_engaged': True}
+                           'speed_offset': 0, 'keep_openpilot_engaged': True, 'force_pedal': False}
     self.force_update = False  # replaces values with default params if True, not just add add missing key/value pairs
     self.run_init()  # restores, reads, and updates params
 
