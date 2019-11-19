@@ -218,8 +218,8 @@ class CarState():
       self.gasbuttonstatus = 0
     msg = messaging_arne.new_message()
     msg.init('arne182Status')
-    msg.gasbuttonstatus = self.gasbuttonstatus
-    msg.readdistancelines = cp.vl["PCM_CRUISE_SM"]['DISTANCE_LINES']
+    msg.arne182Status.gasbuttonstatus = self.gasbuttonstatus
+    msg.arne182Status.readdistancelines = cp.vl["PCM_CRUISE_SM"]['DISTANCE_LINES']
     if not travis:
       self.arne_pm.send('arne182Status', msg)
     if self.CP.carFingerprint == CAR.LEXUS_IS:
@@ -315,19 +315,19 @@ class CarState():
       dat = messaging_arne.new_message()
       dat.init('liveTrafficData')
       if self.spdval1 > 0:
-        dat.speedLimitValid = True
+        dat.liveTrafficData.speedLimitValid = True
         if self.tsgn1 == 36:
-          dat.speedLimit = self.spdval1 * 1.60934
+          dat.liveTrafficData.speedLimit = self.spdval1 * 1.60934
         elif self.tsgn1 == 1:
-          dat.speedLimit = self.spdval1
+          dat.liveTrafficData.speedLimit = self.spdval1
         else:
-          dat.speedLimit = 0
+          dat.liveTrafficData.speedLimit = 0
       else:
-        dat.speedLimitValid = False
+        dat.liveTrafficData.speedLimitValid = False
       if self.spdval2 > 0:
-        dat.speedAdvisoryValid = True
-        dat.speedAdvisory = self.spdval2
+        dat.liveTrafficData.speedAdvisoryValid = True
+        dat.liveTrafficData.speedAdvisory = self.spdval2
       else:
-        dat.speedAdvisoryValid = False
+        dat.liveTrafficData.speedAdvisoryValid = False
       if not travis:
         self.arne_pm.send('liveTrafficData', dat)

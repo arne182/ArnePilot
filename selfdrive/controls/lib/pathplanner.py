@@ -142,6 +142,6 @@ class PathPlanner():
 
     msg = messaging_arne.new_message()
     msg.init('latControl')
-    msg.anglelater = math.degrees(list(self.mpc_solution[0].delta)[-1])
+    msg.latControl.anglelater = math.degrees(list(self.mpc_solution[0].delta)[-1])
     if not travis:
       self.arne_pm.send('latControl', msg)
