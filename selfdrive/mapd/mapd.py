@@ -9,18 +9,18 @@ import selfdrive.crash as crash
 #default_speeds_generator.main(DEFAULT_SPEEDS_BY_REGION_JSON_FILE)
 
 import time
-import zmq
 import requests
 import threading
 import numpy as np
 import overpy
-from cereal import arne182
 from common.params import Params
 from collections import defaultdict
 from selfdrive.version import version, dirty
 
 from common.transformations.coordinates import geodetic2ecef
-import selfdrive.mapd.messaging as messaging
+import selfdrive.messaging_arne as messaging_arne
+import selfdrive.messaging as messaging
+
 from selfdrive.mapd.mapd_helpers import MAPS_LOOKAHEAD_DISTANCE, Way, circle_through_points, rate_curvature_points
 
 OVERPASS_API_URL = "https://z.overpass-api.de/api/interpreter"
@@ -150,11 +150,9 @@ def save_gps_data(gps):
 
 def mapsd_thread():
   global last_gps
-  context = zmq.Context()
-  poller = zmq.Poller()
-  gps_external_sock = messaging.sub_sock(context, 8032, poller, conflate=True)
-  map_data_sock = messaging.pub_sock(context, 8065)
-  traffic_data_sock = messaging.sub_sock(context, 8208, poller, conflate=True)
+  sm = messaging.SubMaster(['gpsLocationExternal', 'liveMapData'])
+  arne_sm = messaging_arne.SubMaster(['liveTrafficData'])
+  pm = messaging.PubMaster(['liveMapData'])
 
   cur_way = None
   curvature_valid = False
@@ -172,14 +170,11 @@ def mapsd_thread():
   speedLimittrafficvalid = False
   
   while True:
-    gps_ext = None
-    traffic = None
-    for socket, event in poller.poll(0):
-      if socket is gps_external_sock:
-        gps_ext = messaging.recv_one(socket)
-      elif socket is traffic_data_sock:
-        traffic = arne182.LiveTrafficData.from_bytes(socket.recv())
-    if traffic is not None:
+    sm.update(0)
+    arne_sm.update(0)
+    gps_ext = sm['gpsLocationExternal']
+    traffic = arne_sm['liveTrafficData']
+    if True:  # todo: should this be `if sm.updated['liveTrafficData']:`?
       if traffic.speedLimitValid:
         speedLimittraffic = traffic.speedLimit
         if abs(speedLimittraffic_prev - speedLimittraffic) > 0.1:
@@ -194,9 +189,9 @@ def mapsd_thread():
         speedLimittrafficAdvisoryvalid = False
     else:
       speedLimittrafficAdvisoryvalid = False
-      
-    if gps_ext is not None:
-      gps = gps_ext.gpsLocationExternal
+
+    if sm.updated['gpsLocationExternal']:
+      gps = gps_ext
     else:
       continue
 
@@ -296,7 +291,7 @@ def mapsd_thread():
     dat = messaging.new_message()
     dat.init('liveMapData')
 
-    if last_gps is not None:
+    if last_gps is not None:  # TODO: this should never be None with SubMaster now
       dat.liveMapData.lastGps = last_gps
 
     if cur_way is not None:
@@ -352,8 +347,7 @@ def mapsd_thread():
         dat.liveMapData.speedLimit = max_speed
         
     dat.liveMapData.mapValid = map_valid
-
-    map_data_sock.send(dat.to_bytes())
+    pm.send('liveMapData', dat)
 
 
 def main(gctx=None):

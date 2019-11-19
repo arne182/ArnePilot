@@ -134,7 +134,7 @@ def fingerprint(logcan, sendcan, has_relay):
 
     frame += 1
 
-  cloudlog.warning("fingerprinted %s", car_fingerprint)
+  cloudlog.warning("fingerprinted {}".format({car_fingerprint: finger[0]}))
   params.put("CachedFingerprint", json.dumps([car_fingerprint, {int(key): value for key, value in finger[0].items()}]))
   return car_fingerprint, finger, vin
 
