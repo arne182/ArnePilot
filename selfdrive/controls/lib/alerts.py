@@ -95,6 +95,13 @@ ALERTS = [
       Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, .4, 2., 3.),
 
   Alert(
+    "longControlDisabled",
+    "BRAKE PRESSED",
+    "Longitudinal Control Disabled",
+    AlertStatus.userPrompt, AlertSize.mid,
+    Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, .4, 2., 3.),
+
+  Alert(
       "steerTempUnavailableMute",
       "TAKE CONTROL",
       "Steering Temporarily Unavailable",

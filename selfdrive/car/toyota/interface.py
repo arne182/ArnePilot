@@ -336,12 +336,16 @@ class CarInterface(CarInterfaceBase):
     ret.steeringTorqueEps = self.CS.steer_torque_motor
     ret.steeringPressed = self.CS.steer_override
 
+    # events
+    events = []
+
     # cruise state
     if not self.cruise_enabled_prev:
       ret.cruiseState.enabled = self.CS.pcm_acc_active
     else:
       ret.cruiseState.enabled = bool(self.CS.main_on)
       if not self.CS.pcm_acc_active:
+        events.append(create_event('longControlDisabled', [ET.WARNING]))
         ret.brakePressed = True
     if self.CS.v_ego < 1 or not self.keep_openpilot_engaged:
       ret.cruiseState.enabled = self.CS.pcm_acc_active
@@ -378,10 +382,6 @@ class CarInterface(CarInterfaceBase):
     ret.seatbeltUnlatched = not self.CS.seatbelt
 
     ret.genericToggle = self.CS.generic_toggle
-
-    # events
-    events = []
-    # todo: arne, do we need this section below? it's not present in 066
       
     if ret.cruiseState.enabled and not self.cruise_enabled_prev:  # this lets us modularize which checks we want to turn off op if cc was engaged previoiusly or not
       disengage_event = True
