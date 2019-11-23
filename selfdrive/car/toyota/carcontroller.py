@@ -8,7 +8,7 @@ from selfdrive.car.toyota.toyotacan import make_can_msg, \
                                            create_acc_cancel_command, create_fcw_command
 from selfdrive.car.toyota.values import CAR, ECU, STATIC_MSGS, TSS2_CAR, SteerLimitParams
 from selfdrive.can.packer import CANPacker
-from selfdrive.phantom import Phantom
+from selfdrive.phantom.phantom import Phantom
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
@@ -98,7 +98,7 @@ class CarController():
     self.standstill_req = False
     self.angle_control = False
     self.phantom = Phantom()
-
+    self.fcw_countdown = 0
     self.steer_angle_enabled = False
     self.ipas_reset_counter = 0
     self.last_fault_frame = -200
@@ -237,7 +237,26 @@ class CarController():
                                                  ECU.APGS in self.fake_ecus))
     elif ECU.APGS in self.fake_ecus:
       can_sends.append(create_ipas_steer_command(self.packer, 0, 0, True))
-
+      
+    # ui mesg is at 100Hz but we send asap if:
+    # - there is something to display
+    # - there is something to stop displaying
+    alert_out = process_hud_alert(hud_alert)
+    steer, fcw = alert_out
+    
+    if fcw:
+      self.fcw_countdown = 200
+    if self.fcw_countdown > 0:
+      apply_accel = -8.0
+      self.fcw_countdown = self.fcw_countdown - 1
+      
+    if (any(alert_out) and not self.alert_active) or \
+       (not any(alert_out) and self.alert_active):
+      send_ui = True
+      self.alert_active = not self.alert_active
+    else:
+      send_ui = False
+      
     # accel cmd comes from DSU, but we can spam can to cancel the system even if we are using lat only control
     if (frame % 3 == 0 and ECU.DSU in self.fake_ecus) or (pcm_cancel_cmd and ECU.CAM in self.fake_ecus):
       lead = lead or CS.v_ego < 12.    # at low speed we always assume the lead is present do ACC can be engaged
@@ -255,18 +274,7 @@ class CarController():
         # This prevents unexpected pedal range rescaling
         can_sends.append(create_gas_command(self.packer, apply_gas, frame//2))
 
-    # ui mesg is at 100Hz but we send asap if:
-    # - there is something to display
-    # - there is something to stop displaying
-    alert_out = process_hud_alert(hud_alert)
-    steer, fcw = alert_out
 
-    if (any(alert_out) and not self.alert_active) or \
-       (not any(alert_out) and self.alert_active):
-      send_ui = True
-      self.alert_active = not self.alert_active
-    else:
-      send_ui = False
 
     # disengage msg causes a bad fault sound so play a good sound instead
     if pcm_cancel_cmd:

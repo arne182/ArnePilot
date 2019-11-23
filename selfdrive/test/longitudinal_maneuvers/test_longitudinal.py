@@ -122,7 +122,7 @@ maneuvers = [
     speed_lead_values = [20., 20., 0.],
     speed_lead_breakpoints = [0., 15., 21.66],
     cruise_button_presses = [(CB.DECEL_SET, 1.2), (0, 1.3)],
-    checks=[check_engaged, check_fcw],
+    checks=[check_engaged, check_no_collision],
   ),
   Maneuver(
     'steady state following a car at 20m/s, then lead decel to 0mph at 5m/s^2',

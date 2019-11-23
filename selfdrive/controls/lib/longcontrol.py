@@ -1,6 +1,7 @@
 from cereal import log
 from common.numpy_fast import clip, interp
 from selfdrive.controls.lib.pid import PIController
+import time
 
 LongCtrlState = log.ControlsState.LongControlState
 
@@ -65,11 +66,12 @@ class LongControl():
                             sat_limit=0.8,
                             convert=compute_gb)
     self.v_pid = 0.0
+    self.fcw_countdown = 0
     self.last_output_gb = 0.0
     self.lastdecelForTurn = False
-    self.last_lead = None
+    self.last_lead_data = {'vRel': None, 'a_lead': None, 'x_lead': None, 'status': False}
     self.freeze = False
-    self.none_count = 0
+    self.last_lead_time = time.time()
     
   def reset(self, v_pid):
     """Reset PID controller and change setpoint"""
@@ -102,40 +104,44 @@ class LongControl():
 
     accel = interp(v_ego, x, y)
 
-    if self.none_count < 10 and self.last_lead is not None and self.last_lead.status:  # if returned nones is less than 10, last lead is not none, and last lead's status is true assume lead
-      v_rel = self.last_lead.vRel
-      #a_lead = self.last_lead.aLeadK  # to use later
-      #x_lead = self.last_lead.dRel
-    else:
-      v_rel = None
-      #a_lead = None
-      #x_lead = None
-
-    if dynamic and v_rel is not None:  # dynamic gas profile specific operations, and if lead
+    if dynamic and self.last_lead_data['vRel'] is not None and self.last_lead_data['status']:  # dynamic gas profile specific operations, and if lead
       if v_ego < 6.7056:  # if under 15 mph
         x = [1.61479, 1.99067, 2.28537, 2.49888, 2.6312, 2.68224]
         y = [-accel, -(accel / 1.06), -(accel / 1.2), -(accel / 1.8), -(accel / 4.4), 0]  # array that matches current chosen accel value
-        accel += interp(v_rel, x, y)
+        accel += interp(self.last_lead_data['vRel'], x, y)
       else:
         x = [-0.89408, 0, 0.89408, 4.4704]
         y = [-.15, -.05, .005, .05]
-        accel += interp(v_rel, x, y)
+        accel += interp(self.last_lead_data['vRel'], x, y)
 
     min_return = 0.0
     max_return = 1.0
     return round(max(min(accel, max_return), min_return), 5)  # ensure we return a value between range
 
-  def update(self, active, v_ego, brake_pressed, standstill, cruise_standstill, v_cruise, v_target, v_target_future, a_target, CP, gas_interceptor,
-             gas_button_status, decelForTurn, longitudinalPlanSource, lead_one, gas_pressed):
+  def process_lead(self, lead_one):
+    if lead_one is not None:
+      self.last_lead_data['vRel'] = lead_one.vRel
+      self.last_lead_data['a_lead'] = lead_one.aLeadK
+      self.last_lead_data['x_lead'] = lead_one.dRel
+      self.last_lead_data['status'] = lead_one.status
+      self.last_lead_time = time.time()
+    elif time.time() - self.last_lead_time > 0.5:  # if missing lead for n seconds
+      self.last_lead_data['vRel'] = None
+      self.last_lead_data['a_lead'] = None
+      self.last_lead_data['x_lead'] = None
+      self.last_lead_data['status'] = False
+
+  def update(self, active, v_ego, brake_pressed, standstill, cruise_standstill, v_cruise, v_target, v_target_future, a_target, CP,
+             gas_button_status, decelForTurn, longitudinalPlanSource, lead_one, gas_pressed, fcw):
     """Update longitudinal control. This updates the state machine and runs a PID loop"""
     # Actuation limits
-    if lead_one is not None:
-      self.last_lead = lead_one
-      self.none_count = 0
-    else:
-      self.none_count = clip(self.none_count + 1, 0, 10)
+    self.process_lead(lead_one)
+    try:
+      gas_interceptor = CP.enableGasInterceptor
+    except AttributeError:
+      gas_interceptor = False
 
-    #gas_max = interp(v_ego, CP.gasMaxBP, CP.gasMaxV)    
+    # gas_max = interp(v_ego, CP.gasMaxBP, CP.gasMaxV)
     gas_max = self.dynamic_gas(v_ego, gas_interceptor, gas_button_status)
     brake_max = interp(v_ego, CP.brakeMaxBP, CP.brakeMaxV)
 
@@ -156,7 +162,7 @@ class LongControl():
     elif self.long_control_state == LongCtrlState.pid:
       self.v_pid = v_target
       self.pid.pos_limit = gas_max
-      self.pid.neg_limit = - brake_max
+      self.pid.neg_limit = -brake_max
 
       # Toyota starts braking more when it thinks you want to stop
       # Freeze the integrator so we don't accelerate to compensate, and don't allow positive acceleration
@@ -213,5 +219,10 @@ class LongControl():
     self.last_output_gb = output_gb
     final_gas = clip(output_gb, 0., gas_max)
     final_brake = -clip(output_gb, -brake_max, 0.)
-
+    if fcw:
+      self.fcw_countdown = 200
+    if self.fcw_countdown > 0:
+      self.fcw_countdown = self.fcw_countdown -1
+      final_gas = 0.
+      final_brake = 1.0
     return final_gas, final_brake

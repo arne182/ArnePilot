@@ -1,8 +1,7 @@
 import numpy as np
 import math
-from selfdrive.services import service_list
-from cereal import arne182
 import selfdrive.messaging as messaging
+import selfdrive.messaging_arne as messaging_arne
 from common.numpy_fast import interp
 from cereal import car
 from common.numpy_fast import mean
@@ -141,8 +140,7 @@ class CarState():
     self.Angle = [0, 5, 10, 15,20,25,30,35,60,100,180,270,500]
     self.Angle_Speed = [255,160,100,80,70,60,55,50,40,33,27,17,12]
     if not travis:
-      self.traffic_data_sock = messaging.pub_sock('liveTrafficData')
-      self.arne182Status_sock = messaging.pub_sock('arne182Status')
+      self.arne_pm = messaging_arne.PubMaster(['liveTrafficData', 'arne182Status'])
     # initialize can parser
     self.car_fingerprint = CP.carFingerprint
 
@@ -218,11 +216,12 @@ class CarState():
       self.gasbuttonstatus = 2
     if self.sport_on == 0 and self.econ_on == 0:
       self.gasbuttonstatus = 0
-    msg = arne182.Arne182Status.new_message()
-    msg.gasbuttonstatus = self.gasbuttonstatus
-    msg.readdistancelines = cp.vl["PCM_CRUISE_SM"]['DISTANCE_LINES']
+    msg = messaging_arne.new_message()
+    msg.init('arne182Status')
+    msg.arne182Status.gasbuttonstatus = self.gasbuttonstatus
+    msg.arne182Status.readdistancelines = cp.vl["PCM_CRUISE_SM"]['DISTANCE_LINES']
     if not travis:
-      self.arne182Status_sock.send(msg.to_bytes())
+      self.arne_pm.send('arne182Status', msg)
     if self.CP.carFingerprint == CAR.LEXUS_IS:
       self.main_on = cp.vl["DSU_CRUISE"]['MAIN_ON']
     else:
@@ -313,21 +312,22 @@ class CarState():
     self.splsgn4 = cp_cam.vl["RSA2"]['SPLSGN4']
     self.noovertake = self.tsgn1 == 65 or self.tsgn2 == 65 or self.tsgn3 == 65 or self.tsgn4 == 65 or self.tsgn1 == 66 or self.tsgn2 == 66 or self.tsgn3 == 66 or self.tsgn4 == 66
     if self.spdval1 > 0 or self.spdval2 > 0:
-      dat = arne182.LiveTrafficData.new_message()
+      dat = messaging_arne.new_message()
+      dat.init('liveTrafficData')
       if self.spdval1 > 0:
-        dat.speedLimitValid = True
+        dat.liveTrafficData.speedLimitValid = True
         if self.tsgn1 == 36:
-          dat.speedLimit = self.spdval1 * 1.60934
+          dat.liveTrafficData.speedLimit = self.spdval1 * 1.60934
         elif self.tsgn1 == 1:
-          dat.speedLimit = self.spdval1
+          dat.liveTrafficData.speedLimit = self.spdval1
         else:
-          dat.speedLimit = 0
+          dat.liveTrafficData.speedLimit = 0
       else:
-        dat.speedLimitValid = False
+        dat.liveTrafficData.speedLimitValid = False
       if self.spdval2 > 0:
-        dat.speedAdvisoryValid = True
-        dat.speedAdvisory = self.spdval2
+        dat.liveTrafficData.speedAdvisoryValid = True
+        dat.liveTrafficData.speedAdvisory = self.spdval2
       else:
-        dat.speedAdvisoryValid = False
+        dat.liveTrafficData.speedAdvisoryValid = False
       if not travis:
-        self.traffic_data_sock.send(dat.to_bytes())
+        self.arne_pm.send('liveTrafficData', dat)

@@ -2,10 +2,8 @@
 import math
 from datetime import datetime
 import time
-from selfdrive.services import service_list
 import zmq
 import numpy as np
-from cereal import arne182
 from common.params import Params
 from common.numpy_fast import interp
 import selfdrive.messaging_arne as messaging_arne
@@ -60,7 +58,7 @@ _MODEL_V_K = [[0.07068858], [0.04826294]]
 # 75th percentile
 SPEED_PERCENTILE_IDX = 7
 
-def calc_cruise_accel_limits(v_ego, following, gasbuttonstatus):
+def calc_cruise_accel_limits(v_ego, following, gas_button_status):
   if following:
     a_cruise_min = interp(v_ego, _A_CRUISE_MIN_BP, _A_CRUISE_MIN_V_FOLLOWING)
   else:
@@ -69,9 +67,9 @@ def calc_cruise_accel_limits(v_ego, following, gasbuttonstatus):
   if following:
     a_cruise_max = interp(v_ego, _A_CRUISE_MAX_BP, _A_CRUISE_MAX_V_FOLLOWING)
   else:
-    if gasbuttonstatus == 1:
+    if gas_button_status == 1:
       a_cruise_max = interp(v_ego, _A_CRUISE_MAX_BP, _A_CRUISE_MAX_V_SPORT)
-    elif gasbuttonstatus == 2:
+    elif gas_button_status == 2:
       a_cruise_max = interp(v_ego, _A_CRUISE_MAX_BP, _A_CRUISE_MAX_V_ECO)
     else:
       a_cruise_max = interp(v_ego, _A_CRUISE_MAX_BP, _A_CRUISE_MAX_V)
@@ -98,9 +96,7 @@ def limit_accel_in_turns(v_ego, angle_steers, a_target, CP, angle_later):
 class Planner():
   def __init__(self, CP):
     self.CP = CP
-    self.poller = zmq.Poller()
-    self.arne182Status = messaging_arne.sub_sock(service_list['arne182Status'].port, poller=self.poller, conflate=True)
-    self.latcontolStatus = messaging_arne.sub_sock(service_list['latControl'].port, poller=self.poller, conflate=True)
+    self.arne_sm = messaging_arne.SubMaster(['arne182Status', 'latControl'])
     self.mpc1 = LongitudinalMpc(1)
     self.mpc2 = LongitudinalMpc(2)
 
@@ -130,7 +126,7 @@ class Planner():
         solutions['mpc2'] = self.mpc2.v_mpc
 
       slowest = min(solutions, key=solutions.get)
-
+      
       self.longitudinalPlanSource = slowest
       # Choose lowest of MPC and cruise
       if slowest == 'mpc1':
@@ -149,17 +145,8 @@ class Planner():
     self.v_acc_future = min([self.mpc1.v_mpc_future, self.mpc2.v_mpc_future, v_cruise_setpoint])
 
   def update(self, sm, pm, CP, VM, PP):
-    self.arne182 = None
-    self.latcontrol = None
-    for socket, _ in self.poller.poll(0):
-      if socket is self.arne182Status:
-        self.arne182 = arne182.Arne182Status.from_bytes(socket.recv())
-      elif socket is self.latcontolStatus:
-        self.latcontrol = arne182.LatControl.from_bytes(socket.recv())
-    if self.arne182 is None:
-      gasbuttonstatus = 0
-    else:
-      gasbuttonstatus = self.arne182.gasbuttonstatus
+    self.arne_sm.update(0)
+    gas_button_status = self.arne_sm['arne182Status'].gasbuttonstatus
     """Gets called when new radarState is available"""
     cur_time = sec_since_boot()
     v_ego = sm['carState'].vEgo
@@ -169,14 +156,14 @@ class Planner():
       angle_later = 0.
     else:
       steering_angle = sm['carState'].steeringAngle
-      if self.latcontrol is None or v_ego < 11:
+      if v_ego < 11:
         angle_later = 0.
       else:
-        angle_later = self.latcontrol.anglelater
+        angle_later = self.arne_sm['latControl'].anglelater
     
-    if gasbuttonstatus == 1:
+    if gas_button_status == 1:
       speed_ahead_distance = 150
-    elif gasbuttonstatus == 2:
+    elif gas_button_status == 2:
       speed_ahead_distance = 350
     else:
       speed_ahead_distance = 250
@@ -218,7 +205,7 @@ class Planner():
     try:
       if sm['liveMapData'].speedLimitValid and osm and (sm['liveMapData'].lastGps.timestamp -time.mktime(now.timetuple()) * 1000) < 10000:
         speed_limit = sm['liveMapData'].speedLimit
-        if v_speedlimit is not None and offset is not None and v_speedlimit > offset:
+        if speed_limit is not None and offset is not None and speed_limit > offset:
           v_speedlimit = speed_limit + offset
         else:
           v_speedlimit = speed_limit
@@ -238,7 +225,7 @@ class Planner():
           speed_limit_ahead = sm['liveMapData'].speedLimitAhead + (speed_limit - sm['liveMapData'].speedLimitAhead)*(sm['liveMapData'].speedLimitAheadDistance - distanceatlowlimit)/(speed_ahead_distance - distanceatlowlimit)
         else:
           speed_limit_ahead = sm['liveMapData'].speedLimitAhead
-        if v_speedlimit_ahead is not None and offset is not None and v_speedlimit_ahead > offset:
+        if speed_limit_ahead is not None and offset is not None and speed_limit_ahead > offset:
           v_speedlimit_ahead = speed_limit_ahead + offset
         else:
           v_speedlimit_ahead = speed_limit_ahead
@@ -262,7 +249,7 @@ class Planner():
     
     # Calculate speed for normal cruise control
     if enabled:
-      accel_limits = [float(x) for x in calc_cruise_accel_limits(v_ego, following, gasbuttonstatus)]
+      accel_limits = [float(x) for x in calc_cruise_accel_limits(v_ego, following, gas_button_status)]
       jerk_limits = [min(-0.1, accel_limits[0]), max(0.1, accel_limits[1])]  # TODO: make a separate lookup for jerk tuning
       accel_limits_turns = limit_accel_in_turns(v_ego, steering_angle, accel_limits, self.CP, angle_later)
 

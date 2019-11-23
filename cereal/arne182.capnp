@@ -33,7 +33,6 @@ struct PhantomData {
   status @0 :Bool;
   speed @1 :Float32;
   angle @2 :Float32;
-  time @3 :Float32;
 }
 
 struct ManagerData {

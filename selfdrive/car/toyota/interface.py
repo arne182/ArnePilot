@@ -56,6 +56,17 @@ class CarInterface(CarInterfaceBase):
 
     ret.steerActuatorDelay = 0.12  # Default delay, Prius has larger delay
 
+    if ret.enableGasInterceptor:
+      ret.gasMaxBP = [0., 9., 55]
+      ret.gasMaxV = [0.2, 0.5, 0.7]
+      ret.longitudinalTuning.kpV = [0.50, 0.4, 0.3]  # braking tune
+      ret.longitudinalTuning.kiV = [0.135, 0.1]
+    else:
+      ret.gasMaxBP = [0., 9., 55]
+      ret.gasMaxV = [0.2, 0.5, 0.7]
+      ret.longitudinalTuning.kpV = [0.325, 0.325, 0.325]  # braking tune from rav4h
+      ret.longitudinalTuning.kiV = [0.1, 0.10]
+
     if candidate not in [CAR.PRIUS, CAR.RAV4, CAR.RAV4H]: # These cars use LQR/INDI
       ret.lateralTuning.init('pid')
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
@@ -98,7 +109,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.init('lqr')
 
       ret.lateralTuning.lqr.scale = 1500.0
-      ret.lateralTuning.lqr.ki = 0.05
+      ret.lateralTuning.lqr.ki = 0.06
 
       ret.lateralTuning.lqr.a = [0., 1., -0.22619643, 1.21822268]
       ret.lateralTuning.lqr.b = [-1.92006585e-04, 3.95603032e-05]
@@ -111,11 +122,14 @@ class CarInterface(CarInterfaceBase):
       stop_and_go = False
       ret.safetyParam = 100
       ret.wheelbase = 2.70
-      ret.steerRatio = 18.27
+      ret.steerRatio = 17.8
       tire_stiffness_factor = 0.444  # not optimized yet
       ret.mass = 2860. * CV.LB_TO_KG + STD_CARGO_KG  # mean between normal and hybrid
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2], [0.05]]
-      ret.lateralTuning.pid.kf = 0.00003   # full torque for 20 deg at 80mph means 0.00007818594
+      ret.lateralTuning.pid.kf = 0.0000275  # full torque for 20 deg at 80mph means 0.00007818594
+      if ret.enableGasInterceptor:
+        ret.longitudinalTuning.kpV = [1.0, 0.66, 0.42]
+        ret.longitudinalTuning.kiV = [0.135, 0.09]
 
     elif candidate == CAR.LEXUS_RXH:
       stop_and_go = True
@@ -252,7 +266,7 @@ class CarInterface(CarInterfaceBase):
     ret.enableCamera = is_ecu_disconnected(fingerprint[0], FINGERPRINTS, ECU_FINGERPRINT, candidate, ECU.CAM) or has_relay
     ret.enableDsu = is_ecu_disconnected(fingerprint[0], FINGERPRINTS, ECU_FINGERPRINT, candidate, ECU.DSU) or (has_relay and candidate in TSS2_CAR)
     ret.enableApgs = False  # is_ecu_disconnected(fingerprint[0], FINGERPRINTS, ECU_FINGERPRINT, candidate, ECU.APGS)
-    ret.enableGasInterceptor = 0x201 in fingerprint[0]
+    ret.enableGasInterceptor = 0x201 in fingerprint[0] or opParams().get('force_pedal', False)
     ret.openpilotLongitudinalControl = ret.enableCamera and ret.enableDsu
     cloudlog.warning("ECU Camera Simulated: %r", ret.enableCamera)
     cloudlog.warning("ECU DSU Simulated: %r", ret.enableDsu)
@@ -271,17 +285,6 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.kiBP = [0., 35.]
     ret.stoppingControl = False
     ret.startAccel = 0.0
-
-    if ret.enableGasInterceptor:
-      ret.gasMaxBP = [0., 9., 55]
-      ret.gasMaxV = [0.2, 0.5, 0.7]
-      ret.longitudinalTuning.kpV = [0.50, 0.4, 0.3] # braking tune
-      ret.longitudinalTuning.kiV = [0.0135, 0.01]
-    else:
-      ret.gasMaxBP = [0., 9., 55]
-      ret.gasMaxV = [0.2, 0.5, 0.7]
-      ret.longitudinalTuning.kpV = [0.325, 0.325, 0.325]  # braking tune from rav4h
-      ret.longitudinalTuning.kiV = [0.001, 0.0010]
 
     return ret
 
@@ -333,12 +336,16 @@ class CarInterface(CarInterfaceBase):
     ret.steeringTorqueEps = self.CS.steer_torque_motor
     ret.steeringPressed = self.CS.steer_override
 
+    # events
+    events = []
+
     # cruise state
     if not self.cruise_enabled_prev:
       ret.cruiseState.enabled = self.CS.pcm_acc_active
     else:
       ret.cruiseState.enabled = bool(self.CS.main_on)
       if not self.CS.pcm_acc_active:
+        events.append(create_event('longControlDisabled', [ET.WARNING]))
         ret.brakePressed = True
     if self.CS.v_ego < 1 or not self.keep_openpilot_engaged:
       ret.cruiseState.enabled = self.CS.pcm_acc_active
@@ -375,10 +382,6 @@ class CarInterface(CarInterfaceBase):
     ret.seatbeltUnlatched = not self.CS.seatbelt
 
     ret.genericToggle = self.CS.generic_toggle
-
-    # events
-    events = []
-    # todo: arne, do we need this section below? it's not present in 066
       
     if ret.cruiseState.enabled and not self.cruise_enabled_prev:  # this lets us modularize which checks we want to turn off op if cc was engaged previoiusly or not
       disengage_event = True

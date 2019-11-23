@@ -1,7 +1,5 @@
 import math
-from cereal import arne182
 from common.realtime import sec_since_boot
-from selfdrive.services import service_list
 from selfdrive.swaglog import cloudlog
 from selfdrive.controls.lib.lateral_mpc import libmpc_py
 from selfdrive.controls.lib.drive_helpers import MPC_COST_LAT
@@ -25,7 +23,7 @@ class PathPlanner():
 
     self.last_cloudlog_t = 0
     if not travis:
-      self.latControl_sock = messaging_arne.pub_sock(service_list['latControl'].port)
+      self.arne_pm = messaging_arne.PubMaster('latControl')
     self.setup_mpc(CP.steerRateCost)
     self.solution_invalid_cnt = 0
     self.path_offset_i = 0.0
@@ -141,8 +139,9 @@ class PathPlanner():
     dat.liveMpc.delta = list(self.mpc_solution[0].delta)
     dat.liveMpc.cost = self.mpc_solution[0].cost
     pm.send('liveMpc', dat)
-    
-    msg = arne182.LatControl.new_message()
-    msg.anglelater = math.degrees(list(self.mpc_solution[0].delta)[-1])
+
+    msg = messaging_arne.new_message()
+    msg.init('latControl')
+    msg.latControl.anglelater = math.degrees(list(self.mpc_solution[0].delta)[-1])
     if not travis:
-      self.latControl_sock.send(msg.to_bytes())
+      self.arne_pm.send('latControl', msg)
