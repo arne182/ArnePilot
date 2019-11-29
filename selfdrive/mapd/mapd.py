@@ -255,6 +255,8 @@ def mapsd_thread():
             curvature = 1. / radii
           rate = [rate_curvature_points(*p) for p in zip(pnts[1:], pnts[2:],curvature[0:],curvature[1:])]
           rate = ([0] + rate)
+          
+          curvature = np.abs(curvature)
           curvature = np.multiply(np.minimum(np.multiply(rate,4000)+0.7,1.1),curvature)
           # Index of closest point
           closest = np.argmin(np.linalg.norm(pnts, axis=1))
@@ -277,7 +279,6 @@ def mapsd_thread():
             curvature = np.nan_to_num(curvature)
 
             
-            curvature = abs(curvature)
             upcoming_curvature = np.amax(curvature)
             dist_to_turn =np.amin(dists[np.logical_and(curvature >= np.amax(curvature), curvature <= np.amax(curvature))])
 

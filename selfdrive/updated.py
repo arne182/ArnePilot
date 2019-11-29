@@ -74,7 +74,16 @@ def main(gctx=None):
     
     if NEED_REBOOT:
       sm.update(1)
-      if not sm['thermal'].started and not (sm['health'].ignitionLine or sm['health'].ignitionCan):
+      WILL_REBOOT= False
+      try:
+        WILL_REBOOT = not (sm['health'].ignitionLine or sm['health'].ignitionCan)
+      except:
+        pass
+      try:
+        WILL_REBOOT = not sm['thermal'].started
+      except:
+        pass
+      if WILL_REBOOT:
         os.system('reboot')
 
     time.sleep(30*60)

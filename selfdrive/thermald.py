@@ -10,11 +10,13 @@ from common.params import Params
 from common.realtime import sec_since_boot, DT_TRML
 from common.numpy_fast import clip, interp
 from common.filter_simple import FirstOrderFilter
-from selfdrive.version import terms_version, training_version
+from selfdrive.version import terms_version, training_version, version, dirty
 from selfdrive.swaglog import cloudlog
 import selfdrive.messaging as messaging
 from selfdrive.loggerd.config import get_available_percent
 from selfdrive.pandad import get_expected_version
+
+import selfdrive.crash as crash
 
 FW_VERSION = get_expected_version()
 
@@ -324,7 +326,15 @@ def thermald_thread():
       params.put("Offroad_ChargeDisabled", json.dumps(OFFROAD_ALERTS["Offroad_ChargeDisabled"]))
     elif usb_power and not usb_power_prev:
       params.delete("Offroad_ChargeDisabled")
-
+      
+    if msg.thermal.batteryVoltage < 11500:
+      alert_connectivity_prompt = copy.copy(OFFROAD_ALERTS["Offroad_VoltageLow"])
+      alert_connectivity_prompt["text"] += str(msg.thermal.batteryVoltage) + " Volts."
+      params.delete("Offroad_VoltageLow")
+      params.put("Offroad_VoltageLow", json.dumps(alert_connectivity_prompt))
+    else:
+      params.delete("Offroad_VoltageLow")
+    
     thermal_status_prev = thermal_status
     usb_power_prev = usb_power
     fw_version_match_prev = fw_version_match
@@ -343,6 +353,12 @@ def thermald_thread():
 
 
 def main(gctx=None):
+  params = Params()
+  dongle_id = params.get("DongleId")
+  crash.bind_user(id=dongle_id)
+  crash.bind_extra(version=version, dirty=dirty, is_eon=True)
+  crash.install()
+  
   thermald_thread()
 
 if __name__ == "__main__":

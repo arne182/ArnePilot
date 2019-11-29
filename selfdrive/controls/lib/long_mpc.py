@@ -117,6 +117,7 @@ class LongitudinalMpc():
       x = [4.4704, 6.7056]  # smoothly ramp TR between 10 and 15 mph from 1.8s to defined TR above at 15mph
       y = [1.8, interp(x[1], x_vel, y_mod)]
       TR = interp(self.v_ego, x, y)
+      return round(TR, 3)
 
     if self.lead_data['v_lead'] is not None:  # since the new mpc now handles braking nicely, simplify mods
       x = [-2.68, -2.1, -1.26, -0.61, 0, 0.61, 1.26, 2.1, 2.68]  # relative velocity values
@@ -136,8 +137,8 @@ class LongitudinalMpc():
       return round(TR, 3)
 
   def get_cost(self, TR):
-    x = [.9, 1.8, 2.7]
-    y = [4.5, 2.8, 1.3]
+    x = [0.9, 1.8, 2.7]
+    y = [3.5, 0.8, 0.3]
     if self.lead_data['x_lead'] is not None and self.v_ego is not None and self.v_ego != 0:
       real_TR = self.lead_data['x_lead'] / float(self.v_ego)  # switched to cost generation using actual distance from lead car; should be safer
       if abs(real_TR - TR) >= .25:  # use real TR if diff is greater than x safety threshold
