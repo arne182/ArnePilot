@@ -72,7 +72,7 @@ const int header_h = 420;
 const int footer_h = 280;
 const int footer_y = vwp_h-bdr_s-footer_h;
 
-const int UI_FREQ = 30;   // Hz
+const int UI_FREQ = 60;   // Hz
 
 const int MODEL_PATH_MAX_VERTICES_CNT = 98;
 const int MODEL_LANE_PATH_CNT = 3;
@@ -178,7 +178,7 @@ typedef struct UIScene {
 
   uint64_t started_ts;
 
-  
+
   //BB CPU TEMP
   uint16_t maxCpuTemp;
   uint32_t maxBatTemp;
@@ -2188,10 +2188,10 @@ void handle_message(UIState *s, void *which) {
     if (fabs(qdata.output) < 1){
       s->scene.output_scale = qdata.output;
     }
-    
+
     s->scene.frontview = datad.rearViewCam;
 
-    s->scene.decel_for_model = datad.decelForModel; 
+    s->scene.decel_for_model = datad.decelForModel;
     s->scene.decel_for_turn = datad.decelForTurn;
     s->alert_sound_timeout = 1 * UI_FREQ;
 
