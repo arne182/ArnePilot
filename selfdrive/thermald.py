@@ -326,14 +326,6 @@ def thermald_thread():
       params.put("Offroad_ChargeDisabled", json.dumps(OFFROAD_ALERTS["Offroad_ChargeDisabled"]))
     elif usb_power and not usb_power_prev:
       params.delete("Offroad_ChargeDisabled")
-      
-    if msg.thermal.batteryVoltage < 11500:
-      alert_connectivity_prompt = copy.copy(OFFROAD_ALERTS["Offroad_VoltageLow"])
-      alert_connectivity_prompt["text"] += str(msg.thermal.batteryVoltage) + " Volts."
-      params.delete("Offroad_VoltageLow")
-      params.put("Offroad_VoltageLow", json.dumps(alert_connectivity_prompt))
-    else:
-      params.delete("Offroad_VoltageLow")
     
     thermal_status_prev = thermal_status
     usb_power_prev = usb_power
@@ -358,7 +350,7 @@ def main(gctx=None):
   crash.bind_user(id=dongle_id)
   crash.bind_extra(version=version, dirty=dirty, is_eon=True)
   crash.install()
-  
+
   thermald_thread()
 
 if __name__ == "__main__":
