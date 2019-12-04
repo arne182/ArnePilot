@@ -9,6 +9,7 @@ from selfdrive.car.toyota.toyotacan import make_can_msg, \
 from selfdrive.car.toyota.values import CAR, ECU, STATIC_MSGS, TSS2_CAR, SteerLimitParams
 from selfdrive.can.packer import CANPacker
 from selfdrive.phantom.phantom import Phantom
+from selfdrive.car.modules.ALCA_module import ALCAController
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
@@ -107,7 +108,8 @@ class CarController():
     if enable_camera: self.fake_ecus.add(ECU.CAM)
     if enable_dsu: self.fake_ecus.add(ECU.DSU)
     if enable_apg: self.fake_ecus.add(ECU.APGS)
-
+    self.ALCA = ALCAController(self,True,False)  # Enabled True and SteerByAngle only False
+      
     self.packer = CANPacker(dbc_name)
 
   def update(self, enabled, CS, frame, actuators, pcm_cancel_cmd, hud_alert,
@@ -128,6 +130,16 @@ class CarController():
 
     apply_accel, self.accel_steady = accel_hysteresis(apply_accel, self.accel_steady, enabled)
     apply_accel = clip(apply_accel * ACCEL_SCALE, ACCEL_MIN, ACCEL_MAX)
+    # Get the angle from ALCA.
+    alca_enabled = False
+    alca_steer = 0.
+    alca_angle = 0.
+    turn_signal_needed = 0
+    # Update ALCA status and custom button every 0.1 sec.
+    if self.ALCA.pid == None:
+      self.ALCA.set_pid(CS)
+    if (frame % 10 == 0):
+      self.ALCA.update_status(CS.cstm_btns.get_button_status("alca") > 0)
     
     if CS.CP.enableGasInterceptor:
       if CS.pedal_gas > 15.0:
@@ -142,11 +154,13 @@ class CarController():
         apply_accel = min(apply_accel, 0.0)
       
     # steer torque
+    alca_angle, alca_steer, alca_enabled, turn_signal_needed = self.ALCA.update(enabled, CS, frame, actuators)
+    
     self.phantom.update()
     if self.phantom.data['status']:
       apply_steer = int(round(self.phantom.data["angle"])) if abs(CS.angle_steers) <= 400 else 0
     else:
-      apply_steer = int(round(actuators.steer * SteerLimitParams.STEER_MAX)) if abs(CS.angle_steers) <= 100 else 0
+      apply_steer = int(round(alca_steer * SteerLimitParams.STEER_MAX)) if abs(CS.angle_steers) <= 100 else 0
     
     # only cut torque when steer state is a known fault
     if CS.steer_state in [9, 25] and self.last_steer > 0:
@@ -188,7 +202,7 @@ class CarController():
 
     # steer angle
     if self.steer_angle_enabled and CS.ipas_active:
-      apply_angle = actuators.steerAngle
+      apply_angle = alca_angle
       angle_lim = interp(CS.v_ego, ANGLE_MAX_BP, ANGLE_MAX_V)
       apply_angle = clip(apply_angle, -angle_lim, angle_lim)
 
