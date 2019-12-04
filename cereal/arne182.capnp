@@ -7,6 +7,24 @@ $Java.outerClassname("arne182");
 
 @0xca61a35dedbd6328;
 
+struct ALCAStatus { 
+  # ALCA info
+  alcaEnabled @0 :Bool;
+  alcaDirection @1 :Int8;
+  alcaTotalSteps @2 :UInt16;
+  alcaError @3 :Bool;
+}
+
+struct ALCAState {
+  alcaError @0 :Bool;
+  alcaCancelling @1 :Bool;
+  alcaEnabled @2 :Bool;
+  alcaLaneWidth @3 :Float32;
+  alcaStep @4 :UInt8;
+  alcaTotalSteps @5 :UInt16;
+  alcaDirection @6 :Int8;
+}
+
 struct CarEventArne182 @0x9b1657f34caf3ad4 {
   name @0 :EventNameArne182;
   enable @1 :Bool;
