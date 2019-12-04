@@ -116,7 +116,7 @@ class ALCAController():
     # something is not right; ALCAModelParser is not engaged; cancel
     self.debug_alca("ALCA canceled: stop_ALCA called")
     if not isDone:
-      CS.UE.custom_alert_message(3,"Auto Lane Change Canceled! (d)",200,5)
+      #CS.UE.custom_alert_message(3,"Auto Lane Change Canceled! (d)",200,5)
       self.laneChange_cancelled = True
       self.laneChange_cancelled_counter = 200
     else:
@@ -125,7 +125,7 @@ class ALCAController():
     self.laneChange_enabled = 1
     self.laneChange_counter = 0
     self.laneChange_direction = 0
-    CS.cstm_btns.set_button_status("alca",1)
+    #CS.cstm_btns.set_button_status("alca",1)
     self.send_status(CS)
 
 
@@ -153,7 +153,7 @@ class ALCAController():
         self.laneChange_enabled =1
         self.laneChange_counter =0
         self.laneChange_direction =0
-        CS.UE.custom_alert_message(-1,"",0)
+        #CS.UE.custom_alert_message(-1,"",0)
 
     if CS.turn_signal_stalk_state == 0 and \
       (self.laneChange_enabled > 1):
@@ -166,16 +166,16 @@ class ALCAController():
     if (CS.cstm_btns.get_button_status("alca") > 0) and self.alcaEnabled and (self.laneChange_enabled == 1):
       if ((CS.v_ego < cl_min_v) or (abs(actuators.steerAngle) >= cl_max_a) or \
       (abs(CS.angle_steers)>= cl_max_a)  or (not enabled)): 
-        CS.cstm_btns.set_button_status("alca",9)
+        #CS.cstm_btns.set_button_status("alca",9)
       else:
-        CS.cstm_btns.set_button_status("alca",1)
+        #CS.cstm_btns.set_button_status("alca",1)
 
     if self.alcaEnabled and enabled and (self.laneChange_enabled > 1) and \
       ((CS.v_ego < cl_min_v) or (abs(actuators.steerAngle) >= cl_max_a) or (abs(CS.angle_steers) >=cl_max_a)):
       # something is not right, the speed or angle is limitting
       self.debug_alca("ALCA Unavailable (2)")
-      CS.UE.custom_alert_message(3,"Auto Lane Change Unavailable!",200,3)
-      CS.cstm_btns.set_button_status("alca",9)
+      #CS.UE.custom_alert_message(3,"Auto Lane Change Unavailable!",200,3)
+      #CS.cstm_btns.set_button_status("alca",9)
       self.stop_ALCA(CS, False)
       return 0, False
 
@@ -185,12 +185,12 @@ class ALCAController():
       laneChange_direction = -1 if CS.turn_signal_stalk_state == 1 else 1 # left -1, right 1
       self.debug_alca("ALCA blinker on detected")
 
-      CS.UE.custom_alert_message(2,"Auto Lane Change Engaged!",100)
+      #CS.UE.custom_alert_message(2,"Auto Lane Change Engaged!",100)
       self.debug_alca("ALCA engaged")
       self.laneChange_enabled = 2
       self.laneChange_counter = 1
       self.laneChange_direction = laneChange_direction
-      CS.cstm_btns.set_button_status("alca",2)
+      #CS.cstm_btns.set_button_status("alca",2)
 
     if (not self.alcaEnabled) and self.laneChange_enabled > 1:
       self.debug_alca("ALCA canceled: not enabled")
@@ -203,7 +203,7 @@ class ALCAController():
     # lane change in progress
     if self.laneChange_enabled > 1:
       if (CS.steer_override or (CS.v_ego < cl_min_v)):
-        CS.UE.custom_alert_message(4,"Auto Lane Change Canceled! (u)",200,3)
+        #CS.UE.custom_alert_message(4,"Auto Lane Change Canceled! (u)",200,3)
         self.debug_alca("ALCA canceled: steer override")
         self.laneChange_cancelled = True
         self.laneChange_cancelled_counter = 200
@@ -211,12 +211,12 @@ class ALCAController():
         self.laneChange_counter = 0
         self.laneChange_enabled = 1
         self.laneChange_direction = 0
-        CS.cstm_btns.set_button_status("alca",1)
+        #CS.cstm_btns.set_button_status("alca",1)
         self.stop_ALCA(CS, False)
         return 0, False
       if self.laneChange_enabled == 2:
         if self.laneChange_counter == 1:
-          CS.UE.custom_alert_message(2,"Auto Lane Change Engaged! (1)",self.laneChange_wait * 100)
+          #CS.UE.custom_alert_message(2,"Auto Lane Change Engaged! (1)",self.laneChange_wait * 100)
         self.laneChange_counter += 1
         self.debug_alca("ALCA phase 2: " + str(self.laneChange_counter))
         if self.laneChange_counter == self.laneChange_wait * 100:
@@ -224,7 +224,7 @@ class ALCAController():
           self.laneChange_counter = 0
       if self.laneChange_enabled ==3:
         if self.laneChange_counter == 1:
-          CS.UE.custom_alert_message(2,"Auto Lane Change Engaged! (2)",int(ALCA_duration_seconds * 100))
+          #CS.UE.custom_alert_message(2,"Auto Lane Change Engaged! (2)",int(ALCA_duration_seconds * 100))
         self.laneChange_counter += 1
         self.debug_alca("ALCA phase 3: " + str(self.laneChange_counter))
         if self.laneChange_counter >= (ALCA_duration_seconds + 2) * 100.:
@@ -234,7 +234,7 @@ class ALCAController():
       if self.laneChange_enabled == 4:
         self.debug_alca("ALCA phase 4: " +str(self.laneChange_counter))
         if self.laneChange_counter == 1:
-          CS.UE.custom_alert_message(2,"Auto Lane Change Complete!",100)
+          #CS.UE.custom_alert_message(2,"Auto Lane Change Complete!",100)
           self.laneChange_enabled = 1
           self.laneChange_counter = 0
           self.stop_ALCA(CS, True)
@@ -247,7 +247,7 @@ class ALCAModelParser():
   def __init__(self):
     #ALCA params
     self.ALCA_error = False
-    self.ALCA_lane_width = 3.6
+    self.ALCA_lane_width = 3.0
     self.ALCA_direction = 100  #none 0, left 1, right -1,reset 100
     self.ALCA_step = 0
     self.ALCA_total_steps = 20 * ALCA_duration_seconds #20 Hz, 5 seconds, wifey mode
