@@ -12,14 +12,14 @@ from common.travis_checker import travis
 
 
 def calc_states_after_delay(states, v_ego, steer_angle, curvature_factor, steer_ratio, delay):
-  states[0].x = v_ego * delay
+  states[0].x = max(v_ego * delay, 0.0)
   states[0].psi = v_ego * curvature_factor * math.radians(steer_angle) / steer_ratio * delay
   return states
 
 
 class PathPlanner():
   def __init__(self, CP):
-    self.LP = LanePlanner()
+    self.LP = LanePlanner(shouldUseAlca=True)
 
     self.last_cloudlog_t = 0
     if not travis:
@@ -53,7 +53,7 @@ class PathPlanner():
 
     angle_offset = sm['liveParameters'].angleOffset
 
-    self.LP.update(v_ego, sm['model'])
+    self.LP.update(v_ego, sm['model'], True)
 
     # Run MPC
     self.angle_steers_des_prev = self.angle_steers_des_mpc
