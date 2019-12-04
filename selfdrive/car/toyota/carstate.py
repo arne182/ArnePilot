@@ -166,6 +166,8 @@ class CarState():
 
     #duration to wait (in seconds) with blinkers on before starting to turn
     self.CL_WAIT_BEFORE_START = 1
+    self.turn_signal_stalk_state = 0
+    self.prev_turn_signal_stalk_state = 0
     #END OF ALCA PARAMS
 
     self.gasbuttonstatus = 0
@@ -202,6 +204,7 @@ class CarState():
 
   def update(self, cp, cp_cam):
     # update prevs, update must run once per loop
+    self.prev_turn_signal_stalk_state = self.turn_signal_stalk_state
     self.prev_left_blinker_on = self.left_blinker_on
     self.prev_right_blinker_on = self.right_blinker_on
 
@@ -274,6 +277,12 @@ class CarState():
       self.main_on = cp.vl["PCM_CRUISE_2"]['MAIN_ON']
     self.left_blinker_on = cp.vl["STEERING_LEVERS"]['TURN_SIGNALS'] == 1
     self.right_blinker_on = cp.vl["STEERING_LEVERS"]['TURN_SIGNALS'] == 2
+    if self.left_blinker_on and not self.right_blinker_on:
+      self.turn_signal_stalk_state = -1
+    elif self.right_blinker_on and not self.left_blinker_on:
+      self.turn_signal_stalk_state = 1
+    else:
+      self.turn_signal_stalk_state = 0
 
     # 2 is standby, 10 is active. TODO: check that everything else is really a faulty state
     self.steer_state = cp.vl["EPS_STATUS"]['LKA_STATE']
