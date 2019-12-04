@@ -223,7 +223,7 @@ class ALCAController():
           self.laneChange_enabled = 3
           self.laneChange_counter = 0
       if self.laneChange_enabled ==3:
-        if self.laneChange_counter == 1:
+        #if self.laneChange_counter == 1:
           #CS.UE.custom_alert_message(2,"Auto Lane Change Engaged! (2)",int(ALCA_duration_seconds * 100))
         self.laneChange_counter += 1
         self.debug_alca("ALCA phase 3: " + str(self.laneChange_counter))
