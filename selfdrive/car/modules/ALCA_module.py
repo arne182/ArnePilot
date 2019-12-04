@@ -47,10 +47,9 @@ v1.0 - fixed angle move
 from common.numpy_fast import interp,clip
 from selfdrive.controls.lib.pid import PIController
 from common.realtime import sec_since_boot
-from selfdrive.services import service_list
 import selfdrive.messaging as messaging
 import numpy as np
-from cereal import tesla
+from cereal import arne182
 
 #wait time after turn complete before enabling smoother
 WAIT_TIME_AFTER_TURN = 2.0
@@ -101,7 +100,7 @@ class ALCAController():
       CS.ALCA_direction = 0
     if not (self.frame % 20 == 0):
         return
-    alca_status = tesla.ALCAStatus.new_message()
+    alca_status = arne182.ALCAStatus.new_message()
     alca_status.alcaEnabled = bool(CS.ALCA_enabled)
     alca_status.alcaTotalSteps = int(CS.ALCA_total_steps)
     alca_status.alcaDirection = int(CS.ALCA_direction)
@@ -299,7 +298,7 @@ class ALCAModelParser():
       print (message)
 
   def send_state(self):
-    alca_state = tesla.ALCAState.new_message()
+    alca_state = arne182.ALCAState.new_message()
     #ALCA params
     alca_state.alcaDirection = int(self.ALCA_direction)
     alca_state.alcaError = bool(self.ALCA_error)
@@ -314,7 +313,7 @@ class ALCAModelParser():
 
     alcaStatusMsg = self.alcaStatus.receive(non_blocking=True)
     if alcaStatusMsg is not None:
-      self.alcas = tesla.ALCAStatus.from_bytes(alcaStatusMsg)
+      self.alcas = arne182.ALCAStatus.from_bytes(alcaStatusMsg)
 
     #if we don't have yet ALCA status, return same values
     if self.alcas is None:
