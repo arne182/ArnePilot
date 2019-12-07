@@ -136,10 +136,8 @@ class CarController():
     alca_angle = 0.
     turn_signal_needed = 0
     # Update ALCA status and custom button every 0.1 sec.
-    if self.ALCA.pid == None:
-      self.ALCA.set_pid(CS)
     if (frame % 10 == 0):
-      self.ALCA.update_status(CS.cstm_btns.get_button_status("alca") > 0)
+      self.ALCA.update_status(True)
     
     if CS.CP.enableGasInterceptor:
       if CS.pedal_gas > 15.0:
