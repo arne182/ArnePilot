@@ -123,6 +123,8 @@ def get_cam_can_parser(CP):
 class CarState():
   def __init__(self, CP):
     #ALCA params
+    self.CL_MIN_V = 8.9
+    self.CL_MAX_A = 20.
     self.enableALCA = True
     self.alcaEnabled = True
     self.ALCA_enabled = False
