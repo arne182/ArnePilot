@@ -304,7 +304,7 @@ class CarState():
       self.Angles_later[self.Angle_counter] = 0
     self.Angle_counter = (self.Angle_counter + 1 ) % 250
     self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
-    self.alcaEnabled = cp.vl["DSU_CRUISE"]['MAIN_ON']
+    self.alcaEnabled = self.main_on
     self.pcm_acc_active = bool(cp.vl["PCM_CRUISE"]['CRUISE_ACTIVE'])
     self.brake_lights = bool(cp.vl["ESP_CONTROL"]['BRAKE_LIGHTS_ACC'] or self.brake_pressed)
     if self.CP.carFingerprint == CAR.PRIUS:
