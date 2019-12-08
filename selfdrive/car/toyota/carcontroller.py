@@ -1,4 +1,5 @@
 from cereal import car, arne182
+import selfdrive.messaging as messaging
 from common.numpy_fast import clip, interp
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car import create_gas_command
