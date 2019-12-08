@@ -1,4 +1,4 @@
-from cereal import car
+from cereal import car, arne182
 from common.numpy_fast import clip, interp
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car import create_gas_command
@@ -88,6 +88,8 @@ def ipas_state_transition(steer_angle_enabled, enabled, ipas_active, ipas_reset_
 class CarController():
   def __init__(self, dbc_name, car_fingerprint, enable_camera, enable_dsu, enable_apg):
     self.braking = False
+    self.alcaStateData = None
+    self.alcaState = messaging.sub_sock('alcaState', conflate=True)
     # redundant safety check with the board
     self.controls_allowed = True
     self.last_steer = 0
@@ -137,7 +139,11 @@ class CarController():
     turn_signal_needed = 0
     # Update ALCA status and custom button every 0.1 sec.
     if (frame % 10 == 0):
+      alcaStateMsg = self.alcaState.receive(non_blocking=True)
       self.ALCA.update_status(True)
+      if alcaStateMsg is not None:
+        self.alcaStateData =  arne182.ALCAState.from_bytes(alcaStateMsg)
+      turn_signal_needed, self.alca_enabled = self.ALCA.update(enabled, CS, actuators, self.alcaStateData, frame)
     
     if CS.CP.enableGasInterceptor:
       if CS.pedal_gas > 15.0:
@@ -152,13 +158,13 @@ class CarController():
         apply_accel = min(apply_accel, 0.0)
       
     # steer torque
-    alca_angle, alca_steer, alca_enabled, turn_signal_needed = self.ALCA.update(enabled, CS, frame, actuators)
+    
     
     self.phantom.update()
     if self.phantom.data['status']:
       apply_steer = int(round(self.phantom.data["angle"])) if abs(CS.angle_steers) <= 400 else 0
     else:
-      apply_steer = int(round(alca_steer * SteerLimitParams.STEER_MAX)) if abs(CS.angle_steers) <= 100 else 0
+      apply_steer = int(round(actuators.steer * SteerLimitParams.STEER_MAX)) if abs(CS.angle_steers) <= 100 else 0
     
     # only cut torque when steer state is a known fault
     if CS.steer_state in [9, 25] and self.last_steer > 0:
@@ -200,7 +206,7 @@ class CarController():
 
     # steer angle
     if self.steer_angle_enabled and CS.ipas_active:
-      apply_angle = alca_angle
+      apply_angle = actuators.steerAngle
       angle_lim = interp(CS.v_ego, ANGLE_MAX_BP, ANGLE_MAX_V)
       apply_angle = clip(apply_angle, -angle_lim, angle_lim)
 
