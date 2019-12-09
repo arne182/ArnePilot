@@ -66,7 +66,7 @@ ALCA_duration_seconds = 5.
 ALCA_right_lane_multiplier = 1.
 ALCA_distance_left_min = 0.7
 
-ALCA_DEBUG = False
+ALCA_DEBUG = True
 DEBUG_INFO = "step {step} of {total_steps}: direction = {ALCA_direction} | using visual = {ALCA_use_visual} | over line = {ALCA_over_line} | lane width = {ALCA_lane_width} | left to move = {left_to_move} | from center = {from_center} | C2 offset = {ALCA_OFFSET_C2} | C1 offset = {ALCA_OFFSET_C1} | Prob Low = {prob_low} | Prob High = {prob_high}"
 
 
