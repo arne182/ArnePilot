@@ -19,7 +19,7 @@ def calc_states_after_delay(states, v_ego, steer_angle, curvature_factor, steer_
 
 class PathPlanner():
   def __init__(self, CP):
-    self.LP = LanePlanner(shouldUseAlca=True)
+    self.LP = LanePlanner()
 
     self.last_cloudlog_t = 0
     if not travis:
@@ -53,7 +53,7 @@ class PathPlanner():
 
     angle_offset = sm['liveParameters'].angleOffset
 
-    self.LP.update(v_ego, sm['model'], True)
+    self.LP.update(v_ego, sm['model'])
 
     # Run MPC
     self.angle_steers_des_prev = self.angle_steers_des_mpc
