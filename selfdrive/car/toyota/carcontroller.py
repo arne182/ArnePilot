@@ -134,17 +134,13 @@ class CarController():
     apply_accel, self.accel_steady = accel_hysteresis(apply_accel, self.accel_steady, enabled)
     apply_accel = clip(apply_accel * ACCEL_SCALE, ACCEL_MIN, ACCEL_MAX)
     # Get the angle from ALCA.
-    alca_enabled = False
-    alca_steer = 0.
-    alca_angle = 0.
-    turn_signal_needed = 0
     # Update ALCA status and custom button every 0.1 sec.
+    alcaStateMsg = self.alcaState.receive(non_blocking=True)
+    if alcaStateMsg is not None:
+      self.alcaStateData =  arne182.ALCAState.from_bytes(alcaStateMsg)
     if (frame % 10 == 0):
-      alcaStateMsg = self.alcaState.receive(non_blocking=True)
       self.ALCA.update_status(True)
-      if alcaStateMsg is not None:
-        self.alcaStateData =  arne182.ALCAState.from_bytes(alcaStateMsg)
-      turn_signal_needed, self.alca_enabled = self.ALCA.update(enabled, CS, actuators, self.alcaStateData, frame)
+    turn_signal_needed, self.alca_enabled = self.ALCA.update(enabled, CS, actuators, self.alcaStateData, frame)
     
     if CS.CP.enableGasInterceptor:
       if CS.pedal_gas > 15.0:
