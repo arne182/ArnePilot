@@ -52,7 +52,6 @@ class LanePlanner():
 
     self._path_pinv = compute_path_pinv()
     self.x_points = np.arange(50)
-    self.shouldUseAlca = shouldUseAlca
     self.ALCAMP = ALCAModelParser()
 
   def parse_model(self, md):
@@ -67,7 +66,7 @@ class LanePlanner():
     self.l_prob = md.leftLane.prob  # left line prob
     self.r_prob = md.rightLane.prob  # right line prob
 
-  def update_lane(self, v_ego, md, alca):
+  def update_lane(self, v_ego, md):
     # only offset left and right lane lines; offsetting p_poly does not make sense
     self.l_poly[3] += CAMERA_OFFSET
     self.r_poly[3] += CAMERA_OFFSET
