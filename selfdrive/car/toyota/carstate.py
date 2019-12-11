@@ -245,7 +245,7 @@ class CarState():
     if self.left_blinker_on and not self.right_blinker_on:
       self.turn_signal_stalk_state = 1
     if self.right_blinker_on and not self.left_blinker_on:
-      self.turn_signal_stalk_state = -1
+      self.turn_signal_stalk_state = 2
     if not self.right_blinker_on and not self.left_blinker_on:
       self.turn_signal_stalk_state = 0
 
