@@ -244,9 +244,9 @@ class CarState():
     self.right_blinker_on = cp.vl["STEERING_LEVERS"]['TURN_SIGNALS'] == 2
     if self.left_blinker_on and not self.right_blinker_on:
       self.turn_signal_stalk_state = 1
-    elif self.right_blinker_on and not self.left_blinker_on:
+    if self.right_blinker_on and not self.left_blinker_on:
       self.turn_signal_stalk_state = -1
-    else:
+    if not self.right_blinker_on and not self.left_blinker_on:
       self.turn_signal_stalk_state = 0
 
     # 2 is standby, 10 is active. TODO: check that everything else is really a faulty state
