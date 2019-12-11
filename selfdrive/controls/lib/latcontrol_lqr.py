@@ -67,7 +67,7 @@ class LatControlLQR():
           self.i_lqr = i
 
       self.output_steer = lqr_output + self.i_lqr
-      self.output_steer = clip(self.output_steer*0.7, -steers_max, steers_max)
+      self.output_steer = clip(self.output_steer*0.65, -steers_max, steers_max)
 
     lqr_log.steerAngle = angle_steers_k + path_plan.angleOffset
     lqr_log.i = self.i_lqr

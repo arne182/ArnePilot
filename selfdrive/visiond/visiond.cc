@@ -72,7 +72,7 @@
 //#define DEBUG_DRIVER_MONITOR
 
 // send net input on port 9000
-//#define SEND_NET_INPUT
+#define SEND_NET_INPUT
 
 #define YUV_COUNT 40
 #define MAX_CLIENTS 5
