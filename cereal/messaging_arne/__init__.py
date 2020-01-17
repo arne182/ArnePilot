@@ -20,7 +20,7 @@ except ImportError:
 context = Context()
 
 def new_message():
-  dat = log.Event.new_message()
+  dat = log.CarEventArne182.new_message()
   dat.logMonoTime = int(sec_since_boot() * 1e9)
   dat.valid = True
   return dat
