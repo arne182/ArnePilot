@@ -71,7 +71,7 @@ def drain_sock(sock, wait_for_one=False):
     if dat is None: # Timeout hit
       break
 
-    dat = log.Event.from_bytes(dat)
+    dat = log.EventArne182.from_bytes(dat)
     ret.append(dat)
 
   return ret
@@ -94,20 +94,20 @@ def recv_sock(sock, wait=False):
     dat = rcv
 
   if dat is not None:
-    dat = log.Event.from_bytes(dat)
+    dat = log.EventArne182.from_bytes(dat)
 
   return dat
 
 def recv_one(sock):
   dat = sock.receive()
   if dat is not None:
-    dat = log.Event.from_bytes(dat)
+    dat = log.EventArne182.from_bytes(dat)
   return dat
 
 def recv_one_or_none(sock):
   dat = sock.receive(non_blocking=True)
   if dat is not None:
-    dat = log.Event.from_bytes(dat)
+    dat = log.EventArne182.from_bytes(dat)
   return dat
 
 def recv_one_retry(sock):
@@ -115,7 +115,7 @@ def recv_one_retry(sock):
   while True:
     dat = sock.receive()
     if dat is not None:
-      return log.Event.from_bytes(dat)
+      return log.EventArne182.from_bytes(dat)
 
 # TODO: This does not belong in messaging
 def get_one_can(logcan):
