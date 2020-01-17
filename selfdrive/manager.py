@@ -62,7 +62,10 @@ if __name__ == "__main__":
   from common.spinner import Spinner
 else:
   from common.spinner import FakeSpinner as Spinner
-
+  
+if not (os.system("python3 -m pip list | grep 'scipy' ") == 0):
+  os.system("cd /data/openpilot/installer/scipy_installer/ && ./scipy_installer")
+  
 import importlib
 import traceback
 from multiprocessing import Process

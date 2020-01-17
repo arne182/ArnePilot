@@ -80,6 +80,17 @@ testModel: [8040, false, 0.]
 testLiveLocation: [8045, false, 0.]
 testJoystick: [8056, false, 0.]
 
+#arne182
+liveTrafficData: [8208, false, 100.]
+liveMapData: [8065, false, 10.]
+arne182Status: [8209, false, 100.]
+latControl: [8210, false, 20.]
+phantomData: [8211, false, 20.]
+
+#alca Events
+alcaStatus: [8212, false, 0.]
+alcaState: [8213, false, 0.]
+
 # 8080 is reserved for slave testing daemon
 # 8762 is reserved for logserver
 

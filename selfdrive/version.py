@@ -31,7 +31,7 @@ with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "common", "ve
 
 try:
   origin = get_git_remote()
-  if origin.startswith('git@github.com:commaai') or origin.startswith('https://github.com/commaai'):
+  if origin.startswith('git@github.com:arne182') or origin.startswith('https://github.com/arne182'):
     if origin.endswith('/one.git'):
       dirty = True
     else:
