@@ -20,6 +20,7 @@
 #include "ui.hpp"
 #include "sound.hpp"
 
+
 static int last_brightness = -1;
 static void set_brightness(UIState *s, int brightness) {
   if (last_brightness != brightness && (s->awake || brightness == 0)) {
@@ -128,9 +129,9 @@ static void ui_init(UIState *s) {
                              });
 
 #ifdef SHOW_SPEEDLIMIT
-  s->map_data_sock = SubSock::create(s->ctx, "liveMapData");
+  s->map_data_sock = SubSocket::create(s->ctx, "liveMapData");
   assert(s->map_data_sock != NULL);
-  s->poller.registerSocket(s->map_data_sock);
+  s->poller->registerSocket(s->map_data_sock);
 #endif
 
   s->ipc_fd = -1;
@@ -274,6 +275,7 @@ void handle_message(UIState *s, Message * msg) {
       s->scene.v_cruise_update_ts = eventd.logMonoTime;
     }
     s->scene.v_cruise = datad.vCruise;
+    s->scene.angleSteers = datad.angleSteers;
     s->scene.v_ego = datad.vEgo;
     s->scene.curvature = datad.curvature;
     s->scene.engaged = datad.enabled;
@@ -418,6 +420,10 @@ void handle_message(UIState *s, Message * msg) {
     struct cereal_LiveMapData datad;
     cereal_read_LiveMapData(&datad, eventd.liveMapData);
     s->scene.map_valid = datad.mapValid;
+    s->scene.speedlimit = datad.speedLimit;
+    s->scene.speedlimitahead_valid = datad.speedLimitAheadValid;
+    s->scene.speedlimitaheaddistance = datad.speedLimitAheadDistance;
+    s->scene.speedlimit_valid = datad.speedLimitValid;
   }
   capn_free(&ctx);
 }

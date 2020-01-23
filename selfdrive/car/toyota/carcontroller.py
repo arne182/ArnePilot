@@ -11,8 +11,8 @@ VisualAlert = car.CarControl.HUDControl.VisualAlert
 
 # Accel limits
 ACCEL_HYST_GAP = 0.02  # don't change accel command for small oscilalitons within this value
-ACCEL_MAX = 1.5  # 1.5 m/s2
-ACCEL_MIN = -3.0 # 3   m/s2
+ACCEL_MAX = 3.5  # 1.5 m/s2
+ACCEL_MIN = -3.5 # 3   m/s2
 ACCEL_SCALE = max(ACCEL_MAX, -ACCEL_MIN)
 
 
@@ -125,6 +125,18 @@ class CarController():
 
     apply_accel, self.accel_steady = accel_hysteresis(apply_accel, self.accel_steady, enabled)
     apply_accel = clip(apply_accel * ACCEL_SCALE, ACCEL_MIN, ACCEL_MAX)
+
+    if CS.CP.enableGasInterceptor:
+      if CS.pedal_gas > 15.0:
+        apply_accel = max(apply_accel, 0.06)
+      if CS.brake_pressed:
+        apply_gas = 0.0
+        apply_accel = min(apply_accel, 0.00)
+    else:
+      if CS.pedal_gas > 0.0:
+        apply_accel = max(apply_accel, 0.0)
+      if CS.brake_pressed and CS.v_ego > 1:
+        apply_accel = min(apply_accel, 0.0)
 
     # steer torque
     new_steer = int(round(actuators.steer * SteerLimitParams.STEER_MAX))

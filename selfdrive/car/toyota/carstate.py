@@ -1,3 +1,4 @@
+import math
 from cereal import car
 from common.numpy_fast import mean
 import cereal.messaging_arne as messaging_arne
@@ -121,6 +122,9 @@ class CarState():
     self.right_blinker_on = 0
     self.angle_offset = 0.
     self.init_angle_offset = False
+    self.v_cruise_pcmlast = 41.0
+    self.setspeedoffset = 34.0
+    self.setspeedcounter = 0
     
     if not travis:
       self.arne_pm = messaging_arne.PubMaster(['liveTrafficData', 'arne182Status'])
@@ -203,7 +207,8 @@ class CarState():
     self.steer_torque_motor = cp.vl["STEER_TORQUE_SENSOR"]['STEER_TORQUE_EPS']
     # we could use the override bit from dbc, but it's triggered at too high torque values
     self.steer_override = abs(self.steer_torque_driver) > STEER_THRESHOLD
-
+    self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
+    
     self.user_brake = 0
     if self.CP.carFingerprint == CAR.LEXUS_IS:
       self.v_cruise_pcm = cp.vl["DSU_CRUISE"]['SET_SPEED']
@@ -211,7 +216,42 @@ class CarState():
     else:
       self.v_cruise_pcm = cp.vl["PCM_CRUISE_2"]['SET_SPEED']
       self.low_speed_lockout = cp.vl["PCM_CRUISE_2"]['LOW_SPEED_LOCKOUT'] == 2
-    self.pcm_acc_status = cp.vl["PCM_CRUISE"]['CRUISE_STATE']
+    if self.CP.carFingerprint in TSS2_CAR:
+      minimum_set_speed = 27.0
+    else:
+      minimum_set_speed = 41.0
+    if cp.vl["PCM_CRUISE"]['CRUISE_STATE'] and not self.pcm_acc_status:
+      if self.v_ego < 11.38:
+        self.setspeedoffset = max(min(int(minimum_set_speed-self.v_ego*3.6),(minimum_set_speed-7.0)),0.0)
+        self.v_cruise_pcmlast = self.v_cruise_pcm
+      else:
+        self.setspeedoffset = 0
+        self.v_cruise_pcmlast = self.v_cruise_pcm
+    if self.v_cruise_pcm < self.v_cruise_pcmlast:
+      if self.setspeedcounter > 0 and self.v_cruise_pcm > minimum_set_speed:
+        self.setspeedoffset = self.setspeedoffset + 4
+      else:
+        if math.floor((int((-self.v_cruise_pcm)*(minimum_set_speed-7.0)/(169.0-minimum_set_speed)  + 169.0*(minimum_set_speed-7.0)/(169.0-minimum_set_speed))-self.setspeedoffset)/(self.v_cruise_pcm-(minimum_set_speed-1.0))) > 0:
+          self.setspeedoffset = self.setspeedoffset + math.floor((int((-self.v_cruise_pcm)*(minimum_set_speed-7.0)/(169.0-minimum_set_speed)  + 169*(minimum_set_speed-7.0)/(169.0-minimum_set_speed))-self.setspeedoffset)/(self.v_cruise_pcm-(minimum_set_speed-1.0)))
+      self.setspeedcounter = 50
+    if self.v_cruise_pcmlast < self.v_cruise_pcm:
+      if self.setspeedcounter > 0 and (self.setspeedoffset - 4) > 0:
+        self.setspeedoffset = self.setspeedoffset - 4
+      else:
+        self.setspeedoffset = self.setspeedoffset + math.floor((int((-self.v_cruise_pcm)*(minimum_set_speed-7.0)/(169.0-minimum_set_speed)  + 169*(minimum_set_speed-7.0)/(169.0-minimum_set_speed))-self.setspeedoffset)/(170-self.v_cruise_pcm))
+      self.setspeedcounter = 50
+    if self.setspeedcounter > 0:
+      self.setspeedcounter = self.setspeedcounter - 1
+    self.v_cruise_pcmlast = self.v_cruise_pcm
+    if int(self.v_cruise_pcm) - self.setspeedoffset < 7:
+      self.setspeedoffset = int(self.v_cruise_pcm) - 7
+    if int(self.v_cruise_pcm) - self.setspeedoffset > 169:
+      self.setspeedoffset = int(self.v_cruise_pcm) - 169
+
+
+    self.v_cruise_pcm = min(max(7, int(self.v_cruise_pcm) - self.setspeedoffset),169)
+
+    
     self.pcm_acc_active = bool(cp.vl["PCM_CRUISE"]['CRUISE_ACTIVE'])
     self.brake_lights = bool(cp.vl["ESP_CONTROL"]['BRAKE_LIGHTS_ACC'] or self.brake_pressed)
     if self.CP.carFingerprint == CAR.PRIUS:
