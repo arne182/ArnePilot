@@ -113,19 +113,22 @@ static void ui_init(UIState *s) {
   s->uilayout_sock = SubSocket::create(s->ctx, "uiLayoutState");
   s->livecalibration_sock = SubSocket::create(s->ctx, "liveCalibration");
   s->radarstate_sock = SubSocket::create(s->ctx, "radarState");
+  s->thermal_sock = SubSocket::create(s->ctx, "thermal");
 
   assert(s->model_sock != NULL);
   assert(s->controlsstate_sock != NULL);
   assert(s->uilayout_sock != NULL);
   assert(s->livecalibration_sock != NULL);
   assert(s->radarstate_sock != NULL);
+  assert(s->thermal_sock != NULL);
 
   s->poller = Poller::create({
                               s->model_sock,
                               s->controlsstate_sock,
                               s->uilayout_sock,
                               s->livecalibration_sock,
-                              s->radarstate_sock
+                              s->radarstate_sock,
+                              s->thermal_sock
                              });
 
 #ifdef SHOW_SPEEDLIMIT
@@ -277,6 +280,7 @@ void handle_message(UIState *s, Message * msg) {
     s->scene.v_cruise = datad.vCruise;
     s->scene.angleSteers = datad.angleSteers;
     s->scene.v_ego = datad.vEgo;
+    s->scene.angleSteers = datad.angleSteers;
     s->scene.curvature = datad.curvature;
     s->scene.engaged = datad.enabled;
     s->scene.engageable = datad.engageable;
@@ -286,6 +290,9 @@ void handle_message(UIState *s, Message * msg) {
     s->scene.frontview = datad.rearViewCam;
 
     s->scene.decel_for_model = datad.decelForModel;
+
+    // getting steering related data for dev ui
+    s->scene.angleSteersDes = datad.angleSteersDes;
 
     if (datad.alertSound != cereal_CarControl_HUDControl_AudibleAlert_none && datad.alertSound != s->alert_sound) {
       if (s->alert_sound != cereal_CarControl_HUDControl_AudibleAlert_none) {
@@ -424,6 +431,13 @@ void handle_message(UIState *s, Message * msg) {
     s->scene.speedlimitahead_valid = datad.speedLimitAheadValid;
     s->scene.speedlimitaheaddistance = datad.speedLimitAheadDistance;
     s->scene.speedlimit_valid = datad.speedLimitValid;
+  // getting thermal related data for dev ui
+  } else if (eventd.which == cereal_Event_thermal) {
+    struct cereal_ThermalData datad;
+    cereal_read_ThermalData(&datad, eventd.thermal);
+
+    s->scene.pa0 = datad.pa0;
+    s->scene.freeSpace = datad.freeSpace;
   }
   capn_free(&ctx);
 }

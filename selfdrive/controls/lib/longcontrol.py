@@ -71,7 +71,7 @@ class LongControl():
     self.pid.reset()
     self.v_pid = v_pid
 
-  def update(self, active, v_ego, brake_pressed, standstill, cruise_standstill, v_cruise, v_target, v_target_future, a_target, CP):
+  def update(self, active, v_ego, gas_pressed, brake_pressed, standstill, cruise_standstill, v_cruise, v_target, v_target_future, a_target, CP):
     """Update longitudinal control. This updates the state machine and runs a PID loop"""
     # Actuation limits
     gas_max = interp(v_ego, CP.gasMaxBP, CP.gasMaxV)
@@ -85,7 +85,7 @@ class LongControl():
 
     v_ego_pid = max(v_ego, MIN_CAN_SPEED)  # Without this we get jumps, CAN bus reports 0 when speed < 0.3
 
-    if self.long_control_state == LongCtrlState.off or brake_pressed:
+    if self.long_control_state == LongCtrlState.off or brake_pressed or gas_pressed:
       self.v_pid = v_ego_pid
       self.pid.reset()
       output_gb = 0.

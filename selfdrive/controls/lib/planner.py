@@ -205,11 +205,11 @@ class Planner():
         curvature = abs(sm['liveMapData'].curvature)
         radius = 1/max(1e-4, curvature)
         if radius > 500:
-          c=0.7 # 0.7 at 1000m = 95 kph
+          c=0.9 # 0.9 at 1000m = 108 kph
         elif radius > 250: 
-          c = 2.7-1/250*radius # 1.7 at 264m 76 kph
+          c = 3.5-13/2500*radius # 2.2 at 250m 84 kph
         else:
-          c= 3.0 - 13/2500 *radius # 3.0 at 15m 24 kph
+          c= 3.0 - 2/625 *radius # 3.0 at 15m 24 kph
         v_curvature_map = math.sqrt(c*radius)
         v_curvature_map = min(NO_CURVATURE_SPEED, v_curvature_map)
     except KeyError:
