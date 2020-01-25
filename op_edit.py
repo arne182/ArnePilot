@@ -7,17 +7,16 @@ class opEdit:  # use by running `python /data/openpilot/op_edit.py`
   def __init__(self):
     self.op_params = opParams()
     self.params = None
-    self.sleep_time = 1.0
+    self.sleep_time = 1.25
     self.run_loop()
 
   def run_loop(self):
     print('Welcome to the opParams command line editor!')
     print('Here are your parameters:\n')
     while True:
-      self.params = self.op_params.get()
-
+      self.params = self.op_params.get(force_update=True)
       values_list = [self.params[i] if len(str(self.params[i])) < 20 else '{} ... {}'.format(str(self.params[i])[:30], str(self.params[i])[-15:]) for i in self.params]
-      live = [' (live!)' if i in self.op_params.default_params and self.op_params.default_params[i]['live'] else '' for i in self.params]
+      live = [' (live!)' if i in self.op_params.default_params and 'live' in self.op_params.default_params[i] and self.op_params.default_params[i]['live'] else '' for i in self.params]
 
       to_print = ['{}. {}: {} {}'.format(idx + 1, i, values_list[idx], live[idx]) for idx, i in enumerate(self.params)]
       to_print.append('\n{}. Add new parameter!'.format(len(self.params) + 1))
@@ -45,12 +44,10 @@ class opEdit:  # use by running `python /data/openpilot/op_edit.py`
       print('Exiting opEdit!')
       return 'error', choice
     else:
-      print('\nNot an integer!\n', flush=True)
-      time.sleep(self.sleep_time)
+      self.message('Not an integer!')
       return 'retry', choice
     if choice not in range(0, len(self.params) + 2):  # three for add/delete parameter
-      print('Not in range!\n', flush=True)
-      time.sleep(self.sleep_time)
+      self.message('Not in range!')
       return 'continue', choice
 
     if choice == len(self.params):  # add new parameter
@@ -64,31 +61,36 @@ class opEdit:  # use by running `python /data/openpilot/op_edit.py`
   def change_parameter(self, choice):
     while True:
       chosen_key = list(self.params)[choice]
-      extra_info = False
+      has_description = False
+      has_allowed_types = False
       live = False
       if chosen_key in self.op_params.default_params:
-        extra_info = True
-        allowed_types = self.op_params.default_params[chosen_key]['allowed_types']
-        description = self.op_params.default_params[chosen_key]['description']
-        live = self.op_params.default_params[chosen_key]['live']
+        has_description = 'description' in self.op_params.default_params[chosen_key]
+        has_allowed_types = 'allowed_types' in self.op_params.default_params[chosen_key]
+        live = 'live' in self.op_params.default_params[chosen_key] and self.op_params.default_params[chosen_key]['live']
 
       old_value = self.params[chosen_key]
       print('Chosen parameter: {}'.format(chosen_key))
       print('Current value: {} (type: {})'.format(old_value, str(type(old_value)).split("'")[1]))
-      if extra_info:
-        print('\n- Description: {}'.format(description.replace('\n', '\n  ')))
-        print('- Allowed types: {}'.format(', '.join([str(i).split("'")[1] for i in allowed_types])))
-        if live:
-          print('- This parameter supports live tuning! Updates should take affect within 5 seconds.\n')
-          print('It\'s recommended to use the new opTune module! It\'s been streamlined to make live tuning easier and quicker.')
-          print('Just exit out of this and type:')
-          print('python op_tune.py')
-          print('In the directory /data/openpilot\n')
-        else:
-          print()
+
+      to_print = []
+      if has_description:
+        to_print.append('>>  Description: {}'.format(self.op_params.default_params[chosen_key]['description'].replace('\n', '\n     ')))
+      if has_allowed_types:
+        allowed_types = self.op_params.default_params[chosen_key]['allowed_types']
+        to_print.append('>>  Allowed types: {}'.format(', '.join([str(i).split("'")[1] for i in allowed_types])))
+      if live:
+        to_print.append('>>  This parameter supports live tuning! Updates should take affect within 5 seconds.\n')
+        to_print.append('Try out opTune! It\'s designed to help you live tune parameters quicker.')
+        to_print.append('Just exit out of this and type: \'python op_tune.py\'')
+
+      if to_print:
+        print('\n{}\n'.format('\n'.join(to_print)))
+
       print('Enter your new value:')
       new_value = input('>> ').strip()
       if new_value == '':
+        self.message('Exiting this parameter...')
         return
 
       status, new_value = self.parse_input(new_value)
@@ -96,8 +98,8 @@ class opEdit:  # use by running `python /data/openpilot/op_edit.py`
       if not status:
         continue
 
-      if extra_info and not any([isinstance(new_value, typ) for typ in allowed_types]):
-        self.message('The type of data you entered ({}) is not allowed with this parameter!\n'.format(str(type(new_value)).split("'")[1]))
+      if has_allowed_types and not any([isinstance(new_value, typ) for typ in allowed_types]):
+        self.message('The type of data you entered ({}) is not allowed with this parameter!'.format(str(type(new_value)).split("'")[1]))
         continue
 
       print('\nOld value: {} (type: {})'.format(old_value, str(type(old_value)).split("'")[1]))
@@ -106,10 +108,9 @@ class opEdit:  # use by running `python /data/openpilot/op_edit.py`
       choice = input('[Y/n]: ').lower().strip()
       if choice == 'y':
         self.op_params.put(chosen_key, new_value)
-        print('\nSaved!\n', flush=True)
+        self.message('Saved!')
       else:
-        print('\nNot saved!\n', flush=True)
-      time.sleep(self.sleep_time)
+        self.message('Not saved!')
       return
 
   def parse_input(self, dat):
@@ -147,10 +148,9 @@ class opEdit:  # use by running `python /data/openpilot/op_edit.py`
       choice = input('[Y/n]: ').lower().strip()
       if choice == 'y':
         self.op_params.delete(key)
-        print('\nDeleted!\n')
+        self.message('Deleted!')
       else:
-        print('\nNot saved!\n', flush=True)
-      time.sleep(self.sleep_time)
+        self.message('Not saved!')
       return
 
   def add_parameter(self):
@@ -181,10 +181,9 @@ class opEdit:  # use by running `python /data/openpilot/op_edit.py`
       choice = input('[Y/n]: ').lower().strip()
       if choice == 'y':
         self.op_params.put(key, value)
-        print('\nSaved!\n', flush=True)
+        self.message('Saved!')
       else:
-        print('\nNot saved!\n', flush=True)
-      time.sleep(self.sleep_time)
+        self.message('Not saved!')
       return
 
   def message(self, msg):
