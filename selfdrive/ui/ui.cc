@@ -113,6 +113,7 @@ static void ui_init(UIState *s) {
   s->uilayout_sock = SubSocket::create(s->ctx, "uiLayoutState");
   s->livecalibration_sock = SubSocket::create(s->ctx, "liveCalibration");
   s->radarstate_sock = SubSocket::create(s->ctx, "radarState");
+  s->carstate_sock = SubSocket::create(s->ctx, "carState");
   s->thermal_sock = SubSocket::create(s->ctx, "thermal");
 
   assert(s->model_sock != NULL);
@@ -128,6 +129,7 @@ static void ui_init(UIState *s) {
                               s->uilayout_sock,
                               s->livecalibration_sock,
                               s->radarstate_sock,
+                              s->carstate_sock,
                               s->thermal_sock
                              });
 
@@ -431,6 +433,10 @@ void handle_message(UIState *s, Message * msg) {
     s->scene.speedlimitahead_valid = datad.speedLimitAheadValid;
     s->scene.speedlimitaheaddistance = datad.speedLimitAheadDistance;
     s->scene.speedlimit_valid = datad.speedLimitValid;
+  } else if (eventd.which == cereal_Event_carState) {
+    struct cereal_CarState datad;
+    cereal_read_CarState(&datad, eventd.carState);
+    s->scene.brakeLights = datad.brakeLights;
   // getting thermal related data for dev ui
   } else if (eventd.which == cereal_Event_thermal) {
     struct cereal_ThermalData datad;

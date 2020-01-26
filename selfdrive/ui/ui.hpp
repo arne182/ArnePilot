@@ -121,6 +121,9 @@ typedef struct UIScene {
   // Used to show gps planner status
   bool gps_planner_active;
 
+  // Brake Lights
+  bool brakeLights;
+
   // dev ui
   float angleSteersDes;
   float pa0;
@@ -165,6 +168,7 @@ typedef struct UIState {
   int img_turn;
   int img_face;
   int img_map;
+  int img_brake;
 
   // sockets
   Context *ctx;
@@ -172,6 +176,7 @@ typedef struct UIState {
   SubSocket *controlsstate_sock;
   SubSocket *livecalibration_sock;
   SubSocket *radarstate_sock;
+  SubSocket *carstate_sock;
   SubSocket *map_data_sock;
   SubSocket *uilayout_sock;
   Poller * poller;
