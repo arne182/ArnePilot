@@ -861,7 +861,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
       val_color = nvgRGBA(255, 188, 3, 200);
     }
 
-    snprintf(val_str, sizeof(val_str), "% 3d°C", s->scene.pa0);
+    snprintf(val_str, sizeof(val_str), "%3d°C", s->scene.pa0);
     snprintf(uom_str, sizeof(uom_str), "");
     bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "BAT TEMP",
         bb_rx, bb_ry, bb_uom_dx,

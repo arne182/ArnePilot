@@ -966,13 +966,6 @@ int main(int argc, char* argv[]) {
           read(temp, temp_buf, 3);
           s->scene.pa0 = atoi(temp_buf);
         }
-        // update battery level
-        int battery = open("/sys/class/power_supply/battery/capacity", O_RDONLY);
-        if (battery >= 0) {
-          char battery_buf[3];
-          read(battery, battery_buf, 3);
-          s->scene.batteryPercent = atoi(battery_buf);
-        }
     }
 
     read_param_bool_timeout(&s->is_metric, "IsMetric", &s->is_metric_timeout);
