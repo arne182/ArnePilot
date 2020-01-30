@@ -852,6 +852,7 @@ int main(int argc, char* argv[]) {
 
   set_volume(MIN_VOLUME);
   s->volume_timeout = 5 * UI_FREQ;
+  s->ui_info_timeout = 5 * UI_FREQ;
   int draws = 0;
   while (!do_exit) {
     bool should_swap = false;
@@ -955,7 +956,7 @@ int main(int argc, char* argv[]) {
       s->alert_sound_timeout--;
       s->controls_seen = false;
     }
-    
+
     // update ui temp/battery values only when vision is up. fix from dragonpilot
     if (s->awake && s->vision_connected) {
         // update temp

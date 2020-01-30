@@ -85,7 +85,7 @@ typedef struct UIScene {
   uint64_t v_cruise_update_ts;
   float v_ego;
   bool decel_for_model;
-  
+
   float speedlimit;
   float angleSteers;
   float speedlimitaheaddistance;
@@ -259,12 +259,12 @@ typedef struct UIState {
   track_vertices_data track_vertices[2];
 
   // dev ui
-  SubSocket *thermal_sock;
+  int ui_info_timeout; // time out so that ui does not lag
 } UIState;
 
 // API
 void ui_draw_vision_alert(UIState *s, int va_size, int va_color,
-                          const char* va_text1, const char* va_text2); 
+                          const char* va_text1, const char* va_text2);
 void ui_draw(UIState *s);
 void ui_nvg_init(UIState *s);
 
