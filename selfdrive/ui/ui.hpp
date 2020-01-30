@@ -126,7 +126,7 @@ typedef struct UIScene {
 
   // dev ui
   float angleSteersDes;
-  float pa0;
+  int pa0;
   float freeSpace;
 
 } UIScene;
