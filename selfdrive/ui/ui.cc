@@ -114,14 +114,14 @@ static void ui_init(UIState *s) {
   s->livecalibration_sock = SubSocket::create(s->ctx, "liveCalibration");
   s->radarstate_sock = SubSocket::create(s->ctx, "radarState");
   s->carstate_sock = SubSocket::create(s->ctx, "carState");
-  s->thermal_sock = SubSocket::create(s->ctx, "thermal");
+  //s->thermal_sock = SubSocket::create(s->ctx, "thermal");
 
   assert(s->model_sock != NULL);
   assert(s->controlsstate_sock != NULL);
   assert(s->uilayout_sock != NULL);
   assert(s->livecalibration_sock != NULL);
   assert(s->radarstate_sock != NULL);
-  assert(s->thermal_sock != NULL);
+  //assert(s->thermal_sock != NULL);
 
   s->poller = Poller::create({
                               s->model_sock,
@@ -130,7 +130,7 @@ static void ui_init(UIState *s) {
                               s->livecalibration_sock,
                               s->radarstate_sock,
                               s->carstate_sock,
-                              s->thermal_sock
+                              //s->thermal_sock
                              });
 
 #ifdef SHOW_SPEEDLIMIT
@@ -954,6 +954,24 @@ int main(int argc, char* argv[]) {
       }
       s->alert_sound_timeout--;
       s->controls_seen = false;
+    }
+    
+    // update ui temp/battery values only when vision is up. fix from dragonpilot
+    if (s->awake && s->vision_connected) {
+        // update temp
+        int temp = open("/sys/devices/virtual/thermal/thermal_zone25/temp", O_RDONLY);
+        if (temp >= 0) {
+          char temp_buf[3];
+          read(temp, temp_buf, 3);
+          s->scene.pa0 = atoi(temp_buf);
+        }
+        // update battery level
+        int battery = open("/sys/class/power_supply/battery/capacity", O_RDONLY);
+        if (battery >= 0) {
+          char battery_buf[3];
+          read(battery, battery_buf, 3);
+          s->scene.batteryPercent = atoi(battery_buf);
+        }
     }
 
     read_param_bool_timeout(&s->is_metric, "IsMetric", &s->is_metric_timeout);
