@@ -853,7 +853,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
    //add battery temperature
   if (true) {
     char val_str[16];
-    char uom_str[6];
+    char uom_str[7];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
     if (s->scene.pa0 > 50) {
       val_color = nvgRGBA(255, 0, 0, 200);
@@ -861,7 +861,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
       val_color = nvgRGBA(255, 188, 3, 200);
     }
 
-    snprintf(val_str, sizeof(val_str), "%2.0f°C", s->scene.pa0);
+    snprintf(val_str, sizeof(val_str), "% 3d°C", s->scene.pa0);
     snprintf(uom_str, sizeof(uom_str), "");
     bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "BAT TEMP",
         bb_rx, bb_ry, bb_uom_dx,
