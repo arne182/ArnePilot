@@ -262,6 +262,8 @@ typedef struct UIState {
   SubSocket *thermal_sock;
 } UIState;
 
+#include "dashcam.h"
+
 // API
 void ui_draw_vision_alert(UIState *s, int va_size, int va_color,
                           const char* va_text1, const char* va_text2); 
