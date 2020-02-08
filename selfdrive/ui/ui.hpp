@@ -188,6 +188,7 @@ typedef struct UIState {
 
   int active_app;
 
+  //dashcam
   int plus_state;
 
   // vision state
