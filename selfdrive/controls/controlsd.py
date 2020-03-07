@@ -26,7 +26,7 @@ from selfdrive.controls.lib.alertmanager import AlertManager
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.controls.lib.planner import LON_MPC_STEP
 from selfdrive.locationd.calibration_helpers import Calibration, Filter
-#from common.travis_checker import travis
+from common.travis_checker import travis
 from common.op_params import opParams
 
 LANE_DEPARTURE_THRESHOLD = 0.1
@@ -76,7 +76,6 @@ def data_sample(CI, CC, sm, can_sock, state, mismatch_counter, can_error_counter
   CS, CS_arne182 = CI.update(CC, can_strs)
 
   sm.update(0)
-  arne_sm.update(0)
   
   events = list(CS.events)
   events += list(sm['dMonitoringState'].events)
@@ -293,8 +292,7 @@ def state_transition(frame, CS, CP, state, events, soft_disable_timer, v_cruise_
 
 
 def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cruise_kph, v_cruise_kph_last,
-
-                  AM, rk, LaC, LoC, read_only, is_metric, cal_perc, last_blinker_frame, arne_sm, events_arne182, radarstate):
+                  AM, rk, LaC, LoC, read_only, is_metric, cal_perc, last_blinker_frame, arne_sm, events_arne182, sm):
 
   """Given the state, this function returns an actuators packet"""
 
@@ -355,7 +353,7 @@ def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cr
   #  gas_button_status = 0
 
   actuators.gas, actuators.brake = LoC.update(active, CS.vEgo, CS.gasPressed, CS.brakePressed, CS.standstill, CS.cruiseState.standstill,
-                                              v_cruise_kph, v_acc_sol, plan.vTargetFuture, a_acc_sol, CP, plan.hasLead, radarstate.leadOne.dRel, plan.decelForTurn, plan.longitudinalPlanSource)
+                                              v_cruise_kph, v_acc_sol, plan.vTargetFuture, a_acc_sol, CP, plan.hasLead, sm['radarState'].leadOne.dRel, plan.decelForTurn, plan.longitudinalPlanSource)
   # Steering PID loop and lateral MPC
   actuators.steer, actuators.steerAngle, lac_log = LaC.update(active, CS.vEgo, CS.steeringAngle, CS.steeringRate, CS.steeringTorqueEps, CS.steeringPressed, CS.steeringRateLimited, CP, path_plan)
 
@@ -639,6 +637,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
   op_params = opParams()
 
   while True:
+    arne_sm.update(0)
     start_time = sec_since_boot()
     prof.checkpoint("Ratekeeper", ignore=True)
 
@@ -688,7 +687,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
     # Compute actuators (runs PID loops and lateral MPC)
     actuators, v_cruise_kph, v_acc, a_acc, lac_log, last_blinker_frame = \
       state_control(sm.frame, sm.rcv_frame, sm['plan'], sm['pathPlan'], CS, CP, state, events, v_cruise_kph, v_cruise_kph_last, AM, rk,
-                    LaC, LoC, read_only, is_metric, cal_perc, last_blinker_frame, arne_sm, events_arne182, sm['radarState'])
+                    LaC, LoC, read_only, is_metric, cal_perc, last_blinker_frame, arne_sm, events_arne182, sm)
 
     prof.checkpoint("State Control")
 
