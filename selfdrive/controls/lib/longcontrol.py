@@ -96,8 +96,8 @@ class LongControl():
   def update(self, active, v_ego, brake_pressed, standstill, cruise_standstill, v_cruise, v_target, v_target_future, a_target, CP, extra_params):
     """Update longitudinal control. This updates the state machine and runs a PID loop"""
     # Actuation limits
+    self.handle_params(extra_params)
     if not travis:
-      self.handle_params(extra_params)
       gas_max = self.dynamic_gas.update(v_ego, self.lead_data, self.mpc_TR, self.blinker_status)
     else:
       gas_max = interp(v_ego, CP.gasMaxBP, CP.gasMaxV)
@@ -137,23 +137,24 @@ class LongControl():
       #  self.pid._k_p = (CP.longitudinalTuning.kpBP, CP.longitudinalTuning.kpV)
       #  self.pid._k_i = (CP.longitudinalTuning.kiBP, CP.longitudinalTuning.kiV)
       #self.had_lead = has_lead
-      if self.plan.longitudinalPlanSource == 'cruise':
-        if self.plan.decelForTurn and not self.lastdecelForTurn:
-          self.lastdecelForTurn = True
-          self.pid._k_p = (CP.longitudinalTuning.kpBP, [x * 0 for x in CP.longitudinalTuning.kpV])
-          self.pid._k_i = (CP.longitudinalTuning.kiBP, [x * 0 for x in CP.longitudinalTuning.kiV])
-          self.pid.i = 0.0
-          self.pid.k_f=1.0
-        if self.lastdecelForTurn and not self.plan.decelForTurn:
+      if self.plan is not None:
+        if self.plan.longitudinalPlanSource == 'cruise':
+          if self.plan.decelForTurn and not self.lastdecelForTurn:
+            self.lastdecelForTurn = True
+            self.pid._k_p = (CP.longitudinalTuning.kpBP, [x * 0 for x in CP.longitudinalTuning.kpV])
+            self.pid._k_i = (CP.longitudinalTuning.kiBP, [x * 0 for x in CP.longitudinalTuning.kiV])
+            self.pid.i = 0.0
+            self.pid.k_f=1.0
+          if self.lastdecelForTurn and not self.plan.decelForTurn:
+            self.lastdecelForTurn = False
+            self.pid._k_p = (CP.longitudinalTuning.kpBP, CP.longitudinalTuning.kpV)
+            self.pid._k_i = (CP.longitudinalTuning.kiBP, CP.longitudinalTuning.kiV)
+            self.pid.k_f=1.0
+        else:
           self.lastdecelForTurn = False
-          self.pid._k_p = (CP.longitudinalTuning.kpBP, CP.longitudinalTuning.kpV)
-          self.pid._k_i = (CP.longitudinalTuning.kiBP, CP.longitudinalTuning.kiV)
+          self.pid._k_p = (CP.longitudinalTuning.kpBP, [x * 1 for x in CP.longitudinalTuning.kpV])
+          self.pid._k_i = (CP.longitudinalTuning.kiBP, [x * 1 for x in CP.longitudinalTuning.kiV])
           self.pid.k_f=1.0
-      else:
-        self.lastdecelForTurn = False
-        self.pid._k_p = (CP.longitudinalTuning.kpBP, [x * 1 for x in CP.longitudinalTuning.kpV])
-        self.pid._k_i = (CP.longitudinalTuning.kiBP, [x * 1 for x in CP.longitudinalTuning.kiV])
-        self.pid.k_f=1.0
       
       output_gb = self.pid.update(self.v_pid, v_ego_pid, speed=v_ego_pid, deadzone=deadzone, feedforward=a_target, freeze_integrator=prevent_overshoot)
 

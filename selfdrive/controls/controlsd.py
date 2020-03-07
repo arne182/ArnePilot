@@ -352,12 +352,7 @@ def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cr
   #else:
   #  gas_button_status = 0
 
-  params_loc = {}
-  if not travis:
-    params_loc['lead_one'] = sm['radarState'].leadOne
-    params_loc['mpc_TR'] = arne_sm['smiskolData'].mpcTR
-    params_loc['plan'] = plan
-    params_loc['car_state'] = CS
+  params_loc = {'plan': plan, 'car_state': CS, 'lead_one': sm['radarState'].leadOne, 'mpc_TR': arne_sm['smiskolData'].mpcTR}
 
   actuators.gas, actuators.brake = LoC.update(active, CS.vEgo, CS.brakePressed, CS.standstill, CS.cruiseState.standstill,
                                               v_cruise_kph, v_acc_sol, plan.vTargetFuture, a_acc_sol, CP, params_loc)
