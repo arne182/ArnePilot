@@ -216,4 +216,7 @@ def get_car(logcan, sendcan, has_relay=False):
   car_params.carFw = car_fw
   car_params.fingerprintSource = source
 
-  return CarInterface(car_params, CarController), car_params
+  if not travis:
+    return CarInterface(car_params, CarController), car_params, candidate
+  else:
+    return CarInterface(car_params, CarController), car_params
