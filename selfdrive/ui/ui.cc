@@ -8,7 +8,7 @@
 #include <sys/resource.h>
 
 #include <capnp/serialize.h>
-#include "cereal/gen/cpp/log.capnp.h"
+#include "cereal/gen/cpp/arne182.capnp.h"
 
 #include <json.h>
 #include <czmq.h>
