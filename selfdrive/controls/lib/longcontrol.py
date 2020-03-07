@@ -69,15 +69,36 @@ class LongControl():
     #self.had_lead = False
     self.last_output_gb = 0.0
 
+    self.gas_pressed = False
+    self.lead_data = {'v_rel': None, 'a_lead': None, 'x_lead': None, 'status': False}
+    self.mpc_TR = 1.8
+    self.blinker_status = False
+    self.plan = None
+
   def reset(self, v_pid):
     """Reset PID controller and change setpoint"""
     self.pid.reset()
     self.v_pid = v_pid
 
-  def update(self, active, v_ego, gas_pressed, brake_pressed, standstill, cruise_standstill, v_cruise, v_target, v_target_future, a_target, CP, hasLead, dRel, decelForTurn, longitudinalPlanSource):
+  def handle_params(self, params):
+    CS = params['car_state']
+    self.blinker_status = CS.leftBlinker or CS.rightBlinker
+    self.gas_pressed = CS.gasPressed
+    self.lead_data['v_rel'] = params['lead_one'].vRel
+    self.lead_data['a_lead'] = params['lead_one'].aLeadK
+    self.lead_data['x_lead'] = params['lead_one'].dRel
+    self.lead_data['status'] = params['plan'].hasLead  # this fixes radarstate always reporting a lead, thanks to arne
+    self.plan = params['plan']
+    self.mpc_TR = params['mpc_TR']
+
+  def update(self, active, v_ego, brake_pressed, standstill, cruise_standstill, v_cruise, v_target, v_target_future, a_target, CP, extra_params):
     """Update longitudinal control. This updates the state machine and runs a PID loop"""
     # Actuation limits
-    gas_max = interp(v_ego, CP.gasMaxBP, CP.gasMaxV)
+    if not travis:
+      self.handle_params(extra_params)
+      gas_max = None
+    else:
+      gas_max = interp(v_ego, CP.gasMaxBP, CP.gasMaxV)
     brake_max = interp(v_ego, CP.brakeMaxBP, CP.brakeMaxV)
 
     # Update state machine
@@ -88,7 +109,7 @@ class LongControl():
 
     v_ego_pid = max(v_ego, MIN_CAN_SPEED)  # Without this we get jumps, CAN bus reports 0 when speed < 0.3
 
-    if self.long_control_state == LongCtrlState.off or (brake_pressed or gas_pressed and not travis):
+    if self.long_control_state == LongCtrlState.off or (brake_pressed or self.gas_pressed and not travis):
       self.v_pid = v_ego_pid
       self.pid.reset()
       output_gb = 0.
@@ -114,14 +135,14 @@ class LongControl():
       #  self.pid._k_p = (CP.longitudinalTuning.kpBP, CP.longitudinalTuning.kpV)
       #  self.pid._k_i = (CP.longitudinalTuning.kiBP, CP.longitudinalTuning.kiV)
       #self.had_lead = has_lead
-      if longitudinalPlanSource == 'cruise':
-        if decelForTurn and not self.lastdecelForTurn:
+      if self.plan.longitudinalPlanSource == 'cruise':
+        if self.plan.decelForTurn and not self.lastdecelForTurn:
           self.lastdecelForTurn = True
           self.pid._k_p = (CP.longitudinalTuning.kpBP, [x * 0 for x in CP.longitudinalTuning.kpV])
           self.pid._k_i = (CP.longitudinalTuning.kiBP, [x * 0 for x in CP.longitudinalTuning.kiV])
           self.pid.i = 0.0
           self.pid.k_f=1.0
-        if self.lastdecelForTurn and not decelForTurn:
+        if self.lastdecelForTurn and not self.plan.decelForTurn:
           self.lastdecelForTurn = False
           self.pid._k_p = (CP.longitudinalTuning.kpBP, CP.longitudinalTuning.kpV)
           self.pid._k_i = (CP.longitudinalTuning.kiBP, CP.longitudinalTuning.kiV)
@@ -141,8 +162,8 @@ class LongControl():
     elif self.long_control_state == LongCtrlState.stopping:
       # Keep applying brakes until the car is stopped
       factor = 1
-      if hasLead:
-        factor = interp(dRel,[0.0,1.0,3.0,5.0,6.0,7.0,8.0,9.0], [10.0,5.0,1.8,0.7,0.5,0.1,0.0,-0.1])
+      if self.lead_data['status']:
+        factor = interp(self.lead_data['x_lead'], [0.0,1.0,3.0,5.0,6.0,7.0,8.0,9.0], [10.0,5.0,1.8,0.7,0.5,0.1,0.0,-0.1])
       if not standstill or output_gb > -BRAKE_STOPPING_TARGET:
         output_gb -= STOPPING_BRAKE_RATE / RATE * factor
       output_gb = clip(output_gb, -brake_max, gas_max)
@@ -153,8 +174,8 @@ class LongControl():
     # Intention is to move again, release brake fast before handing control to PID
     elif self.long_control_state == LongCtrlState.starting:
       factor = 1
-      if hasLead:
-        factor = interp(dRel,[0.0,2.0,4.0], [0.0,0.5,1.0])
+      if self.lead_data['status']:
+        factor = interp(self.lead_data['x_lead'], [0.0,2.0,4.0], [0.0,0.5,1.0])
       if output_gb < -0.2:
         output_gb += STARTING_BRAKE_RATE / RATE * factor
       self.v_pid = v_ego

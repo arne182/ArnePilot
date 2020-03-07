@@ -352,8 +352,15 @@ def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cr
   #else:
   #  gas_button_status = 0
 
-  actuators.gas, actuators.brake = LoC.update(active, CS.vEgo, CS.gasPressed, CS.brakePressed, CS.standstill, CS.cruiseState.standstill,
-                                              v_cruise_kph, v_acc_sol, plan.vTargetFuture, a_acc_sol, CP, plan.hasLead, sm['radarState'].leadOne.dRel, plan.decelForTurn, plan.longitudinalPlanSource)
+  params_loc = {}
+  if not travis:
+    params_loc['lead_one'] = sm['radarState'].leadOne
+    params_loc['mpc_TR'] = arne_sm['smiskolData'].mpcTR
+    params_loc['plan'] = plan
+    params_loc['car_state'] = CS
+
+  actuators.gas, actuators.brake = LoC.update(active, CS.vEgo, CS.brakePressed, CS.standstill, CS.cruiseState.standstill,
+                                              v_cruise_kph, v_acc_sol, plan.vTargetFuture, a_acc_sol, CP, params_loc)
   # Steering PID loop and lateral MPC
   actuators.steer, actuators.steerAngle, lac_log = LaC.update(active, CS.vEgo, CS.steeringAngle, CS.steeringRate, CS.steeringTorqueEps, CS.steeringPressed, CS.steeringRateLimited, CP, path_plan)
 
@@ -564,7 +571,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
                               'model', 'gpsLocation', 'radarState'], ignore_alive=['gpsLocation'])
 
   if arne_sm is None:
-    arne_sm = messaging_arne.SubMaster(['arne182Status'])
+    arne_sm = messaging_arne.SubMaster(['arne182Status', 'smiskolData'])
     
   if can_sock is None:
     can_timeout = None if os.environ.get('NO_CAN_TIMEOUT', False) else 100
