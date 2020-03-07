@@ -123,7 +123,7 @@ static void ui_init(UIState *s) {
   s->gps_sock = SubSocket::create(s->ctx, "gpsLocationExternal");
   s->thermal_sock = SubSocket::create(s->ctxarne182, "thermalonline");
   s->arne182_sock = SubSocket::create(s->ctxarne182, "arne182Status");
-  s->dynamicfollowbutton_sock = PubSocket::create(s->ctx, "dynamicFollowButton");
+  s->dynamicfollowbutton_sock = PubSocket::create(s->ctxarne182, "dynamicFollowButton");
 
   assert(s->model_sock != NULL);
   assert(s->controlsstate_sock != NULL);
