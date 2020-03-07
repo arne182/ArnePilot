@@ -92,6 +92,7 @@ struct CarEventArne182 @0x9b1657f34caf3ad4 {
     rightALCbsm @5;
     leftALCbsm @6;
     preventALC @7;
+    dfButtonAlert @8;
   }
 }
 
