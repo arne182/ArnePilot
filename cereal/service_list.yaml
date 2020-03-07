@@ -94,6 +94,7 @@ alcaState: [8214, false, 0.]
 
 # smiskolData
 smiskolData: [8215, false, 20.]
+dynamicFollowButton: [8216, false, 0.]
 
 # 8080 is reserved for slave testing daemon
 # 8762 is reserved for logserver

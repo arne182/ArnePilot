@@ -143,6 +143,10 @@ struct SmiskolData {
   mpcTR @0 :Float32;
 }
 
+struct DynamicFollowButton {
+  status @0 :UInt16;
+}
+
 struct EventArne182 {
   # in nanoseconds?
   logMonoTime @0 :UInt64;
@@ -156,5 +160,6 @@ struct EventArne182 {
     managerData @5:ManagerData;
     thermalonline @7:ThermalOnlineData;
     smiskolData @8 :SmiskolData;
+    dynamicFollowButton @9 :DynamicFollowButton;
   }
 }
