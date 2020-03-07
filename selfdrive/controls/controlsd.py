@@ -28,6 +28,7 @@ from selfdrive.controls.lib.planner import LON_MPC_STEP
 from selfdrive.locationd.calibration_helpers import Calibration, Filter
 #from common.travis_checker import travis
 from common.op_params import opParams
+from selfdrive.controls.df_alert_manager import DfAlertManager
 
 LANE_DEPARTURE_THRESHOLD = 0.1
 
@@ -136,7 +137,7 @@ def data_sample(CI, CC, sm, can_sock, state, mismatch_counter, can_error_counter
   return CS, events, cal_perc, mismatch_counter, can_error_counter, events_arne182
 
 
-def state_transition(frame, CS, CP, state, events, soft_disable_timer, v_cruise_kph, AM, events_arne182):
+def state_transition(frame, CS, CP, state, events, soft_disable_timer, v_cruise_kph, AM, events_arne182, arne_sm, df_alert_manager):
   """Compute conditional state transitions and execute actions on state transitions"""
   enabled = isEnabled(state)
 
@@ -151,6 +152,10 @@ def state_transition(frame, CS, CP, state, events, soft_disable_timer, v_cruise_
   # decrease the soft disable timer at every step, as it's reset on
   # entrance in SOFT_DISABLING state
   soft_disable_timer = max(0, soft_disable_timer - 1)
+
+  df_alert = df_alert_manager.update(arne_sm)
+  if df_alert is not None:
+    AM.add(frame, 'dfButtonAlert', enabled, extra_text_1=df_alert, extra_text_2='Dynamic follow: {} profile active'.format(df_alert))
 
   # DISABLED
   if state == State.disabled:
@@ -566,7 +571,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
                               'model', 'gpsLocation', 'radarState'], ignore_alive=['gpsLocation'])
 
   if arne_sm is None:
-    arne_sm = messaging_arne.SubMaster(['arne182Status'])
+    arne_sm = messaging_arne.SubMaster(['arne182Status', 'dynamicFollowButton'])
     
   if can_sock is None:
     can_timeout = None if os.environ.get('NO_CAN_TIMEOUT', False) else 100
@@ -637,6 +642,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
 
   prof = Profiler(False)  # off by default
   op_params = opParams()
+  df_alert_manager = DfAlertManager(op_params)
 
   while True:
     start_time = sec_since_boot()
@@ -682,7 +688,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
     if not read_only:
       # update control state
       state, soft_disable_timer, v_cruise_kph, v_cruise_kph_last = \
-        state_transition(sm.frame, CS, CP, state, events, soft_disable_timer, v_cruise_kph, AM, events_arne182)
+        state_transition(sm.frame, CS, CP, state, events, soft_disable_timer, v_cruise_kph, AM, events_arne182, arne_sm, df_alert_manager)
       prof.checkpoint("State transition")
 
     # Compute actuators (runs PID loops and lateral MPC)

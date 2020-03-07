@@ -295,6 +295,12 @@ ALERTS = [
       "Lane Change Cancelled, Lane Unsafe",
       AlertStatus.critical, AlertSize.full,
       Priority.HIGH, VisualAlert.none, AudibleAlert.chimeWarningRepeat, .4, 3., 3.,),
+
+  Alert("dfButtonAlert",
+        "Using profile: ",
+        "",
+        AlertStatus.normal, AlertSize.mid,
+        Priority.LOW_LOWEST, VisualAlert.none, AudibleAlert.chimeWarning1, 0.2, 0., 2.),
   
   # Non-entry only alerts
   Alert(
