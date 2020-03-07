@@ -183,16 +183,12 @@ class LongitudinalMpc():
     TR_mod = []
     # Dynamic follow modifications (the secret sauce)
     x = [-20.0383, -15.6978, -11.2053, -7.8781, -5.0407, -3.2167, -1.6122, 0.0, 0.6847, 1.3772, 1.9007, 2.7452]  # relative velocity values
-    y = [0.641, 0.506, 0.418, 0.334, 0.24, 0.115, 0.055, 0.0, -0.03, -0.068, -0.142, -0.221]  # modification values
+    y = [0.641, 0.506, 0.418, 0.334, 0.24, 0.115, 0.065, 0.0, -0.049, -0.068, -0.142, -0.221]  # modification values
     TR_mod.append(interp(self.lead_data['v_lead'] - self.car_data['v_ego'], x, y))
 
-    #x = [-4.4795, -2.8122, -1.5727, -1.1129, -0.6611, -0.2692, 0.0, 0.1466, 0.5144, 0.6903, 0.9302]  # lead acceleration values
-    #y = [0.265, 0.187, 0.096, 0.057, 0.033, 0.024, 0.0, -0.009, -0.042, -0.053, -0.059]  # modification values
-    #TR_mod.append(interp(self.calculate_lead_accel(), x, y))
-
-    # x = [4.4704, 22.352]  # 10 to 50 mph  #todo: remove if uneeded/unsafe
-    # y = [0.94, 1.0]
-    # TR_mod *= interp(self.car_data['v_ego'], x, y)  # modify TR less at lower speeds
+    x = [-4.4795, -2.8122, -1.5727, -1.1129, -0.6611, -0.2692, 0.0, 0.1466, 0.5144, 0.6903, 0.9302]  # lead acceleration values
+    y = [0.265, 0.187, 0.096, 0.057, 0.033, 0.024, 0.0, -0.009, -0.042, -0.053, -0.059]  # modification values
+    TR_mod.append(interp(self.calculate_lead_accel(), x, y))
 
     self.TR_Mod = sum([mod * p_mod_neg if mod < 0 else mod * p_mod_pos for mod in TR_mod])  # alter TR modification according to profile
     TR += self.TR_Mod
@@ -202,8 +198,6 @@ class LongitudinalMpc():
       y = [1.0, .75, .65]  # reduce TR when changing lanes
       TR *= interp(self.car_data['v_ego'], x, y)
 
-    # TR *= self.get_traffic_level()  # modify TR based on last minute of traffic data  # todo: look at getting this to work, a model could be used
-
     return clip(TR, 0.9, 2.7)
 
   def process_lead(self, v_lead, a_lead, x_lead, status):
@@ -211,22 +205,6 @@ class LongitudinalMpc():
     self.lead_data['a_lead'] = a_lead
     self.lead_data['x_lead'] = x_lead
     self.lead_data['status'] = status
-
-  # def get_traffic_level(self, lead_vels):  # generate a value to modify TR by based on fluctuations in lead speed
-  #   if len(lead_vels) < 60:
-  #     return 1.0  # if less than 30 seconds of traffic data do nothing to TR
-  #   lead_vel_diffs = []
-  #   for idx, vel in enumerate(lead_vels):
-  #     try:
-  #       lead_vel_diffs.append(abs(vel - lead_vels[idx - 1]))
-  #     except:
-  #       pass
-  #
-  #   x = [0, len(lead_vels)]
-  #   y = [1.15, .9]  # min and max values to modify TR by, need to tune
-  #   traffic = interp(sum(lead_vel_diffs), x, y)
-  #
-  #   return traffic
 
   def update(self, pm, CS, lead, v_cruise_setpoint):
     v_ego = CS.vEgo
