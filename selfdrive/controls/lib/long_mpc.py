@@ -30,7 +30,6 @@ class LongitudinalMpc():
     self.prev_lead_status = False
     self.prev_lead_x = 0.0
     self.new_lead = False
-    self.TR_Mod = 0
     self.last_cloudlog_t = 0.0
     
     if not travis and mpc_id == 1:
@@ -78,37 +77,26 @@ class LongitudinalMpc():
   def get_TR(self, CS):
     if not self.lead_data['status'] or travis:
       TR = 1.8
-    elif CS.vEgo < 5.0:
-      TRs = [4.0, 2.5, 2.0, 1.75, 1.6]
-      vEgos = [1.0, 2.0, 3.0, 4.0, 5.0]
-      #TRs = [1.8, 1.6]
-      #vEgos =[4.0, 5.0]
-      TR = interp(CS.vEgo, vEgos, TRs)
     else:
       self.store_df_data()
       TR = self.dynamic_follow(CS)
 
     if not travis:
-      self.change_cost(TR,CS.vEgo)
+      self.change_cost(TR)
       self.send_cur_TR(TR)
     return TR
 
   def send_cur_TR(self, TR):
-    if self.pm is not None:
-      dat = messaging_arne.new_message()
+    if self.mpc_id == 1 and self.pm is not None:
+      dat = messaging.new_message()
       dat.init('smiskolData')
       dat.smiskolData.mpcTR = TR
       self.pm.send('smiskolData', dat)
 
-  def change_cost(self, TR, vEgo):
-    TRs = [0.9, 1.8, 2.7, 5.0]
-    costs = [1.0, 0.1, 0.05, 1.0]
+  def change_cost(self, TR):
+    TRs = [0.9, 1.8, 2.7]
+    costs = [1.0, 0.1, 0.05]
     cost = interp(TR, TRs, costs)
-    if vEgo < 5.0:
-      #cost = cost * min(max(1.0 , 6.0 - vEgo),3.0)
-      cost = 0.1
-    #elif self.TR_Mod > 0:
-    #  cost = cost + self.TR_Mod
     if self.last_cost != cost:
       self.libmpc.change_tr(MPC_COST_LONG.TTC, cost, MPC_COST_LONG.ACCELERATION, MPC_COST_LONG.JERK)
       self.last_cost = cost
@@ -144,22 +132,22 @@ class LongitudinalMpc():
 
   def dynamic_follow(self, CS):
     self.df_profile = self.op_params.get('dynamic_follow', 'relaxed').strip().lower()
-    x_vel = [5.0, 7.4507, 9.3133, 11.5598, 13.645, 22.352, 31.2928, 33.528, 35.7632, 40.2336]  # velocities
+    x_vel = [0.0, 1.8627, 3.7253, 5.588, 7.4507, 9.3133, 11.5598, 13.645, 22.352, 31.2928, 33.528, 35.7632, 40.2336]  # velocities
     p_mod_x = [3, 20, 35]  # profile mod speeds
     if self.df_profile == 'roadtrip':
-      y_dist = [1.6, 1.4507, 1.4837, 1.5327, 1.553, 1.581, 1.617, 1.653, 1.687, 1.74]  # TRs
+      y_dist = [1.3847, 1.3946, 1.4078, 1.4243, 1.4507, 1.4837, 1.5327, 1.553, 1.581, 1.617, 1.653, 1.687, 1.74]  # TRs
       p_mod_pos = [0.99, 0.815, 0.57]
       p_mod_neg = [1.0, 1.27, 1.675]
     elif self.df_profile == 'traffic':  # for in congested traffic
-      x_vel = [5.0, 7.4507, 9.3133, 11.5598, 13.645, 17.8816, 22.407, 28.8833, 34.8691, 40.3906]
-      y_dist = [1.6, 1.437, 1.468, 1.501, 1.506, 1.38, 1.2216, 1.085, 1.0516, 1.016]
+      x_vel = [0.0, 1.8627, 3.7253, 5.588, 7.4507, 9.3133, 11.5598, 13.645, 17.8816, 22.407, 28.8833, 34.8691, 40.3906]
+      y_dist = [1.384, 1.391, 1.403, 1.415, 1.437, 1.468, 1.501, 1.506, 1.38, 1.2216, 1.085, 1.0516, 1.016]
       p_mod_pos = [1.015, 2.175, 3.65]
       p_mod_neg = [0.98, 0.08, 0.0]
       # y_dist = [1.384, 1.391, 1.403, 1.415, 1.437, 1.3506, 1.3959, 1.4156, 1.38, 1.1899, 1.026, 0.9859, 0.9432]  # from 071-2 (need to fix FCW)
       # p_mod_pos = [1.015, 2.2, 3.95]
       # p_mod_neg = [0.98, 0.1, 0.0]
     else:  # default to relaxed/stock
-      y_dist = [1.6, 1.444, 1.474, 1.516, 1.534, 1.546, 1.568, 1.579, 1.593, 1.614]
+      y_dist = [1.385, 1.394, 1.406, 1.421, 1.444, 1.474, 1.516, 1.534, 1.546, 1.568, 1.579, 1.593, 1.614]
       p_mod_pos = [1.0, 1.0, 1.0]
       p_mod_neg = [1.0, 1.0, 1.0]
 
@@ -190,8 +178,8 @@ class LongitudinalMpc():
     y = [0.265, 0.187, 0.096, 0.057, 0.033, 0.024, 0.0, -0.009, -0.042, -0.053, -0.059]  # modification values
     TR_mod.append(interp(self.calculate_lead_accel(), x, y))
 
-    self.TR_Mod = sum([mod * p_mod_neg if mod < 0 else mod * p_mod_pos for mod in TR_mod])  # alter TR modification according to profile
-    TR += self.TR_Mod
+    TR_mod = sum([mod * p_mod_neg if mod < 0 else mod * p_mod_pos for mod in TR_mod])  # alter TR modification according to profile
+    TR += TR_mod
 
     if CS.leftBlinker or CS.rightBlinker and self.df_profile != 'traffic':
       x = [8.9408, 22.352, 31.2928]  # 20, 50, 70 mph
@@ -209,6 +197,7 @@ class LongitudinalMpc():
   def update(self, pm, CS, lead, v_cruise_setpoint):
     v_ego = CS.vEgo
     self.car_data = {'v_ego': CS.vEgo, 'a_ego': CS.aEgo}
+
     # Setup current mpc state
     self.cur_state[0].x_ego = 0.0
 
@@ -221,6 +210,7 @@ class LongitudinalMpc():
         v_lead = 0.0
         a_lead = 0.0
       self.process_lead(v_lead, a_lead, x_lead, lead.status)
+
       self.a_lead_tau = lead.aLeadTau
       self.new_lead = False
       if not self.prev_lead_status or abs(x_lead - self.prev_lead_x) > 2.5:
