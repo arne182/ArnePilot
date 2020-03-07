@@ -239,7 +239,7 @@ bool df_button_clicked(int touch_x, int touch_y) {
 
 void send_df(UIState *s, int status){
   capnp::MallocMessageBuilder msg;
-  cereal::Event::Builder event = msg.initRoot<cereal::Event>();
+  cereal::Event::Builder event = msg.initRoot<cereal::EventArne182>();
   auto dfStatus = event.initDynamicFollowButton();
   dfStatus.setStatus(status);
 
