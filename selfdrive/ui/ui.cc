@@ -1058,7 +1058,7 @@ int main(int argc, char* argv[]) {
 
     // Don't waste resources on drawing in case screen is off or car is not started.
     if (s->awake && s->vision_connected) {
-      //dashcam(s, touch_x, touch_y);
+      dashcam(s, touch_x, touch_y);
       ui_draw(s);
       glFinish();
       should_swap = true;

@@ -938,7 +938,7 @@ static void ui_draw_dynamic_follow_button(UIState *s) {
   int btn_w = 150;
   int btn_h = 150;
   int btn_x = 1920 - btn_w - 175;
-  int btn_y = 1080 - btn_h - 50;
+  int btn_y = 990;
 
   nvgBeginPath(s->vg);
   nvgRoundedRect(s->vg, btn_x-110, btn_y-45, btn_w, btn_h, 100);
