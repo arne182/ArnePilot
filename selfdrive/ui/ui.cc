@@ -232,8 +232,7 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
 }
 
 bool df_button_clicked(int touch_x, int touch_y) {
-  if (touch_x >= 1660 && touch_x <= 1810) {
-    if (touch_y >= 885 && touch_y <= 1035) {
+  if (touch_x >= 1660 && touch_x <= 1810 && touch_y >= 885 && touch_y <= 1035) {
     return true;
   }
   return false;
@@ -1058,7 +1057,7 @@ int main(int argc, char* argv[]) {
 
     // Don't waste resources on drawing in case screen is off or car is not started.
     if (s->awake && s->vision_connected) {
-      //dashcam(s, touch_x, touch_y);
+      dashcam(s, touch_x, touch_y);
       ui_draw(s);
       glFinish();
       should_swap = true;
