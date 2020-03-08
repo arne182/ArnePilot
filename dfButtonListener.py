@@ -1,7 +1,7 @@
 import time
-import cereal.messaging as messaging
+import cereal.messaging_arne as messaging_arne
 
-sm = messaging.SubMaster(['dynamicFollowButton'])
+sm = messaging_arne.SubMaster(['dynamicFollowButton'])
 while True:
   sm.update(0)
   print(sm['dynamicFollowButton'].status)
