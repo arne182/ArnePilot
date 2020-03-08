@@ -232,7 +232,7 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
 }
 
 bool df_button_clicked(int touch_x, int touch_y) {
-  if ((touch_x <= 1700) && (1700 - 175 <= touch_x) && (touch_y >= 830)) {
+  if ((touch_x <= 1920) && (1700 <= touch_x) && (touch_y >= 830)) {
     return true;
   }
   return false;
@@ -1045,7 +1045,6 @@ int main(int argc, char* argv[]) {
     if (s->awake && s->vision_connected && s->active_app == cereal_UiLayoutState_App_home && s->status != STATUS_STOPPED) {
       int touch_x = -1, touch_y = -1;
       int touched = touch_poll(&touch, &touch_x, &touch_y, 0);  // s->awake ? 0 : 100
-      std::cout << "df button not clicked\n";
       if (df_button_clicked(touch_x, touch_y)) {
         std::cout << "df button clicked!\n";
         s->scene.dfButtonStatus++;
