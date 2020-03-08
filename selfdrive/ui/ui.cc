@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -232,6 +233,7 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
 
 bool df_button_clicked(int touch_x, int touch_y) {
   if ((touch_x <= 1700) && (1700 - 175 <= touch_x) && (touch_y >= 830)) {
+    std::cout << "df button clicked!\n";
     return true;
   }
   return false;
