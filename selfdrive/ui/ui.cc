@@ -231,7 +231,7 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
 }
 
 bool df_button_clicked(int touch_x, int touch_y) {
-  if ((800 <= touch_x <= 1920) && (touch_y >= 830)) {
+  if ((touch_x <= 1700) && (1700 - 175 <= touch_x) && (touch_y >= 830)) {
     return true;
   }
   return false;
