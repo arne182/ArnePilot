@@ -71,8 +71,20 @@ This is done automatically otherwise run (pkill -f boardd; cd /data/openpilot/pa
 - Live speedlimit_offset in op_tune.py
 - If the model detect's cut in it will draw two different chevron to show the user that it see's both of the car.
 - Control 3 gas profiles with sport eco and normal buttons on car ( only for toyota).
-- Dynamic distance profiles from Shane(In other word three different dynamic profile "Traffic, Relaxed, highway"). Profile can be adjusted from either `python /data/openpilot/op_edit.py` or use live tuner to change the profile live (can take up to 4 sec to for new profile to be adjusted) `python /data/openpilot/op_tune.py`.
+- [Dynamic distance profiles](https://github.com/ShaneSmiskol/openpilot/tree/stock_additions-devel#dynamic-follow-3-profiles) from Shane(In other word three different dynamic profile "Traffic, Relaxed, highway"). Profile can be adjusted from either `python /data/openpilot/op_edit.py` or use live tuner to change the profile live (can take up to 4 sec to for new profile to be adjusted) `python /data/openpilot/op_tune.py`.
+- Dynamic Follow Button: Now you can change the Dynamic Follow Distance just but tapping the blue button on the bottom right.
+- [Dynamic Gas:](https://github.com/ShaneSmiskol/openpilot/tree/stock_additions-devel#dynamic-gas)
+        
+        - Currently supported vehicles (w/ comma pedal only):
+        
+        2017 Toyota Corolla (non-TSS2)
+        Toyota RAV4 (non-TSS2)
+        2019 Honda Pilot
+        TODO: Need to factor in distance, as it will not accelerate to get closer to the stopped lead if you engage at ~0mph far back from the lead.
+
+        This aims to provide a smoother driving experience in stop and go traffic (under 20 mph) by modifying the maximum gas that can be applied based on your current velocity and the relative velocity of the lead car. It'll also of course increase the maximum gas when the lead is accelerating to help you get up to speed quicker than stock. And smoother; this eliminates the jerking you get from stock openpilot with comma pedal. It tries to coast if the lead is only moving slowly, it doesn't use maximum gas as soon as the lead inches forward :). When you are above 20 mph, relative velocity and the following distance is taken into consideration.
 - ALC w/ BSM : (Automatic Lane Change with Blind spot monitoring) you can now change lane automataclly. It will wait 1 sec before applying ALC. If the BSM detacts objects it will stop the lane change and will take you back in your original lane. Also, it will notify the user on the eon. 
+
 
 # Licensing
 
