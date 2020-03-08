@@ -1,4 +1,3 @@
-#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -1043,11 +1042,7 @@ int main(int argc, char* argv[]) {
 
     //dfButton manager  // code below thanks to kumar: https://github.com/arne182/openpilot/commit/71d5aac9f8a3f5942e89634b20cbabf3e19e3e78
     if (s->awake && s->vision_connected && s->active_app == cereal_UiLayoutState_App_home && s->status != STATUS_STOPPED) {
-      if (touched == 1){
-        std::cout << "x: " << touch_x << " y: " << touch_y << std::endl;
-      }
       if (df_button_clicked(touch_x, touch_y)) {
-        std::cout << "df button clicked!\n";
         s->scene.dfButtonStatus++;
         if (s->scene.dfButtonStatus > 2){
           s->scene.dfButtonStatus = 0;
