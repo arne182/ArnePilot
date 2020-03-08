@@ -937,7 +937,7 @@ static void ui_draw_vision_brake(UIState *s) {
 static void ui_draw_dynamic_follow_button(UIState *s) {
   int btn_w = 150;
   int btn_h = 150;
-  int btn_x = 1920 - btn_w - 200;
+  int btn_x = 1920 - btn_w - 188;
   int btn_y = 1080 - btn_h;
 
   nvgBeginPath(s->vg);
