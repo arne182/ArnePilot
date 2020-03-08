@@ -1045,6 +1045,7 @@ int main(int argc, char* argv[]) {
     if (s->awake && s->vision_connected && s->active_app == cereal_UiLayoutState_App_home && s->status != STATUS_STOPPED) {
       int touch_x = -1, touch_y = -1;
       int touched = touch_poll(&touch, &touch_x, &touch_y, 0);  // s->awake ? 0 : 100
+      std::cout << "x: " << touch_x << " y: " << touch_y << std::endl;
       if (df_button_clicked(touch_x, touch_y)) {
         std::cout << "df button clicked!\n";
         s->scene.dfButtonStatus++;
@@ -1057,7 +1058,7 @@ int main(int argc, char* argv[]) {
 
     // Don't waste resources on drawing in case screen is off or car is not started.
     if (s->awake && s->vision_connected) {
-      dashcam(s, touch_x, touch_y);
+      //dashcam(s, touch_x, touch_y);
       ui_draw(s);
       glFinish();
       should_swap = true;
