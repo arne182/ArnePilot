@@ -6,7 +6,6 @@ from common.travis_checker import travis
 from selfdrive.controls.lib.dynamic_lane_speed import DynamicLaneSpeed
 from selfdrive.controls.lib.dynamic_gas import DynamicGas
 from common.op_params import opParams
-from common.travis_checker import travis
 
 LongCtrlState = log.ControlsState.LongControlState
 

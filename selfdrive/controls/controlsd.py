@@ -26,7 +26,7 @@ from selfdrive.controls.lib.alertmanager import AlertManager
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.controls.lib.planner import LON_MPC_STEP
 from selfdrive.locationd.calibration_helpers import Calibration, Filter
-#from common.travis_checker import travis
+from common.travis_checker import travis
 from common.op_params import opParams
 from selfdrive.controls.df_alert_manager import DfAlertManager
 
