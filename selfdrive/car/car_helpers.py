@@ -82,7 +82,7 @@ def fingerprint(logcan, sendcan, has_relay):
     cached_fingerprint = params.get('CachedFingerprint')
   else:
     cached_fingerprint = None
-   
+
   if car_params is not None:
     car_params = car.CarParams.from_bytes(car_params)
   if has_relay:
@@ -119,7 +119,7 @@ def fingerprint(logcan, sendcan, has_relay):
   car_fingerprint = None
   done = False
 
- 
+
   if cached_fingerprint is not None and use_car_caching:  # if we previously identified a car and fingerprint and user hasn't disabled caching
     cached_fingerprint = json.loads(cached_fingerprint)
     if cached_fingerprint[0] is None or len(cached_fingerprint) < 3:
@@ -128,8 +128,8 @@ def fingerprint(logcan, sendcan, has_relay):
       finger[0] = {int(key): value for key, value in cached_fingerprint[2].items()}
       source = car.CarParams.FingerprintSource.can
       return (str(cached_fingerprint[0]), finger, vin, car_fw, cached_fingerprint[1])
-  
-  
+
+
 
   while not done:
     a = messaging.get_one_can(logcan)
@@ -189,8 +189,8 @@ def is_connected_to_internet(timeout=5):
         requests.get("https://sentry.io", timeout=timeout)
         return True
     except:
-        return False 
-      
+        return False
+
 def crash_log(candidate):
   while True:
     if is_connected_to_internet():
@@ -225,4 +225,4 @@ def get_car(logcan, sendcan, has_relay=False):
   car_params.carFw = car_fw
   car_params.fingerprintSource = source
 
-  return CarInterface(car_params, CarController, CarState), car_params
+  return CarInterface(car_params, CarController, CarState), car_params, candidate

@@ -80,12 +80,12 @@ def data_sample(CI, CC, sm, can_sock, state, mismatch_counter, can_error_counter
 
   sm.update(0)
   arne_sm.update(0)
-  
+
   events = list(CS.events)
   events += list(sm['dMonitoringState'].events)
-  
+
   events_arne182 = list(CS_arne182.events)
-  
+
   add_lane_change_event(events, sm['pathPlan'])
   enabled = isEnabled(state)
 
@@ -355,6 +355,16 @@ def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cr
   a_acc_sol = plan.aStart + (dt / LON_MPC_STEP) * (plan.aTarget - plan.aStart)
   v_acc_sol = plan.vStart + dt * (a_acc_sol + plan.aStart) / 2.0
 
+params_loc = {}
+  if not travis:
+    params_loc['lead_one'] = arne_sm['radarState'].leadOne
+    params_loc['mpc_TR'] = arne_sm['smiskolData'].mpcTR
+    params_loc['live_tracks'] = arne_sm['liveTracks']
+    params_loc['has_lead'] = plan.hasLead
+    params_loc['car_state'] = CS
+
+    arne_sm=None
+
   # Gas/Brake PID loop
   #if arne_sm.updated['arne182Status']:
   #  gas_button_status = arne_sm['arne182Status'].gasbuttonstatus
@@ -362,7 +372,7 @@ def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cr
   #  gas_button_status = 0
 
   actuators.gas, actuators.brake = LoC.update(active, CS.vEgo, CS.gasPressed, CS.brakePressed, CS.standstill, CS.cruiseState.standstill,
-                                              v_cruise_kph, v_acc_sol, plan.vTargetFuture, a_acc_sol, CP, plan.hasLead, radarstate.leadOne.dRel, plan.decelForTurn, plan.longitudinalPlanSource)
+                                              v_cruise_kph, v_acc_sol, plan.vTargetFuture, a_acc_sol, CP, plan.hasLead, radarstate.leadOne.dRel, plan.decelForTurn, plan.longitudinalPlanSource, params_loc)
   # Steering PID loop and lateral MPC
   actuators.steer, actuators.steerAngle, lac_log = LaC.update(active, CS.vEgo, CS.steeringAngle, CS.steeringRate, CS.steeringTorqueEps, CS.steeringPressed, CS.steeringRateLimited, CP, path_plan)
 
@@ -397,7 +407,7 @@ def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cr
       else:
         extra_text_2 = str(int(round(Filter.MIN_SPEED * CV.MS_TO_MPH))) + " mph"
     AM.add(frame, str(e) + "Permanent", enabled, extra_text_1=extra_text_1, extra_text_2=extra_text_2)
-    
+
   return actuators, v_cruise_kph, v_acc_sol, a_acc_sol, lac_log, last_blinker_frame
 
 
@@ -568,8 +578,8 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
                               'model', 'gpsLocation', 'radarState'], ignore_alive=['gpsLocation'])
 
   if arne_sm is None:
-    arne_sm = messaging_arne.SubMaster(['arne182Status', 'dynamicFollowButton'])
-    
+    arne_sm = messaging_arne.SubMaster(['radarState', 'arne182Status', 'smiskolData', 'liveTracks', 'dynamicFollowButton'])
+
   if can_sock is None:
     can_timeout = None if os.environ.get('NO_CAN_TIMEOUT', False) else 100
     can_sock = messaging.sub_sock('can', timeout=can_timeout)
@@ -580,7 +590,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
   print("Waiting for CAN messages...")
   messaging.get_one_can(can_sock)
 
-  CI, CP = get_car(can_sock, pm.sock['sendcan'], has_relay)
+  CI, CP, candidate = get_car(can_sock, pm.sock['sendcan'], has_relay)
 
   car_recognized = CP.carName != 'mock'
   # If stock camera is disconnected, we loaded car controls and it's not chffrplus
@@ -602,7 +612,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
   startup_alert = get_startup_alert(car_recognized, controller_available)
   AM.add(sm.frame, startup_alert, False)
 
-  LoC = LongControl(CP, CI.compute_gb)
+  LoC = LongControl(CP, CI.compute_gb, candidate)
   VM = VehicleModel(CP)
 
   if CP.lateralTuning.which() == 'pid':
@@ -642,6 +652,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
   df_alert_manager = DfAlertManager(op_params)
 
   while True:
+    arne_sm.update(0)
     start_time = sec_since_boot()
     prof.checkpoint("Ratekeeper", ignore=True)
 
@@ -705,8 +716,8 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
     prof.display()
 
 
-def main(sm=None, pm=None, logcan=None):
-  controlsd_thread(sm, pm, logcan)
+def main(sm=None, pm=None, logcan=None, arne_sm=None):
+  controlsd_thread(sm, pm, logcan, arne_sm)
 
 
 if __name__ == "__main__":
