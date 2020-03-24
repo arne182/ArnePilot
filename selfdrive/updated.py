@@ -312,7 +312,7 @@ def auto_update_reboot(time_offroad, need_reboot, new_version):
   return need_reboot
 
 
-def main(gctx=None):
+def main():
   update_failed_count = 0
   overlay_init_done = False
   wait_helper = WaitTimeHelper()

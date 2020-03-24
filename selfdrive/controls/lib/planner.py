@@ -38,20 +38,20 @@ AWARENESS_DECEL = -0.2     # car smoothly decel at .2m/s^2 when user is distract
 _A_CRUISE_MIN_V_ECO = [-1.0, -0.7, -0.6, -0.5, -0.3]
 _A_CRUISE_MIN_V_SPORT = [-3.0, -2.6, -2.3, -2.0, -1.0]
 _A_CRUISE_MIN_V_FOLLOWING = [-4.0, -4.0, -3.5, -2.5, -2.0]
-_A_CRUISE_MIN_V = [-2.0, -1.5, -1.0, -0.7, -0.5]
-_A_CRUISE_MIN_BP = [0.0, 5.0, 10.0, 20.0, 55.0]
+_A_CRUISE_MIN_V = [-1.2, -.9, -.73, -.6, -.35]
+_A_CRUISE_MIN_BP = [0., 5., 10., 20., 40.]
 
 # need fast accel at very low speed for stop and go
 # make sure these accelerations are smaller than mpc limits
-_A_CRUISE_MAX_V = [2.0, 2.0, 1.5, .5, .3]
+_A_CRUISE_MAX_V = [1.6, 1.4, 0.7, .4]
 _A_CRUISE_MAX_V_ECO = [1.0, 1.5, 1.0, 0.3, 0.1]
 _A_CRUISE_MAX_V_SPORT = [3.0, 3.5, 4.0, 4.0, 4.0]
-_A_CRUISE_MAX_V_FOLLOWING = [1.3, 1.6, 1.2, .7, .3]
+_A_CRUISE_MAX_V_FOLLOWING = [1.75, 1.75, 0.7, .6]
 _A_CRUISE_MAX_BP = [0., 5., 10., 20., 55.]
 
 # Lookup table for turns
-_A_TOTAL_MAX_V = [3.3, 3.0, 3.9]
-_A_TOTAL_MAX_BP = [0., 25., 55.]
+_A_TOTAL_MAX_V = [1.7, 3.2]
+_A_TOTAL_MAX_BP = [2.618, 4.928]
 
 # 75th percentile
 SPEED_PERCENTILE_IDX = 7
@@ -172,7 +172,7 @@ class Planner():
   def update(self, sm, pm, CP, VM, PP, arne_sm):
     """Gets called when new radarState is available"""
     cur_time = sec_since_boot()
-    
+
     # we read offset value every 5 seconds
     fixed_offset = 0.0
     if not travis:
@@ -186,7 +186,7 @@ class Planner():
         self.osm = self.params.get("LimitSetSpeed", encoding='utf8') == "1"
         self.last_time = 0
       self.last_time = self.last_time + 1
-      
+
     gas_button_status = arne_sm['arne182Status'].gasbuttonstatus
     v_ego = sm['carState'].vEgo
     blinkers = sm['carState'].leftBlinker or sm['carState'].rightBlinker
@@ -209,7 +209,9 @@ class Planner():
     lead_2 = sm['radarState'].leadTwo
 
     enabled = (long_control_state == LongCtrlState.pid) or (long_control_state == LongCtrlState.stopping)
-    following = (lead_1.status and lead_1.dRel < 45.0) or (lead_2.status and lead_2.dRel < 45.0)
+
+    following = False if self.longitudinalPlanSource=='cruise' else (lead_1.status and lead_1.dRel < 40.0)
+
 
     if len(sm['model'].path.poly):
       path = list(sm['model'].path.poly)
@@ -220,9 +222,10 @@ class Planner():
       # TODO: compute max speed without using a list of points and without numpy
       y_p = 3 * path[0] * self.path_x**2 + 2 * path[1] * self.path_x + path[2]
       y_pp = 6 * path[0] * self.path_x + 2 * path[1]
-      curv = y_pp / (1. + y_p**2)**1.5
+      curv = y_pp / (1. + y_p**2)**1.5 / np.sqrt(curvature_factor)
 
-      a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
+      #a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
+      a_y_max = 3.05 - v_ego * 0.034
       v_curvature = np.sqrt(a_y_max / np.clip(np.abs(curv), 1e-4, None))
       model_speed = np.min(v_curvature)
       model_speed = max(20.0 * CV.MPH_TO_MS, model_speed) # Don't slow down below 20mph
@@ -311,6 +314,7 @@ class Planner():
       if v_speedlimit_ahead < v_speedlimit and v_ego > v_speedlimit_ahead and sm['liveMapData'].speedLimitAheadDistance > 0.10 and not following:
         required_decel = min(0, (v_speedlimit_ahead*v_speedlimit_ahead - v_ego*v_ego)/(sm['liveMapData'].speedLimitAheadDistance*2))
         required_decel = max(required_decel, -3.0)
+        decel_for_turn = True
         accel_limits[0] = required_decel
         accel_limits[1] = required_decel
         self.a_acc_start = required_decel
@@ -370,8 +374,7 @@ class Planner():
     radar_can_error = car.RadarData.Error.canError in radar_errors
 
     # **** send the plan ****
-    plan_send = messaging.new_message()
-    plan_send.init('plan')
+    plan_send = messaging.new_message('plan')
 
     plan_send.valid = sm.all_alive_and_valid(service_list=['carState', 'controlsState', 'radarState'])
 
@@ -390,7 +393,7 @@ class Planner():
     plan_send.plan.longitudinalPlanSource = self.longitudinalPlanSource
 
     plan_send.plan.vCurvature = float(v_curvature_map)
-    plan_send.plan.decelForTurn = bool(decel_for_turn or v_speedlimit_ahead < min([v_speedlimit, v_ego + 1.]))
+    plan_send.plan.decelForTurn = bool(decel_for_turn)
     plan_send.plan.mapValid = True
 
     radar_valid = not (radar_dead or radar_fault)

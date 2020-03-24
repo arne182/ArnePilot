@@ -38,10 +38,12 @@ def load_interfaces(brand_names):
     CarInterface = __import__(path + '.interface', fromlist=['CarInterface']).CarInterface
     if os.path.exists(BASEDIR + '/' + path.replace('.', '/') + '/carcontroller.py'):
       CarController = __import__(path + '.carcontroller', fromlist=['CarController']).CarController
+      CarState = __import__(path + '.carstate', fromlist=['CarState']).CarState
     else:
       CarController = None
+      CarState = None
     for model_name in brand_names[brand_name]:
-      ret[model_name] = (CarInterface, CarController)
+      ret[model_name] = (CarInterface, CarController, CarState)
   return ret
 
 
@@ -63,7 +65,8 @@ def _get_interface_names():
 
 
 # imports from directory selfdrive/car/<name>/
-interfaces = load_interfaces(_get_interface_names())
+interface_names = _get_interface_names()
+interfaces = load_interfaces(interface_names)
 
 
 def only_toyota_left(candidate_cars):
@@ -79,7 +82,7 @@ def fingerprint(logcan, sendcan, has_relay):
     cached_fingerprint = params.get('CachedFingerprint')
   else:
     cached_fingerprint = None
-   
+
   if car_params is not None:
     car_params = car.CarParams.from_bytes(car_params)
   if has_relay:
@@ -88,11 +91,16 @@ def fingerprint(logcan, sendcan, has_relay):
 
     cached_params = Params().get("CarParamsCache")
     if cached_params is not None:
+      cached_params = car.CarParams.from_bytes(cached_params)
+      if cached_params.carName == "mock":
+        cached_params = None
+
+    if cached_params is not None and len(cached_params.carFw) > 0 and cached_params.carVin is not VIN_UNKNOWN:
       cloudlog.warning("Using cached CarParams")
-      CP = car.CarParams.from_bytes(cached_params)
-      vin = CP.carVin
-      car_fw = list(CP.carFw)
+      vin = cached_params.carVin
+      car_fw = list(cached_params.carFw)
     else:
+      cloudlog.warning("Getting VIN & FW versions")
       _, vin = get_vin(logcan, sendcan, bus)
       car_fw = get_fw_versions(logcan, sendcan, bus)
 
@@ -111,17 +119,17 @@ def fingerprint(logcan, sendcan, has_relay):
   car_fingerprint = None
   done = False
 
- 
+
   if cached_fingerprint is not None and use_car_caching:  # if we previously identified a car and fingerprint and user hasn't disabled caching
     cached_fingerprint = json.loads(cached_fingerprint)
     if cached_fingerprint[0] is None or len(cached_fingerprint) < 3:
       params.delete('CachedFingerprint')
     else:
-      finger[0] = {key: value for key, value in cached_fingerprint[2].items()}
+      finger[0] = {int(key): value for key, value in cached_fingerprint[2].items()}
       source = car.CarParams.FingerprintSource.can
       return (str(cached_fingerprint[0]), finger, vin, car_fw, cached_fingerprint[1])
-  
-  
+
+
 
   while not done:
     a = messaging.get_one_can(logcan)
@@ -181,8 +189,8 @@ def is_connected_to_internet(timeout=5):
         requests.get("https://sentry.io", timeout=timeout)
         return True
     except:
-        return False 
-      
+        return False
+
 def crash_log(candidate):
   while True:
     if is_connected_to_internet():
@@ -210,7 +218,8 @@ def get_car(logcan, sendcan, has_relay=False):
     x = threading.Thread(target=crash_log, args=(candidate,))
     x.start()
 
-  CarInterface, CarController = interfaces[candidate]
+  CarInterface, CarController, CarState = interfaces[candidate]
+
   car_params = CarInterface.get_params(candidate, fingerprints, has_relay, car_fw)
   car_params.carVin = vin
   car_params.carFw = car_fw

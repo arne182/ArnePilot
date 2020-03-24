@@ -341,7 +341,7 @@ class Way:
             else:
               circle = circle_through_points([way.way.nodes[0].lat,way.way.nodes[0].lon,1], [way.way.nodes[1].lat,way.way.nodes[1].lon,1], [way.way.nodes[-1].lat,way.way.nodes[-1].lon,1],True)
             a = 111132.954*math.cos(float(latmax+latmin)/360*3.141592)*float(circle[2])*2
-          speed_ahead = np.sqrt(1.6075*a)
+          speed_ahead = np.sqrt(2.0*a)
           min_dist = 999.9
           for w in way_pts:
             min_dist = min(min_dist, float(np.linalg.norm(w)))
@@ -404,7 +404,7 @@ class Way:
                 if way_pts[count, 0] > 0:
                   speed_ahead_dist = max(0. , way_pts[count, 0] - 1.0)
                   print(speed_ahead_dist)
-                  speed_ahead = 5/3.6
+                  speed_ahead = 7/3.6
                   if n.tags['highway']=='stop':
                     speed_ahead = 0
                   loop_must_break = True
@@ -414,7 +414,7 @@ class Way:
                 if way_pts[count, 0] > 0:
                   speed_ahead_dist = max(0. , way_pts[count, 0] - 1.0)
                   print(speed_ahead_dist)
-                  speed_ahead = 5/3.6
+                  speed_ahead = 7/3.6
                   if n.tags['highway']=='stop':
                     speed_ahead = 0
                   loop_must_break = True
@@ -430,7 +430,7 @@ class Way:
                   if abs(direction) > 135:
                     speed_ahead_dist = max(0. , way_pts[count, 0] - 1.0)
                     print(speed_ahead_dist)
-                    speed_ahead = 5/3.6
+                    speed_ahead = 7/3.6
                     if n.tags['highway']=='stop':
                       speed_ahead = 0
                     loop_must_break = True

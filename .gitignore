@@ -58,6 +58,8 @@ selfdrive/mapd/MapsdThread-Thread.log.2
 selfdrive/mapd/MapsdThread-Thread.log.3
 selfdrive/mapd/MapsdThread-Thread.log.4
 selfdrive/mapd/MapsdThread-Thread.log.5
+phonelibs/libjson.a
+phonelibs/libjson11.a
 /src/
 
 one

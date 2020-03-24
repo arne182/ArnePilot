@@ -97,7 +97,7 @@ def update_panda():
     raise AssertionError
 
 
-def main(gctx=None):
+def main():
   update_panda()
 
   os.chdir("boardd")

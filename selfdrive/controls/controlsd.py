@@ -28,6 +28,7 @@ from selfdrive.controls.lib.planner import LON_MPC_STEP
 from selfdrive.locationd.calibration_helpers import Calibration, Filter
 from common.travis_checker import travis
 from common.op_params import opParams
+from selfdrive.controls.df_alert_manager import DfAlertManager
 
 LANE_DEPARTURE_THRESHOLD = 0.1
 
@@ -64,6 +65,8 @@ def events_to_bytes(events):
   for e in events:
     if isinstance(e, capnp.lib.capnp._DynamicStructReader):
       e = e.as_builder()
+    if not e.is_root:
+      e = e.copy()
     ret.append(e.to_bytes())
   return ret
 
@@ -76,12 +79,11 @@ def data_sample(CI, CC, sm, can_sock, state, mismatch_counter, can_error_counter
   CS, CS_arne182 = CI.update(CC, can_strs)
 
   sm.update(0)
-  
   events = list(CS.events)
   events += list(sm['dMonitoringState'].events)
-  
+
   events_arne182 = list(CS_arne182.events)
-  
+
   add_lane_change_event(events, sm['pathPlan'])
   enabled = isEnabled(state)
 
@@ -135,7 +137,7 @@ def data_sample(CI, CC, sm, can_sock, state, mismatch_counter, can_error_counter
   return CS, events, cal_perc, mismatch_counter, can_error_counter, events_arne182
 
 
-def state_transition(frame, CS, CP, state, events, soft_disable_timer, v_cruise_kph, AM, events_arne182):
+def state_transition(frame, CS, CP, state, events, soft_disable_timer, v_cruise_kph, AM, events_arne182, arne_sm, df_alert_manager):
   """Compute conditional state transitions and execute actions on state transitions"""
   enabled = isEnabled(state)
 
@@ -150,6 +152,10 @@ def state_transition(frame, CS, CP, state, events, soft_disable_timer, v_cruise_
   # decrease the soft disable timer at every step, as it's reset on
   # entrance in SOFT_DISABLING state
   soft_disable_timer = max(0, soft_disable_timer - 1)
+
+  df_alert = df_alert_manager.update(arne_sm)
+  if df_alert is not None:
+    AM.add(frame, 'dfButtonAlert', enabled, extra_text_1=df_alert, extra_text_2='Dynamic follow: {} profile active'.format(df_alert))
 
   # DISABLED
   if state == State.disabled:
@@ -346,6 +352,16 @@ def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cr
   a_acc_sol = plan.aStart + (dt / LON_MPC_STEP) * (plan.aTarget - plan.aStart)
   v_acc_sol = plan.vStart + dt * (a_acc_sol + plan.aStart) / 2.0
 
+  params_loc = {}
+  if not travis:
+    params_loc['lead_one'] = arne_sm['radarState'].leadOne
+    params_loc['mpc_TR'] = arne_sm['smiskolData'].mpcTR
+    params_loc['live_tracks'] = arne_sm['liveTracks']
+    params_loc['has_lead'] = plan.hasLead
+    params_loc['car_state'] = CS
+
+    arne_sm=None
+
   # Gas/Brake PID loop
   #if arne_sm.updated['arne182Status']:
   #  gas_button_status = arne_sm['arne182Status'].gasbuttonstatus
@@ -390,7 +406,7 @@ def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cr
       else:
         extra_text_2 = str(int(round(Filter.MIN_SPEED * CV.MS_TO_MPH))) + " mph"
     AM.add(frame, str(e) + "Permanent", enabled, extra_text_1=extra_text_1, extra_text_2=extra_text_2)
-    
+
   return actuators, v_cruise_kph, v_acc_sol, a_acc_sol, lac_log, last_blinker_frame
 
 
@@ -455,8 +471,7 @@ def data_send(sm, pm, CS, CI, CP, VM, state, events, actuators, v_cruise_kph, rk
   force_decel = sm['dMonitoringState'].awarenessStatus < 0.
 
   # controlsState
-  dat = messaging.new_message()
-  dat.init('controlsState')
+  dat = messaging.new_message('controlsState')
   dat.valid = CS.canValid
   dat.controlsState = {
     "alertText1": AM.alert_text_1,
@@ -509,8 +524,7 @@ def data_send(sm, pm, CS, CI, CP, VM, state, events, actuators, v_cruise_kph, rk
   pm.send('controlsState', dat)
 
   # carState
-  cs_send = messaging.new_message()
-  cs_send.init('carState')
+  cs_send = messaging.new_message('carState')
   cs_send.valid = CS.canValid
   cs_send.carState = CS
   cs_send.carState.events = events
@@ -519,21 +533,18 @@ def data_send(sm, pm, CS, CI, CP, VM, state, events, actuators, v_cruise_kph, rk
   # carEvents - logged every second or on change
   events_bytes = events_to_bytes(events)
   if (sm.frame % int(1. / DT_CTRL) == 0) or (events_bytes != events_prev):
-    ce_send = messaging.new_message()
-    ce_send.init('carEvents', len(events))
+    ce_send = messaging.new_message('carEvents', len(events))
     ce_send.carEvents = events
     pm.send('carEvents', ce_send)
 
   # carParams - logged every 50 seconds (> 1 per segment)
   if (sm.frame % int(50. / DT_CTRL) == 0):
-    cp_send = messaging.new_message()
-    cp_send.init('carParams')
+    cp_send = messaging.new_message('carParams')
     cp_send.carParams = CP
     pm.send('carParams', cp_send)
 
   # carControl
-  cc_send = messaging.new_message()
-  cc_send.init('carControl')
+  cc_send = messaging.new_message('carControl')
   cc_send.valid = CS.canValid
   cc_send.carControl = CC
   pm.send('carControl', cc_send)
@@ -566,7 +577,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
                               'model', 'gpsLocation', 'radarState'], ignore_alive=['gpsLocation'])
 
   if arne_sm is None:
-    arne_sm = messaging_arne.SubMaster(['arne182Status', 'smiskolData'])
+    arne_sm = messaging_arne.SubMaster(['arne182Status', 'smiskolData', 'dynamicFollowButton'])
     
   if can_sock is None:
     can_timeout = None if os.environ.get('NO_CAN_TIMEOUT', False) else 100
@@ -641,6 +652,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
 
   prof = Profiler(False)  # off by default
   op_params = opParams()
+  df_alert_manager = DfAlertManager(op_params)
 
   while True:
     arne_sm.update(0)
@@ -687,7 +699,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
     if not read_only:
       # update control state
       state, soft_disable_timer, v_cruise_kph, v_cruise_kph_last = \
-        state_transition(sm.frame, CS, CP, state, events, soft_disable_timer, v_cruise_kph, AM, events_arne182)
+        state_transition(sm.frame, CS, CP, state, events, soft_disable_timer, v_cruise_kph, AM, events_arne182, arne_sm, df_alert_manager)
       prof.checkpoint("State transition")
 
     # Compute actuators (runs PID loops and lateral MPC)
@@ -707,8 +719,8 @@ def controlsd_thread(sm=None, pm=None, can_sock=None, arne_sm=None):
     prof.display()
 
 
-def main(sm=None, pm=None, logcan=None):
-  controlsd_thread(sm, pm, logcan)
+def main(sm=None, pm=None, logcan=None, arne_sm=None):
+  controlsd_thread(sm, pm, logcan, arne_sm)
 
 
 if __name__ == "__main__":

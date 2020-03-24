@@ -1,36 +1,27 @@
 #!/usr/bin/env python3
-#import sys
-# sys.path.append("/root/arne-openpilot/openpilot")
+
+import time
+import math
+import overpy
+import requests
+import threading
+import numpy as np
 # setup logging
 import logging
 import logging.handlers
-
-
-# Add phonelibs openblas to LD_LIBRARY_PATH if import fails
 from scipy import spatial
-
 import selfdrive.crash as crash
-
+from common.params import Params
+from collections import defaultdict
+import cereal.messaging as messaging
+import cereal.messaging_arne as messaging_arne
+from selfdrive.version import version, dirty
+from common.transformations.coordinates import geodetic2ecef
+from selfdrive.mapd.mapd_helpers import MAPS_LOOKAHEAD_DISTANCE, Way, circle_through_points, rate_curvature_points
 
 #DEFAULT_SPEEDS_BY_REGION_JSON_FILE = BASEDIR + "/selfdrive/mapd/default_speeds_by_region.json"
 #from selfdrive.mapd import default_speeds_generator
 #default_speeds_generator.main(DEFAULT_SPEEDS_BY_REGION_JSON_FILE)
-
-import time
-import requests
-import threading
-import numpy as np
-import overpy
-from common.params import Params
-from collections import defaultdict
-from selfdrive.version import version, dirty
-
-from common.transformations.coordinates import geodetic2ecef
-import cereal.messaging_arne as messaging_arne
-import cereal.messaging as messaging
-
-from selfdrive.mapd.mapd_helpers import MAPS_LOOKAHEAD_DISTANCE, Way, circle_through_points, rate_curvature_points
-#from copy import deepcopy
 
 # define LoggerThread class to implement logging functionality
 class LoggerThread(threading.Thread):
@@ -44,8 +35,16 @@ class LoggerThread(threading.Thread):
         h.setFormatter(f)
         self.logger.addHandler(h)
         self.logger.setLevel(logging.CRITICAL) # set to logging.DEBUG to enable logging
-        # self.logger.setLevel(logging.DEBUG) # set to logging.DEBUG to enable logging
-    
+        # self.logger.setLevel(logging.DEBUG) # set to logging.CRITICAL to disable logging
+        
+    def save_gps_data(self, gps):
+        try:
+            location = [gps.speed, gps.bearing, gps.latitude, gps.longitude, gps.altitude, gps.accuracy, time.time()]
+            with open("/data/openpilot/selfdrive/data_collection/gps-data", "a") as f:
+                f.write("{}\n".format(location))
+        except:
+            self.logger.error("Unable to write gps data to external file")
+            
     def run(self):
         pass # will be overridden in the child class
 
@@ -81,8 +80,13 @@ class QueryThread(LoggerThread):
             self.logger.error("No internet connection available.")
             return False 
 
-    def build_way_query(self, lat, lon, radius=50):
+    def build_way_query(self, lat, lon, heading, radius=50):
         """Builds a query to find all highways within a given radius around a point"""
+        a = 111132.954*math.cos(float(lat)/180*3.141592)
+        b = 111132.954 - 559.822 * math.cos( 2 * float(lat)/180*3.141592) + 1.175 * math.cos( 4 * float(lat)/180*3.141592)
+        heading = math.radians(-heading + 90)
+        lat = lat+math.sin(heading)*radius/2/b
+        lon = lon+math.cos(heading)*radius/2/a
         pos = "  (around:%f,%f,%f)" % (radius, lat, lon)
         lat_lon = "(%f,%f)" % (lat, lon)
         q = """(
@@ -94,8 +98,7 @@ class QueryThread(LoggerThread):
         name = t['name'], "ISO3166-1:alpha2" = t['ISO3166-1:alpha2'];out;
         """
         self.logger.debug("build_way_query : %s" % str(q))
-        return q
-
+        return q, lat, lon
 
     def run(self):
         self.logger.debug("run method started for thread %s" % self.name)
@@ -116,12 +119,11 @@ class QueryThread(LoggerThread):
                 cur_ecef = geodetic2ecef((last_gps.latitude, last_gps.longitude, last_gps.altitude))
                 if self.prev_ecef is None:
                     self.prev_ecef = geodetic2ecef((last_query_pos.latitude, last_query_pos.longitude, last_query_pos.altitude))
-                # for next step cur_ecef becomes prev_ecef
                 
                 dist = np.linalg.norm(cur_ecef - self.prev_ecef)
                 if dist < 3000: #updated when we are 1km from the edge of the downloaded circle
                     continue
-                    # self.logger.debug("parameters, cur_ecef = %s, prev_ecef = %s, dist=%s" % (str(cur_ecef), str(prev_ecef), str(dist)))
+                    self.logger.debug("parameters, cur_ecef = %s, prev_ecef = %s, dist=%s" % (str(cur_ecef), str(self.prev_ecef), str(dist)))
 
                 if dist > 4000:
                     query_lock = self.sharedParams.get('query_lock', None)
@@ -132,8 +134,8 @@ class QueryThread(LoggerThread):
                     else:
                         self.logger.error("There is no query_lock")
 
-            if last_gps is not None and (self.is_connected_to_internet() or self.is_connected_to_internet2()):
-                q = self.build_way_query(last_gps.latitude, last_gps.longitude, radius=4000)
+            if last_gps is not None and last_gps.accuracy < 5.0 and (self.is_connected_to_internet() or self.is_connected_to_internet2()):
+                q, lat, lon = self.build_way_query(last_gps.latitude, last_gps.longitude, last_gps.bearing, radius=4000)
                 try:
                     try:
                         new_result = api.query(q)
@@ -142,7 +144,6 @@ class QueryThread(LoggerThread):
                         api2 = overpy.Overpass(url=self.OVERPASS_API_URL2)
                         self.logger.error("Using backup Server")
                         new_result = api2.query(q)
-
                     # Build kd-tree
                     nodes = []
                     real_nodes = []
@@ -172,6 +173,10 @@ class QueryThread(LoggerThread):
                     query_lock = self.sharedParams.get('query_lock', None)
                     if query_lock is not None:
                         query_lock.acquire()
+                        last_gps_mod = last_gps.as_builder()
+                        last_gps_mod.latitude = lat
+                        last_gps_mod.longitude = lon
+                        last_gps = last_gps_mod.as_reader()
                         self.sharedParams['last_query_result'] = new_result, tree, real_nodes, node_to_way, location_info
                         self.prev_ecef = geodetic2ecef((last_gps.latitude, last_gps.longitude, last_gps.altitude))
                         self.sharedParams['last_query_pos'] = last_gps
@@ -204,7 +209,6 @@ class MapsdThread(LoggerThread):
         self.arne_sm = messaging_arne.SubMaster(['liveTrafficData'])
         self.pm = messaging.PubMaster(['liveMapData'])
         self.logger.debug("entered mapsd_thread, ... %s, %s, %s" % (str(self.sm), str(self.arne_sm), str(self.pm)))
-
     def run(self):
         self.logger.debug("Entered run method for thread :" + str(self.name))
         cur_way = None
@@ -223,14 +227,12 @@ class MapsdThread(LoggerThread):
         speedLimittrafficvalid = False
 
         while True:
-            # time.sleep(1)
+            time.sleep(0.1)
             self.logger.debug("starting new cycle in endless loop")
             self.sm.update(0)
             self.arne_sm.update(0)
             gps_ext = self.sm['gpsLocationExternal']
             traffic = self.arne_sm['liveTrafficData']
-            # if True:  # todo: should this be `if sm.updated['liveTrafficData']:`?
-            # commented out the previous line because it does not make sense
 
             self.logger.debug("got gps_ext = %s" % str(gps_ext))
             if traffic.speedLimitValid:
@@ -245,18 +247,14 @@ class MapsdThread(LoggerThread):
                 speedLimittrafficAdvisoryvalid = True
             else:
                 speedLimittrafficAdvisoryvalid = False
-            # commented out because it is never going to happen
-            # else:
-                # speedLimittrafficAdvisoryvalid = False
 
             if self.sm.updated['gpsLocationExternal']:
                 gps = gps_ext
+                self.save_gps_data(gps)
             else:
                 continue
-
-            # save_gps_data(gps)
             query_lock = self.sharedParams.get('query_lock', None)
-            # last_gps = self.sharedParams.get('last_gps', None)
+            
             query_lock.acquire()
             self.sharedParams['last_gps'] = gps
             query_lock.release()
@@ -287,8 +285,6 @@ class MapsdThread(LoggerThread):
                 speed = gps.speed
 
                 query_lock.acquire()
-                # making a copy of sharedParams so I do not have to pass the original to the Way.closest method
-                #last_q_result = deepcopy(self.sharedParams.get('last_query_result', None))
                 cur_way = Way.closest(self.sharedParams['last_query_result'], lat, lon, heading, cur_way)
                 query_lock.release()
 
@@ -358,14 +354,12 @@ class MapsdThread(LoggerThread):
                             upcoming_curvature = 0.
                             dist_to_turn = 999
 
-                #query_lock.release()
-
             dat = messaging.new_message()
             dat.init('liveMapData')
 
             last_gps = self.sharedParams.get('last_gps', None)
 
-            if last_gps is not None:  # TODO: this should never be None with SubMaster now
+            if last_gps is not None:
                 dat.liveMapData.lastGps = last_gps
 
             if cur_way is not None:
@@ -421,7 +415,6 @@ class MapsdThread(LoggerThread):
                     dat.liveMapData.speedLimit = max_speed
 
             dat.liveMapData.mapValid = map_valid
-            #
             self.logger.debug("Sending ... liveMapData ... %s", str(dat))
             self.pm.send('liveMapData', dat)
 
@@ -431,11 +424,7 @@ def main():
     crash.bind_user(id=dongle_id)
     crash.bind_extra(version=version, dirty=dirty, is_eon=True)
     crash.install()
-    # initialize gps parameters
-    # initialize last_gps
-    # current_milli_time = lambda: int(round(time.time() * 1000))
-
-
+    
     # setup shared parameters
     last_gps = None
     query_lock = threading.Lock()
@@ -451,11 +440,6 @@ def main():
 
     qt.start()
     mt.start()
-    # print("Threads started")
-    # qt.run()
-    # qt.join()
-
-
-
+    
 if __name__ == "__main__":
     main()

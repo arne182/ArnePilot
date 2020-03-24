@@ -389,6 +389,7 @@ CM_ "toyota_nodsu_pt.dbc starts here"
 
 
 
+
 BO_ 401 STEERING_LTA: 8 XXX
  SG_ COUNTER : 7|8@0+ (1,0) [0|255] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX

@@ -31,7 +31,7 @@ class LongitudinalMpc():
     self.prev_lead_x = 0.0
     self.new_lead = False
     self.last_cloudlog_t = 0.0
-    
+
     if not travis and mpc_id == 1:
       self.pm = messaging_arne.PubMaster(['smiskolData'])
     else:
@@ -45,8 +45,7 @@ class LongitudinalMpc():
 
   def send_mpc_solution(self, pm, qp_iterations, calculation_time):
     qp_iterations = max(0, qp_iterations)
-    dat = messaging.new_message()
-    dat.init('liveLongitudinalMpc')
+    dat = messaging.new_message('liveLongitudinalMpc')
     dat.liveLongitudinalMpc.xEgo = list(self.mpc_solution[0].x_ego)
     dat.liveLongitudinalMpc.vEgo = list(self.mpc_solution[0].v_ego)
     dat.liveLongitudinalMpc.aEgo = list(self.mpc_solution[0].a_ego)
@@ -73,7 +72,7 @@ class LongitudinalMpc():
   def set_cur_state(self, v, a):
     self.cur_state[0].v_ego = v
     self.cur_state[0].a_ego = a
-    
+
   def get_TR(self, CS):
     if not self.lead_data['status'] or travis:
       TR = 1.8
@@ -122,17 +121,27 @@ class LongitudinalMpc():
       elapsed = self.df_data['v_leads'][-1]['time'] - self.df_data['v_leads'][0]['time']
       if elapsed > min_consider_time:  # if greater than min time (not 0)
         a_calculated = (self.df_data['v_leads'][-1]['v_lead'] - self.df_data['v_leads'][0]['v_lead']) / elapsed  # delta speed / delta time
-        # old version: # if abs(a_calculated) > abs(a_lead) and a_lead < 0.33528:  # if a_lead is greater than calculated accel (over last 1.5s, use that) and if lead accel is not above 0.75 mph/s
-        #   a_lead = a_calculated
 
-        # long version of below: if (a_calculated < 0 and a_lead >= 0 and a_lead < -a_calculated * 0.5) or (a_calculated > 0 and a_lead <= 0 and -a_lead > a_calculated * 0.5) or (a_lead * a_calculated > 0 and abs(a_calculated) > abs(a_lead)):
-        if (a_calculated < 0 <= a_lead < -a_calculated * 0.55) or (a_calculated > 0 >= a_lead and -a_lead < a_calculated * 0.45) or (a_lead * a_calculated > 0 and abs(a_calculated) > abs(a_lead)):  # this is a mess, fix
-          a_lead = a_calculated
-    return a_lead  # if above doesn't execute, we'll return a_lead from radar
+        if a_lead * a_calculated > 0 and abs(a_calculated) > abs(a_lead):
+          # both are negative or positive and calculated is greater than current
+          return a_calculated
+
+        if a_calculated < 0 <= a_lead:  # accel over time is negative and current accel is zero or positive
+          if a_lead < -a_calculated * 0.5:
+            # half of accel over time is less than current positive accel, we're not decelerating after long decel
+            return a_calculated
+
+        if a_lead <= 0 < a_calculated:  # accel over time is positive and current accel is zero or negative
+          if -a_lead < a_calculated * 0.5:
+            # half of accel over time is greater than current negative accel, we're not accelerating after long accel
+            return a_calculated
+
+    return a_lead  # if above doesn't execute, we'll return measured a_lead
 
   def dynamic_follow(self, CS):
     self.df_profile = self.op_params.get('dynamic_follow', 'relaxed').strip().lower()
     x_vel = [0.0, 1.8627, 3.7253, 5.588, 7.4507, 9.3133, 11.5598, 13.645, 22.352, 31.2928, 33.528, 35.7632, 40.2336]  # velocities
+  
     p_mod_x = [3, 20, 35]  # profile mod speeds
     if self.df_profile == 'roadtrip':
       y_dist = [1.3847, 1.3946, 1.4078, 1.4243, 1.4507, 1.4837, 1.5327, 1.553, 1.581, 1.617, 1.653, 1.687, 1.74]  # TRs
@@ -194,6 +203,22 @@ class LongitudinalMpc():
     self.lead_data['x_lead'] = x_lead
     self.lead_data['status'] = status
 
+
+  # def get_traffic_level(self, lead_vels):  # generate a value to modify TR by based on fluctuations in lead speed
+  #   if len(lead_vels) < 60:
+  #     return 1.0  # if less than 30 seconds of traffic data do nothing to TR
+  #   lead_vel_diffs = []
+  #   for idx, vel in enumerate(lead_vels):
+  #     try:
+  #       lead_vel_diffs.append(abs(vel - lead_vels[idx - 1]))
+  #     except:
+  #       pass
+  #
+  #   x = [0, len(lead_vels)]
+  #   y = [1.15, .9]  # min and max values to modify TR by, need to tune
+  #   traffic = interp(sum(lead_vel_diffs), x, y)
+  #
+  #   return traffic
   def update(self, pm, CS, lead, v_cruise_setpoint):
     v_ego = CS.vEgo
     self.car_data = {'v_ego': CS.vEgo, 'a_ego': CS.aEgo}

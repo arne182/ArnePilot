@@ -18,7 +18,8 @@ apt-key add pointless.gpg
 rm -f pointless.gpg
 # Update apt
 apt update
-apt install -y opencv
+apt install -y --allow-unauthenticated opencv
+apt install -y --allow-unauthenticated scipy
 python3 -m pip install overpy
 # python3 -m pip install requests
 # python3 -m pip install pyzmq

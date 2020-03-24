@@ -1,9 +1,10 @@
 from cereal import car
-from common.numpy_fast import clip, interp
-from selfdrive.car import apply_toyota_steer_torque_limits, create_gas_command, make_can_msg
+import json
+from common.params import Params
+from common.numpy_fast import clip
+from selfdrive.car import apply_toyota_steer_torque_limits, create_gas_command, make_can_msg, gen_empty_fingerprint
 from selfdrive.car.toyota.toyotacan import create_steer_command, create_ui_command, \
-                                           create_ipas_steer_command, create_accel_command, \
-                                           create_acc_cancel_command, create_fcw_command
+                                           create_accel_command, create_acc_cancel_command, create_fcw_command
 from selfdrive.car.toyota.values import Ecu, CAR, STATIC_MSGS, SteerLimitParams, TSS2_CAR
 from opendbc.can.packer import CANPacker
 
@@ -14,19 +15,6 @@ ACCEL_HYST_GAP = 0.02  # don't change accel command for small oscilalitons withi
 ACCEL_MAX = 3.5  # 1.5 m/s2
 ACCEL_MIN = -3.5 # 3   m/s2
 ACCEL_SCALE = max(ACCEL_MAX, -ACCEL_MIN)
-
-
-# Steer angle limits (tested at the Crows Landing track and considered ok)
-ANGLE_MAX_BP = [0., 5.]
-ANGLE_MAX_V = [510., 300.]
-ANGLE_DELTA_BP = [0., 5., 15.]
-ANGLE_DELTA_V = [5., .8, .15]     # windup limit
-ANGLE_DELTA_VU = [5., 3.5, 0.4]   # unwind limit
-
-TARGET_IDS = [0x340, 0x341, 0x342, 0x343, 0x344, 0x345,
-              0x363, 0x364, 0x365, 0x370, 0x371, 0x372,
-              0x373, 0x374, 0x375, 0x380, 0x381, 0x382,
-              0x383]
 
 # Blindspot codes
 LEFT_BLINDSPOT = b'\x41'
@@ -44,7 +32,6 @@ def set_blindspot_debug_mode(lr,enable):
 def poll_blindspot_status(lr):
   m = lr + b'\x02\x21\x69\x00\x00\x00\x00'
   return make_can_msg(0x750, m, 0)
-
 
 def accel_hysteresis(accel, accel_steady, enabled):
   # for small accel oscillations within ACCEL_HYST_GAP, don't change the accel command
@@ -73,58 +60,35 @@ def process_hud_alert(hud_alert):
   return steer, fcw
 
 
-def ipas_state_transition(steer_angle_enabled, enabled, ipas_active, ipas_reset_counter):
-
-  if enabled and not steer_angle_enabled:
-    #ipas_reset_counter = max(0, ipas_reset_counter - 1)
-    #if ipas_reset_counter == 0:
-    #  steer_angle_enabled = True
-    #else:
-    #  steer_angle_enabled = False
-    #return steer_angle_enabled, ipas_reset_counter
-    return True, 0
-
-  elif enabled and steer_angle_enabled:
-    if steer_angle_enabled and not ipas_active:
-      ipas_reset_counter += 1
-    else:
-      ipas_reset_counter = 0
-    if ipas_reset_counter > 10:  # try every 0.1s
-      steer_angle_enabled = False
-    return steer_angle_enabled, ipas_reset_counter
-
-  else:
-    return False, 0
-
-
 class CarController():
-  def __init__(self, dbc_name, car_fingerprint, enable_camera, enable_dsu, enable_apg):
+  def __init__(self, dbc_name, CP, VM):
     self.braking = False
-    # redundant safety check with the board
-    self.controls_allowed = True
     self.last_steer = 0
-    self.last_angle = 0
     self.accel_steady = 0.
-    self.car_fingerprint = car_fingerprint
+    self.car_fingerprint = CP.carFingerprint
     self.alert_active = False
     self.last_standstill = False
     self.standstill_req = False
-    self.angle_control = False
     self.blindspot_blink_counter_left = 0
     self.blindspot_blink_counter_right = 0
     self.blindspot_debug_enabled_left = False
     self.blindspot_debug_enabled_right = False
 
-    self.steer_angle_enabled = False
-    self.ipas_reset_counter = 0
     self.last_fault_frame = -200
     self.steer_rate_limited = False
 
     self.fake_ecus = set()
-    if enable_camera: self.fake_ecus.add(Ecu.fwdCamera)
-    if enable_dsu: self.fake_ecus.add(Ecu.dsu)
-    if enable_apg: self.fake_ecus.add(Ecu.apgs)
-
+    if CP.enableCamera: self.fake_ecus.add(Ecu.fwdCamera)
+    if CP.enableDsu: self.fake_ecus.add(Ecu.dsu)
+    params = Params()
+    try:
+      cached_fingerprint = params.get('CachedFingerprint')
+      finger = gen_empty_fingerprint()
+      cached_fingerprint = json.loads(cached_fingerprint)
+      finger[0] = {int(key): value for key, value in cached_fingerprint[2].items()}
+      if 0x2FF in finger[0]: self.fake_ecus.add(Ecu.unknown)
+    except:
+      pass
     self.packer = CANPacker(dbc_name)
 
   def update(self, enabled, CS, frame, actuators, pcm_cancel_cmd, hud_alert,
@@ -147,15 +111,15 @@ class CarController():
     apply_accel = clip(apply_accel * ACCEL_SCALE, ACCEL_MIN, ACCEL_MAX)
 
     if CS.CP.enableGasInterceptor:
-      if CS.pedal_gas > 15.0:
+      if CS.out.gasPressed:
         apply_accel = max(apply_accel, 0.06)
-      if CS.brake_pressed:
+      if CS.out.brakePressed:
         apply_gas = 0.0
         apply_accel = min(apply_accel, 0.00)
     else:
-      if CS.pedal_gas > 0.0:
+      if CS.out.gasPressed:
         apply_accel = max(apply_accel, 0.0)
-      if CS.brake_pressed and CS.v_ego > 1:
+      if CS.out.brakePressed and CS.out.vEgo > 1:
         apply_accel = min(apply_accel, 0.0)
 
     # steer torque
@@ -166,54 +130,33 @@ class CarController():
       self.last_fault_frame = frame
 
     # Cut steering for 2s after fault
-    if (frame - self.last_fault_frame < 200) or abs(CS.angle_steers) > 100 or abs(CS.angle_steers_rate) > 100:
+    if (frame - self.last_fault_frame < 200) or abs(CS.out.steeringRate) > 100 or abs(CS.out.steeringAngle) > 100:
       new_steer = 0
       apply_steer_req = 0
     else:
       apply_steer_req = 1
 
-    apply_steer = apply_toyota_steer_torque_limits(new_steer, self.last_steer, CS.steer_torque_motor, SteerLimitParams)
+    apply_steer = apply_toyota_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, SteerLimitParams)
     self.steer_rate_limited = new_steer != apply_steer
 
     if not enabled:
       apply_steer = 0
       apply_steer_req = 0
 
-    self.steer_angle_enabled, self.ipas_reset_counter = \
-      ipas_state_transition(self.steer_angle_enabled, enabled, CS.ipas_active, self.ipas_reset_counter)
-    #print("{0} {1} {2}".format(self.steer_angle_enabled, self.ipas_reset_counter, CS.ipas_active))
-
-    # steer angle
-    if self.steer_angle_enabled and CS.ipas_active:
-      apply_angle = actuators.steerAngle
-      angle_lim = interp(CS.v_ego, ANGLE_MAX_BP, ANGLE_MAX_V)
-      apply_angle = clip(apply_angle, -angle_lim, angle_lim)
-
-      # windup slower
-      if self.last_angle * apply_angle > 0. and abs(apply_angle) > abs(self.last_angle):
-        angle_rate_lim = interp(CS.v_ego, ANGLE_DELTA_BP, ANGLE_DELTA_V)
-      else:
-        angle_rate_lim = interp(CS.v_ego, ANGLE_DELTA_BP, ANGLE_DELTA_VU)
-
-      apply_angle = clip(apply_angle, self.last_angle - angle_rate_lim, self.last_angle + angle_rate_lim)
-    else:
-      apply_angle = CS.angle_steers
-
     if not enabled and CS.pcm_acc_status:
       # send pcm acc cancel cmd if drive is disabled but pcm is still on, or if the system can't be activated
       pcm_cancel_cmd = 1
 
     # on entering standstill, send standstill request
-    if CS.standstill and not self.last_standstill:
+    if CS.out.standstill and not self.last_standstill:
       self.standstill_req = True
     if CS.pcm_acc_status != 8:
       # pcm entered standstill or it's disabled
       self.standstill_req = False
 
     self.last_steer = apply_steer
-    self.last_angle = apply_angle
     self.last_accel = apply_accel
-    self.last_standstill = CS.standstill
+    self.last_standstill = CS.out.standstill
 
     can_sends = []
 
@@ -224,20 +167,11 @@ class CarController():
     # sending it at 100Hz seem to allow a higher rate limit, as the rate limit seems imposed
     # on consecutive messages
     if Ecu.fwdCamera in self.fake_ecus:
-      if self.angle_control:
-        can_sends.append(create_steer_command(self.packer, 0., 0, frame))
-      else:
-        can_sends.append(create_steer_command(self.packer, apply_steer, apply_steer_req, frame))
-
-    if self.angle_control:
-      can_sends.append(create_ipas_steer_command(self.packer, apply_angle, self.steer_angle_enabled,
-                                                 Ecu.apgs in self.fake_ecus))
-    elif Ecu.apgs in self.fake_ecus:
-      can_sends.append(create_ipas_steer_command(self.packer, 0, 0, True))
+      can_sends.append(create_steer_command(self.packer, apply_steer, apply_steer_req, frame))
 
     # we can spam can to cancel the system even if we are using lat only control
     if (frame % 3 == 0 and CS.CP.openpilotLongitudinalControl) or (pcm_cancel_cmd and Ecu.fwdCamera in self.fake_ecus):
-      lead = lead or CS.v_ego < 12.    # at low speed we always assume the lead is present do ACC can be engaged
+      lead = lead or CS.out.vEgo < 12.    # at low speed we always assume the lead is present do ACC can be engaged
 
       # Lexus IS uses a different cancellation message
       if pcm_cancel_cmd and CS.CP.carFingerprint == CAR.LEXUS_IS:
@@ -272,7 +206,7 @@ class CarController():
     if (frame % 100 == 0 or send_ui) and Ecu.fwdCamera in self.fake_ecus:
       can_sends.append(create_ui_command(self.packer, steer, pcm_cancel_cmd, left_line, right_line, left_lane_depart, right_lane_depart))
 
-    if frame % 100 == 0 and Ecu.dsu in self.fake_ecus:
+    if frame % 100 == 0 and (Ecu.dsu in self.fake_ecus or Ecu.unknown in self.fake_ecus):
       can_sends.append(create_fcw_command(self.packer, fcw))
 
     #*** static msgs ***
@@ -287,10 +221,10 @@ class CarController():
         self.blindspot_blink_counter_left += 1
         self.blindspot_blink_counter_right += 1
         #print("debug blindspot alwayson!")
-      elif CS.left_blinker_on:
+      elif CS.out.leftBlinker:
         self.blindspot_blink_counter_left += 1
         #print("debug Left Blinker on")
-      elif CS.right_blinker_on:
+      elif CS.out.rightBlinker:
         self.blindspot_blink_counter_right += 1
         #print("debug Right Blinker on")
       else:
@@ -312,12 +246,12 @@ class CarController():
         #print("debug Left blindspot debug enabled")
         self.blindspot_debug_enabled_left = True
       if self.blindspot_blink_counter_right > 5 and not self.blindspot_debug_enabled_right: #enable blindspot debug mode
-        if CS.v_ego > 6: #polling at low speeds switches camera off
+        if CS.out.vEgo > 6: #polling at low speeds switches camera off
           #can_sends.append(make_can_msg(0x750, b'\x42\x02\x10\x60\x00\x00\x00\x00', 0))
           can_sends.append(set_blindspot_debug_mode(RIGHT_BLINDSPOT, True))
           #print("debug Right blindspot debug enabled")
           self.blindspot_debug_enabled_right = True
-      if CS.v_ego < 6 and self.blindspot_debug_enabled_right: # if enabled and speed falls below 6m/s
+      if CS.out.vEgo < 6 and self.blindspot_debug_enabled_right: # if enabled and speed falls below 6m/s
         #can_sends.append(make_can_msg(0x750, b'\x42\x02\x10\x01\x00\x00\x00\x00', 0))
         can_sends.append(set_blindspot_debug_mode(RIGHT_BLINDSPOT, False))
         self.blindspot_debug_enabled_right = False
