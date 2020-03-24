@@ -10,6 +10,7 @@ import cereal.messaging as messaging
 import cereal.messaging_arne as messaging_arne
 from cereal import log
 from common.op_params import opParams
+from selfdrive.controls.lane_hugging import LaneHugging
 #from common.travis_checker import travis
 
 LaneChangeState = log.PathPlan.LaneChangeState
@@ -63,6 +64,7 @@ class PathPlanner():
     self.prev_one_blinker = False
     self.blindspotTrueCounterleft = 0
     self.blindspotTrueCounterright = 0
+    self.lane_hugging = LaneHugging()
     self.op_params = opParams()
     self.alca_nudge_required = self.op_params.get('alca_nudge_required', default=True)
     self.alca_min_speed = self.op_params.get('alca_min_speed', default=20.0)
@@ -245,7 +247,7 @@ class PathPlanner():
 
     plan_send.pathPlan.angleSteers = float(self.angle_steers_des_mpc)
     plan_send.pathPlan.rateSteers = float(rate_desired)
-    plan_send.pathPlan.angleOffset = float(sm['liveParameters'].angleOffsetAverage)
+    plan_send.pathPlan.angleOffset = self.lane_hugging.modify_offset(float(sm['liveParameters'].angleOffsetAverage), self.lane_change_direction, self.lane_change_state)
     plan_send.pathPlan.mpcSolutionValid = bool(plan_solution_valid)
     plan_send.pathPlan.paramsValid = bool(sm['liveParameters'].valid)
     plan_send.pathPlan.sensorValid = bool(sm['liveParameters'].sensorValid)

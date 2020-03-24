@@ -32,7 +32,7 @@ class LongitudinalMpc():
     self.new_lead = False
     self.TR_Mod = 0
     self.last_cloudlog_t = 0.0
-    
+
     if not travis and mpc_id == 1:
       self.pm = messaging_arne.PubMaster(['smiskolData'])
     else:
@@ -73,35 +73,16 @@ class LongitudinalMpc():
   def set_cur_state(self, v, a):
     self.cur_state[0].v_ego = v
     self.cur_state[0].a_ego = a
-    
+
   def get_TR(self, CS):
     if not self.lead_data['status'] or travis:
       TR = 1.8
-    elif CS.vEgo < 5.0:
-      TRs = [2.0, 1.8, 1.75, 1.6]
-      vEgos = [2.0, 3.0, 4.0, 5.0]
-      #TRs = [1.8, 1.6]
-      #vEgos =[4.0, 5.0]
-      TR = interp(CS.vEgo, vEgos, TRs)
-      p_mod_pos = 1.0
-      p_mod_neg = 1.0
-      TR_mod = []
-      x = [-20.0383, -15.6978, -11.2053, -7.8781, -5.0407, -3.2167, -1.6122, 0.0]  # relative velocity values
-      y = [0.641, 0.506, 0.418, 0.334, 0.24, 0.115, 0.055, 0.01]  # modification values
-      TR_mod.append(interp(self.lead_data['v_lead'] - self.car_data['v_ego'], x, y))
-
-      x = [-4.4795, -2.8122, -1.5727, -1.1129, -0.6611, -0.2692, 0.0]  # lead acceleration values
-      y = [0.265, 0.187, 0.096, 0.057, 0.033, 0.024, 0.0]  # modification values
-      TR_mod.append(interp(self.calculate_lead_accel(), x, y))
-      
-      self.TR_Mod = sum([mod * p_mod_neg if mod < 0 else mod * p_mod_pos for mod in TR_mod]) # calculate TR_Mod so that the cost function works correctly
-      
     else:
       self.store_df_data()
       TR = self.dynamic_follow(CS)
 
     if not travis:
-      self.change_cost(TR,CS.vEgo)
+      self.change_cost(TR)
       self.send_cur_TR(TR)
     return TR
 
@@ -112,15 +93,10 @@ class LongitudinalMpc():
       dat.smiskolData.mpcTR = TR
       self.pm.send('smiskolData', dat)
 
-  def change_cost(self, TR, vEgo):
+  def change_cost(self, TR):
     TRs = [0.9, 1.8, 2.7]
-    costs = [0.5, 0.1, 0.05]
+    costs = [1.0, 0.1, 0.05]
     cost = interp(TR, TRs, costs)
-    if vEgo < 5.0:
-      cost = 0.1
-      cost = cost * min(max(1.0 , (6.0 - vEgo)),5.0) 
-    if self.TR_Mod > 0:
-      cost = cost + self.TR_Mod/2.0
     if self.last_cost != cost:
       self.libmpc.change_tr(MPC_COST_LONG.TTC, cost, MPC_COST_LONG.ACCELERATION, MPC_COST_LONG.JERK)
       self.last_cost = cost
@@ -146,37 +122,40 @@ class LongitudinalMpc():
       elapsed = self.df_data['v_leads'][-1]['time'] - self.df_data['v_leads'][0]['time']
       if elapsed > min_consider_time:  # if greater than min time (not 0)
         a_calculated = (self.df_data['v_leads'][-1]['v_lead'] - self.df_data['v_leads'][0]['v_lead']) / elapsed  # delta speed / delta time
-        # old version: # if abs(a_calculated) > abs(a_lead) and a_lead < 0.33528:  # if a_lead is greater than calculated accel (over last 1.5s, use that) and if lead accel is not above 0.75 mph/s
-        #   a_lead = a_calculated
 
-        # long version of below: if (a_calculated < 0 and a_lead >= 0 and a_lead < -a_calculated * 0.5) or (a_calculated > 0 and a_lead <= 0 and -a_lead > a_calculated * 0.5) or (a_lead * a_calculated > 0 and abs(a_calculated) > abs(a_lead)):
-        if (a_calculated < 0 <= a_lead < -a_calculated * 0.55) or (a_calculated > 0 >= a_lead and -a_lead < a_calculated * 0.45) or (a_lead * a_calculated > 0 and abs(a_calculated) > abs(a_lead)):  # this is a mess, fix
-          a_lead = a_calculated
-    return a_lead  # if above doesn't execute, we'll return a_lead from radar
+        if a_lead * a_calculated > 0 and abs(a_calculated) > abs(a_lead):
+          # both are negative or positive and calculated is greater than current
+          return a_calculated
+
+        if a_calculated < 0 <= a_lead:  # accel over time is negative and current accel is zero or positive
+          if a_lead < -a_calculated * 0.5:
+            # half of accel over time is less than current positive accel, we're not decelerating after long decel
+            return a_calculated
+
+        if a_lead <= 0 < a_calculated:  # accel over time is positive and current accel is zero or negative
+          if -a_lead < a_calculated * 0.5:
+            # half of accel over time is greater than current negative accel, we're not accelerating after long accel
+            return a_calculated
+
+    return a_lead  # if above doesn't execute, we'll return measured a_lead
 
   def dynamic_follow(self, CS):
     self.df_profile = self.op_params.get('dynamic_follow', 'relaxed').strip().lower()
-    x_vel = [5.0, 7.4507, 9.3133, 11.5598, 13.645, 22.352, 31.2928, 33.528, 35.7632, 40.2336]  # velocities
-    p_mod_x = [3, 20, 35]  # profile mod speeds
+    x_vel = [0.0, 1.8627, 3.7253, 5.588, 7.4507, 9.3133, 11.5598, 13.645, 22.352, 31.2928, 33.528, 35.7632, 40.2336]  # velocities
+    profile_mod_x = [2.2352, 13.4112, 24.5872, 35.7632]  # profile mod speeds, mph: [5., 30., 55., 80.]
     if self.df_profile == 'roadtrip':
-      y_dist = [1.6, 1.4507, 1.4837, 1.5327, 1.553, 1.581, 1.617, 1.653, 1.687, 1.74]  # TRs
-      p_mod_pos = [0.99, 0.815, 0.57]
-      p_mod_neg = [1.0, 1.27, 1.675]
+      y_dist = [1.3847, 1.3946, 1.4078, 1.4243, 1.4507, 1.4837, 1.5327, 1.553, 1.581, 1.617, 1.653, 1.687, 1.74]  # TRs
+      profile_mod_pos = [0.99, 0.9025, 0.815, 0.55]
+      profile_mod_neg = [1.0, 1.18, 1.382, 1.787]
     elif self.df_profile == 'traffic':  # for in congested traffic
-      x_vel = [5.0, 7.4507, 9.3133, 11.5598, 13.645, 17.8816, 22.407, 28.8833, 34.8691, 40.3906]
-      y_dist = [1.6, 1.437, 1.468, 1.501, 1.506, 1.38, 1.2216, 1.085, 1.0516, 1.016]
-      p_mod_pos = [1.015, 2.175, 3.65]
-      p_mod_neg = [0.98, 0.08, 0.0]
-      # y_dist = [1.384, 1.391, 1.403, 1.415, 1.437, 1.3506, 1.3959, 1.4156, 1.38, 1.1899, 1.026, 0.9859, 0.9432]  # from 071-2 (need to fix FCW)
-      # p_mod_pos = [1.015, 2.2, 3.95]
-      # p_mod_neg = [0.98, 0.1, 0.0]
+      x_vel = [0.0, 1.892, 3.7432, 5.8632, 8.0727, 10.7301, 14.343, 17.6275, 22.4049, 28.6752, 34.8858, 40.35]
+      y_dist = [1.3781, 1.3791, 1.3802, 1.3825, 1.3984, 1.4249, 1.4194, 1.3162, 1.1916, 1.0145, 0.9855, 0.9562]
+      profile_mod_pos = [1.05, 1.375, 2.99, 3.8]
+      profile_mod_neg = [0.79, .1, 0.0, 0.0]
     else:  # default to relaxed/stock
-      y_dist = [1.6, 1.444, 1.474, 1.516, 1.534, 1.546, 1.568, 1.579, 1.593, 1.614]
-      p_mod_pos = [1.0, 1.0, 1.0]
-      p_mod_neg = [1.0, 1.0, 1.0]
-
-    p_mod_pos = interp(self.car_data['v_ego'], p_mod_x, p_mod_pos)
-    p_mod_neg = interp(self.car_data['v_ego'], p_mod_x, p_mod_neg)
+      y_dist = [1.385, 1.394, 1.406, 1.421, 1.444, 1.474, 1.516, 1.534, 1.546, 1.568, 1.579, 1.593, 1.614]
+      profile_mod_pos = [1.0] * 4
+      profile_mod_neg = [1.0] * 4
 
     sng_TR = 1.7  # reacceleration stop and go TR
     sng_speed = 15.0 * CV.MPH_TO_MS
@@ -195,26 +174,23 @@ class LongitudinalMpc():
     TR_mod = []
     # Dynamic follow modifications (the secret sauce)
     x = [-20.0383, -15.6978, -11.2053, -7.8781, -5.0407, -3.2167, -1.6122, 0.0, 0.6847, 1.3772, 1.9007, 2.7452]  # relative velocity values
-    y = [0.641, 0.506, 0.418, 0.334, 0.24, 0.115, 0.055, 0.0, -0.03, -0.068, -0.142, -0.221]  # modification values
+    y = [0.641, 0.506, 0.418, 0.334, 0.24, 0.115, 0.065, 0.0, -0.049, -0.068, -0.142, -0.221]  # modification values
     TR_mod.append(interp(self.lead_data['v_lead'] - self.car_data['v_ego'], x, y))
 
     x = [-4.4795, -2.8122, -1.5727, -1.1129, -0.6611, -0.2692, 0.0, 0.1466, 0.5144, 0.6903, 0.9302]  # lead acceleration values
     y = [0.265, 0.187, 0.096, 0.057, 0.033, 0.024, 0.0, -0.009, -0.042, -0.053, -0.059]  # modification values
     TR_mod.append(interp(self.calculate_lead_accel(), x, y))
 
-    # x = [4.4704, 22.352]  # 10 to 50 mph  #todo: remove if uneeded/unsafe
-    # y = [0.94, 1.0]
-    # TR_mod *= interp(self.car_data['v_ego'], x, y)  # modify TR less at lower speeds
+    profile_mod_pos = interp(self.car_data['v_ego'], profile_mod_x, profile_mod_pos)
+    profile_mod_neg = interp(self.car_data['v_ego'], profile_mod_x, profile_mod_neg)
 
-    self.TR_Mod = sum([mod * p_mod_neg if mod < 0 else mod * p_mod_pos for mod in TR_mod])  # alter TR modification according to profile
-    TR += self.TR_Mod
+    TR_mod = sum([mod * profile_mod_neg if mod < 0 else mod * profile_mod_pos for mod in TR_mod])  # alter TR modification according to profile
+    TR += TR_mod
 
     if CS.leftBlinker or CS.rightBlinker and self.df_profile != 'traffic':
       x = [8.9408, 22.352, 31.2928]  # 20, 50, 70 mph
       y = [1.0, .75, .65]  # reduce TR when changing lanes
       TR *= interp(self.car_data['v_ego'], x, y)
-
-    # TR *= self.get_traffic_level()  # modify TR based on last minute of traffic data  # todo: look at getting this to work, a model could be used
 
     return clip(TR, 0.9, 2.7)
 
@@ -223,6 +199,7 @@ class LongitudinalMpc():
     self.lead_data['a_lead'] = a_lead
     self.lead_data['x_lead'] = x_lead
     self.lead_data['status'] = status
+
 
   # def get_traffic_level(self, lead_vels):  # generate a value to modify TR by based on fluctuations in lead speed
   #   if len(lead_vels) < 60:
