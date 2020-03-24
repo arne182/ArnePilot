@@ -104,7 +104,7 @@ class LongControl():
     self.track_data = []
     for track in passable['live_tracks']:
       self.track_data.append({'v_lead': v_ego + track.vRel, 'y_rel': track.yRel, 'x_lead': track.dRel})
-    def update(self, active, v_ego, gas_pressed, brake_pressed, standstill, cruise_standstill, v_cruise, v_target, v_target_future, a_target, CP, hasLead, dRel, decelForTurn, longitudinalPlanSource, extra_params):
+  def update(self, active, v_ego, gas_pressed, brake_pressed, standstill, cruise_standstill, v_cruise, v_target, v_target_future, a_target, CP, hasLead, dRel, decelForTurn, longitudinalPlanSource, extra_params):
     """Update longitudinal control. This updates the state machine and runs a PID loop"""
     # Actuation limits
     gas_max = interp(v_ego, CP.gasMaxBP, CP.gasMaxV)
