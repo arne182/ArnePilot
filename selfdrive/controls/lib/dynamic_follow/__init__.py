@@ -219,7 +219,7 @@ class DynamicFollow:
       df_profile = self.user_profile
 
     if df_profile == self.df_profiles.roadtrip:
-      y_dist = [1.3978, 1.4132, 1.4318, 1.4536, 1.485, 1.5229, 1.5819, 1.6203, 1.7238, 1.8231, 1.8379, 1.8495, 1.8535]  # TRs
+      y_dist = [1.2134, 1.2746, 1.3378, 1.3843, 1.4307, 1.4737, 1.5127, 1.5496, 1.6701, 1.8021, 1.8411, 1.8831, 1.98]  # TRs
       profile_mod_pos = [0.92, 0.7, 0.25, 0.15]
       profile_mod_neg = [1.1, 1.3, 2.0, 2.3]
     elif df_profile == self.df_profiles.traffic:  # for in congested traffic
