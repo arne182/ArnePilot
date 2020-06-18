@@ -28,10 +28,10 @@ class DynamicFollow:
 
     # Model variables
     mpc_rate = 1 / 20.
-    self.model_scales = {'v_ego': [-0.06112159043550491, 37.96522521972656], 'v_lead': [0.0, 35.27671432495117], 'x_lead': [2.4600000381469727, 139.52000427246094]}
+    self.model_scales = {'v_ego': [-0.06112159043550491, 37.96522521972656], 'a_lead': [-3.109330892562866, 3.3612186908721924], 'v_lead': [0.0, 35.27671432495117], 'x_lead': [2.4600000381469727, 141.44000244140625]}
     self.predict_rate = 1 / 4.
-    self.skip_every = round(0.2 / mpc_rate)
-    self.model_input_len = round(35 / mpc_rate)  # int: model input time
+    self.skip_every = round(0.25 / mpc_rate)
+    self.model_input_len = round(45 / mpc_rate)  # int: model input time
 
     # Dynamic follow variables
     self.default_TR = 1.8
@@ -117,6 +117,7 @@ class DynamicFollow:
     # Store data for auto-df model
     self.auto_df_model_data.append([self._norm(self.car_data.v_ego, 'v_ego'),
                                     self._norm(self.lead_data.v_lead, 'v_lead'),
+                                    self._norm(self.lead_data.a_lead, 'a_lead'),
                                     self._norm(self.lead_data.x_lead, 'x_lead')])
     while len(self.auto_df_model_data) > self.model_input_len:
       del self.auto_df_model_data[0]
