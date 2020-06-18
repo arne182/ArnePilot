@@ -8,7 +8,7 @@ from common.numpy_fast import interp, clip
 from selfdrive.config import Conversions as CV
 from common.travis_checker import travis
 
-from selfdrive.controls.lib.dynamic_follow.auto_df import load_weights, predict
+from selfdrive.controls.lib.dynamic_follow.auto_df import predict
 from selfdrive.controls.lib.dynamic_follow.df_manager import dfManager
 from selfdrive.controls.lib.dynamic_follow.support import LeadData, CarData, dfData, dfProfiles
 
@@ -19,7 +19,6 @@ class DynamicFollow:
     self.op_params = opParams()
     self.df_profiles = dfProfiles()
     self.df_manager = dfManager(self.op_params)
-    load_weights()
 
     if not travis and mpc_id == 1:
       self.pm = messaging_arne.PubMaster(['dynamicFollowData'])
