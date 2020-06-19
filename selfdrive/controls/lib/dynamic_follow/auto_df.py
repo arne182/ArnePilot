@@ -2,9 +2,10 @@
   Generated using Konverter: https://github.com/ShaneSmiskol/Konverter
 """
 
+from common.basedir import BASEDIR
 import numpy as np
 
-wb = np.load('/data/openpilot/selfdrive/controls/lib/dynamic_follow/auto_df_weights.npz', allow_pickle=True)
+wb = np.load(BASEDIR + '/selfdrive/controls/lib/dynamic_follow/auto_df_weights.npz', allow_pickle=True)
 w, b = wb['wb']
 
 def softmax(x):
