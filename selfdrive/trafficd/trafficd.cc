@@ -14,6 +14,18 @@ zdl::DlSystem::Runtime_t checkRuntime() {
     return Runtime;
 }
 
+void initializeSNPE(zdl::DlSystem::Runtime_t runtime) {
+    std::unique_ptr<zdl::DlContainer::IDlContainer> container;
+    container = zdl::DlContainer::IDlContainer::open("../../models/traffic_model.dlc");
+    zdl::SNPE::SNPEBuilder snpeBuilder(container.get());
+    snpe = snpeBuilder.setOutputLayers({})
+                      .setRuntimeProcessor(runtime)
+                      .setUseUserSuppliedBuffers(false)
+                      .setPerformanceProfile(zdl::DlSystem::PerformanceProfile_t::HIGH_PERFORMANCE)
+                      .setCPUFallbackMode(true)
+                      .build();
+}
+
 void initModel() {
     zdl::DlSystem::Runtime_t runt=checkRuntime();
     initializeSNPE(runt);
