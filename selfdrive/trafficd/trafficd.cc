@@ -2,6 +2,8 @@
 
 using namespace std;
 
+std::unique_ptr<zdl::SNPE::SNPE> snpe;
+
 zdl::DlSystem::Runtime_t checkRuntime() {
     static zdl::DlSystem::Version_t Version = zdl::SNPE::SNPEFactory::getLibraryVersion();
     static zdl::DlSystem::Runtime_t Runtime;
