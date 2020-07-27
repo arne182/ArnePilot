@@ -66,6 +66,36 @@ std::unique_ptr<zdl::DlSystem::ITensor> loadInputTensor(std::unique_ptr<zdl::SNP
     return input;
 }
 
+zdl::DlSystem::ITensor* executeNetwork(std::unique_ptr<zdl::SNPE::SNPE>& snpe, std::unique_ptr<zdl::DlSystem::ITensor>& input) {
+    static zdl::DlSystem::TensorMap outputTensorMap;
+    snpe->execute(input.get(), outputTensorMap);
+    zdl::DlSystem::StringList tensorNames = outputTensorMap.getTensorNames();
+
+    const char* name = tensorNames.at(0);  // only should the first
+    auto tensorPtr = outputTensorMap.getTensor(name);
+    return tensorPtr;
+}
+
+//int set_realtime_priority(int level) {
+//#ifdef __linux__
+//
+//  long tid = syscall(SYS_gettid);
+
+//  // should match python using chrt
+//  struct sched_param sa;
+//  memset(&sa, 0, sizeof(sa));
+//  sa.sched_priority = level;
+//  return sched_setscheduler(tid, SCHED_FIFO, &sa);
+//#else
+//  return -1;
+//#endif
+//}
+
+void initModel() {
+    zdl::DlSystem::Runtime_t runt=checkRuntime();
+    initializeSNPE(runt);
+}
+
 
 int main(){
 
