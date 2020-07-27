@@ -20,9 +20,6 @@ void initModel() {
 }
 
 int main(){
-    signal(SIGINT, (sighandler_t)set_do_exit);
-    signal(SIGTERM, (sighandler_t)set_do_exit);
-    int err;
     //usleep(5000000);
     //set_realtime_priority(2);
     initModel(); // init model
