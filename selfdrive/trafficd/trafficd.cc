@@ -233,9 +233,14 @@ int main(){
                 break;
             }
             std::cout << "time to get vision stream: " << millis_since_boot() - t1 << " ms" << std::endl;
+            t1 = millis_since_boot();
 
             std::vector<float> imageVector = getFlatVector(buf, true);  // writes float vector to inputVector
+            std::cout << "time to flatten image: " << millis_since_boot() - t1 << " ms" << std::endl;
+            t1 = millis_since_boot();
+
             std::vector<float> modelOutputVec = runModel(imageVector);
+            std::cout << "time to predict: " << millis_since_boot() - t1 << " ms" << std::endl;
 
             sendPrediction(modelOutputVec, traffic_lights_sock);
 
@@ -243,7 +248,7 @@ int main(){
             if (debug_mode) {
 //                int predictionIndex = std::max_element(modelOutputVec.begin(), modelOutputVec.end()) - modelOutputVec.begin();
 //                printf("Model prediction: %s (%f%%)\n", modelLabels[predictionIndex].c_str(), 100 * modelOutputVec[predictionIndex]);
-                std::cout << "Current frequency: " << 1 / ((millis_since_boot() - loopStart) * msToSec) << " Hz" << std::endl;
+//                std::cout << "Current frequency: " << 1 / ((millis_since_boot() - loopStart) * msToSec) << " Hz" << std::endl;
             }
         }
     }
