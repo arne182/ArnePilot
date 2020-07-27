@@ -283,6 +283,7 @@ void handle_message(UIState *s, SubMaster &sm) {
   UIScene &scene = s->scene;
   if (s->started && sm.updated("controlsState")) {
     auto event = sm["controlsState"];
+    auto data = event.getControlsState();
     scene.controls_state = event.getControlsState();
     s->controls_timeout = 1 * UI_FREQ;
     scene.frontview = scene.controls_state.getRearViewCam();
