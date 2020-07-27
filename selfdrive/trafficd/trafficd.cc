@@ -96,6 +96,59 @@ void initModel() {
     initializeSNPE(runt);
 }
 
+void sendPrediction(std::vector<float> modelOutputVec, PubSocket* traffic_lights_sock) {
+    float modelOutput[numLabels];
+    for (int i = 0; i < numLabels; i++){  // convert vector to array for capnp
+        modelOutput[i] = modelOutputVec[i];
+    }
+
+    kj::ArrayPtr<const float> modelOutput_vs(&modelOutput[0], numLabels);
+    capnp::MallocMessageBuilder msg;
+    cereal::EventArne182::Builder event = msg.initRoot<cereal::EventArne182>();
+    event.setLogMonoTime(nanos_since_boot());
+
+    auto traffic_lights = event.initTrafficModelRaw();
+    traffic_lights.setPrediction(modelOutput_vs);
+
+    auto words = capnp::messageToFlatArray(msg);
+    auto bytes = words.asBytes();
+    traffic_lights_sock->send((char*)bytes.begin(), bytes.size());
+}
+
+std::vector<float> runModel(std::vector<float> inputVector) {
+    std::unique_ptr<zdl::DlSystem::ITensor> inputTensor = loadInputTensor(snpe, inputVector);  // inputVec)
+    zdl::DlSystem::ITensor* tensor = executeNetwork(snpe, inputTensor);
+
+    std::vector<float> outputVector;
+    for (auto it = tensor->cbegin(); it != tensor->cend(); ++it ){
+        float op = *it;
+        outputVector.push_back(op);
+    }
+    return outputVector;
+}
+
+void sleepFor(double sec) {
+    usleep(sec * secToUs);
+}
+
+double rateKeeper(double loopTime, double lastLoop) {
+    double toSleep;
+    if (lastLoop < 0){  // don't sleep if last loop lagged
+        lastLoop = std::max(lastLoop, -modelRate);  // this should ensure we don't keep adding negative time to lastLoop if a frame lags pretty badly
+                                                    // negative time being time to subtract from sleep time
+        // std::cout << "Last frame lagged by " << -lastLoop << " seconds. Sleeping for " << modelRate - (loopTime * msToSec) + lastLoop << " seconds" << std::endl;
+        toSleep = modelRate - (loopTime * msToSec) + lastLoop;  // keep time as close as possible to our rate, this reduces the time slept this iter
+    } else {
+        toSleep = modelRate - (loopTime * msToSec);
+    }
+    if (toSleep > 0){  // don't sleep for negative time, in case loop takes too long one iteration
+        sleepFor(toSleep);
+    } else {
+        std::cout << "trafficd lagging by " << -(toSleep / msToSec) << " ms." << std::endl;
+    }
+    return toSleep;
+}
+
 
 int main(){
 
