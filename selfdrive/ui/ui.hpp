@@ -22,6 +22,8 @@
 #include "common/modeldata.h"
 #include "sound.hpp"
 
+#include "cereal/gen/c/arne182.capnp.h"
+
 #define STATUS_STOPPED 0
 #define STATUS_DISENGAGED 1
 #define STATUS_ENGAGED 2
@@ -104,9 +106,11 @@ typedef struct UIScene {
 
   float speedlimit;
   bool speedlimit_valid;
-  
   float speedlimitaheaddistance;
   bool speedlimitahead_valid;
+  float gpsAccuracy;
+  float speedlimit;
+  float angleSteers;
 
   bool is_rhd;
   bool map_valid;
@@ -135,6 +139,10 @@ typedef struct UIScene {
   cereal::RadarState::LeadData::Reader lead_data[2];
   cereal::ControlsState::Reader controls_state;
   cereal::DriverState::Reader driver_state;
+
+  float angleSteersDes;
+  float angleSteers;
+  
 } UIScene;
 
 typedef struct {

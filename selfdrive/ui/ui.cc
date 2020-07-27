@@ -326,6 +326,8 @@ void handle_message(UIState *s, SubMaster &sm) {
         }
       }
     }
+    scene.angleSteers = data.getAngleSteers();
+    scene.angleSteersDes = data.getAngleSteersDes();
   }
   if (sm.updated("radarState")) {
     auto data = sm["radarState"].getRadarState();
