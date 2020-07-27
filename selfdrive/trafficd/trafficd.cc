@@ -207,5 +207,38 @@ int main(){
     Context* c = Context::create();
     PubSocket* traffic_lights_sock = PubSocket::create(c, "trafficModelRaw");
     assert(traffic_lights_sock != NULL);
-    printf("HeRe!!!1\n");
+    while (!do_exit){  // keep traffic running in case we can't get a frame (mimicking modeld)
+        VisionStreamBufs buf_info;
+        err = visionstream_init(&stream, VISION_STREAM_YUV, true, &buf_info);
+        if (err != 0) {
+            printf("trafficd: visionstream fail\n");
+            usleep(100000);
+            continue;
+        }
+
+        double loopStart;
+        double lastLoop = 0;
+        while (!do_exit){
+            loopStart = millis_since_boot();
+
+            VIPCBuf* buf;
+            VIPCBufExtra extra;
+            buf = visionstream_get(&stream, &extra);
+            if (buf == NULL) {
+                printf("trafficd: visionstream get failed\n");
+                break;
+            }
+
+            std::vector<float> imageVector = getFlatVector(buf, true);  // writes float vector to inputVector
+            std::vector<float> modelOutputVec = runModel(imageVector);
+
+            sendPrediction(modelOutputVec, traffic_lights_sock);
+
+            lastLoop = rateKeeper(millis_since_boot() - loopStart, lastLoop);
+            // std::cout << "Current frequency: " << 1 / ((millis_since_boot() - loopStart) * msToSec) << " Hz" << std::endl;
+        }
+    }
+    std::cout << "trafficd is dead" << std::endl;
+    visionstream_destroy(&stream);
+    return 0;
 }
