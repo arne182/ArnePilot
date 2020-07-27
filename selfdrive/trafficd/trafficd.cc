@@ -160,8 +160,9 @@ uint8_t clamp(int16_t value) {
     return value<0 ? 0 : (value>255 ? 255 : value);
 }
 
-static std::vector<float> getFlatVector(const VIPCBuf* buf) {
+static std::vector<float> getFlatVector(const VIPCBuf* buf, const bool returnBGR) {
     // returns RGB if returnBGR is false
+    double t1 = millis_since_boot();
     const size_t width = original_shape[1];
     const size_t height = original_shape[0];
 
@@ -171,6 +172,9 @@ static std::vector<float> getFlatVector(const VIPCBuf* buf) {
 
     int b, g, r;
     std::vector<float> bgrVec;
+    std::cout << "time to init in flatvector: " << millis_since_boot() - t1 << " ms" << std::endl;
+    double t1 = millis_since_boot();
+
     for (int y_cord = top_crop; y_cord < (original_shape[0] - hood_crop); y_cord++) {
         for (int x_cord = horizontal_crop; x_cord < (original_shape[1] - horizontal_crop); x_cord++) {
             int yy = y[(y_cord * width) + x_cord];
@@ -181,17 +185,18 @@ static std::vector<float> getFlatVector(const VIPCBuf* buf) {
             g = 1.164 * (yy - 16) - 0.813 * (vv - 128) - 0.391 * (uu - 128);
             b = 1.164 * (yy - 16) + 2.018 * (uu - 128);
 
-//            if (returnBGR){
-            bgrVec.push_back(clamp(b) / 255.0);
-            bgrVec.push_back(clamp(g) / 255.0);
-            bgrVec.push_back(clamp(r) / 255.0);
-//            } else {
-//                bgrVec.push_back(clamp(r) / 255.0);
-//                bgrVec.push_back(clamp(g) / 255.0);
-//                bgrVec.push_back(clamp(b) / 255.0);
-//            }
+            if (returnBGR){
+                bgrVec.push_back(clamp(b) / 255.0);
+                bgrVec.push_back(clamp(g) / 255.0);
+                bgrVec.push_back(clamp(r) / 255.0);
+            } else {
+                bgrVec.push_back(clamp(r) / 255.0);
+                bgrVec.push_back(clamp(g) / 255.0);
+                bgrVec.push_back(clamp(b) / 255.0);
+            }
         }
     }
+    std::cout << "time for flatten loop: " << millis_since_boot() - t1 << " ms" << std::endl;
     return bgrVec;
 }
 
@@ -235,7 +240,7 @@ int main(){
             std::cout << "time to get vision stream: " << millis_since_boot() - t1 << " ms" << std::endl;
             t1 = millis_since_boot();
 
-            std::vector<float> imageVector = getFlatVector(buf);  // writes float vector to inputVector
+            std::vector<float> imageVector = getFlatVector(buf, true);  // writes float vector to inputVector
             std::cout << "time to flatten image: " << millis_since_boot() - t1 << " ms" << std::endl;
 
             t1 = millis_since_boot();
