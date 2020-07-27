@@ -219,10 +219,12 @@ int main(){
         }
 
         double loopStart;
+        double t1 = millis_since_boot();
         double lastLoop = 0;
         while (!do_exit){
             loopStart = millis_since_boot();
 
+            t1 = millis_since_boot();
             VIPCBuf* buf;
             VIPCBufExtra extra;
             buf = visionstream_get(&stream, &extra);
@@ -230,6 +232,7 @@ int main(){
                 printf("trafficd: visionstream get failed\n");
                 break;
             }
+            std::cout << "time to get vision stream: " << millis_since_boot() - t1 << " ms" << std::endl;
 
             std::vector<float> imageVector = getFlatVector(buf, true);  // writes float vector to inputVector
             std::vector<float> modelOutputVec = runModel(imageVector);
@@ -238,8 +241,8 @@ int main(){
 
             lastLoop = rateKeeper(millis_since_boot() - loopStart, lastLoop);
             if (debug_mode) {
-                int predictionIndex = std::max_element(modelOutputVec.begin(), modelOutputVec.end()) - modelOutputVec.begin();
-                printf("Model prediction: %s (%f%%)\n", modelLabels[predictionIndex].c_str(), 100 * modelOutputVec[predictionIndex]);
+//                int predictionIndex = std::max_element(modelOutputVec.begin(), modelOutputVec.end()) - modelOutputVec.begin();
+//                printf("Model prediction: %s (%f%%)\n", modelLabels[predictionIndex].c_str(), 100 * modelOutputVec[predictionIndex]);
                 std::cout << "Current frequency: " << 1 / ((millis_since_boot() - loopStart) * msToSec) << " Hz" << std::endl;
             }
         }
