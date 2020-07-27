@@ -123,7 +123,7 @@ env = Environment(
     "-g",
     "-fPIC",
     "-O2",
-    "-Wunused",
+    # "-Wunused",
     "-Werror",
     "-Wno-deprecated-register",
     "-Wno-inconsistent-missing-override",
