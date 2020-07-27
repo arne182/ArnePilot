@@ -236,13 +236,11 @@ int main(){
 
             sendPrediction(modelOutputVec, traffic_lights_sock);
 
+            lastLoop = rateKeeper(millis_since_boot() - loopStart, lastLoop);
             if (debug_mode) {
                 int predictionIndex = std::max_element(modelOutputVec.begin(), modelOutputVec.end()) - modelOutputVec.begin();
-//                std::cout << "Model prediction: " << modelLabels[predictionIndex] << " (";
                 printf("Model prediction: %s (%f%%)\n", modelLabels[predictionIndex].c_str(), 100 * modelOutputVec[predictionIndex]);
                 std::cout << "Current frequency: " << 1 / ((millis_since_boot() - loopStart) * msToSec) << " Hz" << std::endl;
-            } else {  // don't run ratekeeper while debugging
-                lastLoop = rateKeeper(millis_since_boot() - loopStart, lastLoop);
             }
         }
     }
