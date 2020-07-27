@@ -11,6 +11,7 @@ volatile sig_atomic_t do_exit = 0;
 const std::vector<std::string> modelLabels = {"SLOW", "GREEN", "NONE"};
 const int numLabels = modelLabels.size();
 const double modelRate = 1 / 5.;  // 5 Hz
+const bool debug_mode = true;
 
 const int original_shape[3] = {874, 1164, 3};   // global constants
 const int original_size = 874 * 1164 * 3;
@@ -151,6 +152,7 @@ double rateKeeper(double loopTime, double lastLoop) {
 
 void set_do_exit(int sig) {
     std::cout << "trafficd - received signal: " << sig << std::endl;
+    std::cout << "trafficd - shutting down!" << std::endl;
     do_exit = 1;
 }
 
@@ -234,8 +236,11 @@ int main(){
 
             sendPrediction(modelOutputVec, traffic_lights_sock);
 
-            lastLoop = rateKeeper(millis_since_boot() - loopStart, lastLoop);
-            // std::cout << "Current frequency: " << 1 / ((millis_since_boot() - loopStart) * msToSec) << " Hz" << std::endl;
+            if (debug_mode) {
+                std::cout << "Current frequency: " << 1 / ((millis_since_boot() - loopStart) * msToSec) << " Hz" << std::endl;
+            } else {  // don't run ratekeeper while debugging
+                lastLoop = rateKeeper(millis_since_boot() - loopStart, lastLoop);
+            }
         }
     }
     std::cout << "trafficd is dead" << std::endl;
