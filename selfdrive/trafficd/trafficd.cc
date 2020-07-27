@@ -173,7 +173,7 @@ static std::vector<float> getFlatVector(const VIPCBuf* buf, const bool returnBGR
     int b, g, r;
     std::vector<float> bgrVec;
     std::cout << "time to init in flatvector: " << millis_since_boot() - t1 << " ms" << std::endl;
-    double t1 = millis_since_boot();
+    t1 = millis_since_boot();
 
     for (int y_cord = top_crop; y_cord < (original_shape[0] - hood_crop); y_cord++) {
         for (int x_cord = horizontal_crop; x_cord < (original_shape[1] - horizontal_crop); x_cord++) {
