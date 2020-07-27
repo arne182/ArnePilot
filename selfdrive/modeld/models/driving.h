@@ -6,15 +6,6 @@
 #define DESIRE
 #define TRAFFIC_CONVENTION
 
-<<<<<<< HEAD
-#ifdef QCOM
-#include <eigen3/Eigen/Dense>
-#else
-#include <Eigen/Dense>
-#endif
-=======
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
-
 #include "common/mat.h"
 #include "common/util.h"
 

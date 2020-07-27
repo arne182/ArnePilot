@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from cereal import car
+from cereal import car, arne182
 from selfdrive.config import Conversions as CV
 from selfdrive.car.mazda.values import CAR, LKAS_LIMITS, FINGERPRINTS, ECU_FINGERPRINT, Ecu
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, is_ecu_disconnected
@@ -67,6 +67,7 @@ class CarInterface(CarInterfaceBase):
     self.cp.update_strings(can_strings)
     self.cp_cam.update_strings(can_strings)
 
+    ret_arne182 = arne182.CarStateArne182.new_message()
     ret = self.CS.update(self.cp, self.cp_cam)
     ret.canValid = self.cp.can_valid and self.cp_cam.can_valid
 
@@ -74,7 +75,7 @@ class CarInterface(CarInterfaceBase):
     ret.buttonEvents = []
 
     # events
-    events = self.create_common_events(ret)
+    events, events_arne182 = self.create_common_events(ret)
 
     if self.CS.low_speed_lockout:
       events.add(EventName.belowEngageSpeed)
@@ -83,9 +84,10 @@ class CarInterface(CarInterfaceBase):
       events.add(EventName.belowSteerSpeed)
 
     ret.events = events.to_msg()
+    ret_arne182.events = events_arne182.to_msg()
 
     self.CS.out = ret.as_reader()
-    return self.CS.out
+    return self.CS.out, ret_arne182.as_reader()
 
   def apply(self, c):
     can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators)

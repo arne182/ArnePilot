@@ -140,18 +140,7 @@ extern "C" FramebufferState* framebuffer_init(
 
   printf("gl version %s\n", glGetString(GL_VERSION));
 
-<<<<<<< HEAD
-
-  // set brightness
-  int brightness_fd = open(BACKLIGHT_CONTROL, O_RDWR);
-  if (brightness_fd != -1){
-    const char brightness_level[] = BACKLIGHT_LEVEL;
-    write(brightness_fd, brightness_level, strlen(brightness_level));
-    close(brightness_fd);
-  }
-=======
   set_brightness(BACKLIGHT_LEVEL);
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
   if (out_w) *out_w = w;
   if (out_h) *out_h = h;

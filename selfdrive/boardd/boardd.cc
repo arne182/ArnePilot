@@ -68,7 +68,7 @@ bool connected_once = false;
 bool ignition_last = false;
 
 #ifndef __x86_64__
-const uint32_t NO_IGNITION_CNT_MAX = 2 * 60 * 60 * 30;  // turn off charge after 30 hrs
+//const uint32_t NO_IGNITION_CNT_MAX = 2 * 60 * 60 * 30;  // turn off charge after 30 hrs
 const float VBATT_START_CHARGING = 11.5;
 const float VBATT_PAUSE_CHARGING = 10.5;
 #endif
@@ -183,7 +183,7 @@ bool usb_connect() {
   if (err > 0) {
     fw_ver = (const char *)fw_ver_buf;
     fw_ver_sz = err3;
-    write_db_value(NULL, "PandaFirmware", fw_ver, fw_ver_sz);
+    write_db_value("PandaFirmware", fw_ver, fw_ver_sz);
     printf("panda fw: %.*s\n", fw_ver_sz, fw_ver);
   }
   else { goto fail; }
@@ -664,7 +664,9 @@ void *can_health_thread(void *crap) {
   // health = 8011
   float hours = 30;
   char *s;
-  const int result = read_db_value(NULL, "DisablePowerDownTime", &s, NULL);
+  size_t sz;
+  bool persistent_param = false;
+  const int result = read_db_value("DisablePowerDownTime", &s, &sz, persistent_param);
   if (result == 0) {
     hours = strtod(s, NULL);
   }

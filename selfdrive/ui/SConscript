@@ -1,7 +1,7 @@
 Import('env', 'arch', 'common', 'messaging', 'gpucommon', 'visionipc', 'cereal')
 
-src = ['ui.cc', 'paint.cc', 'sidebar.cc', '#phonelibs/nanovg/nanovg.c', '#cereal/gen/c/log.capnp.c', '#cereal/gen/c/car.capnp.c']
-libs = [common, 'zmq', 'czmq', 'capnp', 'kj', 'm', cereal, 'json', messaging, gpucommon, visionipc]
+src = ['ui.cc', 'paint.cc', 'sidebar.cc', '#phonelibs/nanovg/nanovg.c']
+libs = [common, 'zmq', 'czmq', 'capnp', 'kj', 'm', cereal, messaging, gpucommon, visionipc]
 linkflags = ['-Wl,-rpath=/system/lib64,-rpath=/system/comma/usr/lib']
 
 if arch == "aarch64":
@@ -9,7 +9,8 @@ if arch == "aarch64":
   libs += ['EGL', 'GLESv3', 'gnustl_shared', 'log', 'utils', 'gui', 'hardware', 'ui', 'CB', 'gsl', 'adreno_utils', 'OpenSLES', 'cutils', 'uuid', 'OpenCL']
 else:
   src += ['linux.cc']
-  libs += ['EGL', 'pthread', 'X11-xcb', 'xcb', 'X11', 'glfw']
+  libs += ['pthread', 'glfw']
+  linkflags = []
 
 env.Program('_ui', src,
   LINKFLAGS=linkflags,

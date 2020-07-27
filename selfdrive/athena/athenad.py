@@ -25,11 +25,7 @@ from common.api import Api
 from common.basedir import PERSIST
 from common.params import Params
 from common.realtime import sec_since_boot
-<<<<<<< HEAD
-from cereal.services import service_list
-=======
 from selfdrive.loggerd.config import ROOT
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 from selfdrive.swaglog import cloudlog
 
 ATHENA_HOST = os.getenv('ATHENA_HOST', 'wss://athena.comma.ai')
@@ -303,11 +299,7 @@ def ws_recv(ws, end_event):
           data = data.decode("utf-8")
         payload_queue.put_nowait(data)
       elif opcode == ABNF.OPCODE_PING:
-<<<<<<< HEAD
-        Params().put("LastAthenaPingTime", str(int(sec_since_boot()*1e9)))
-=======
         Params().put("LastAthenaPingTime", str(int(sec_since_boot() * 1e9)))
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     except WebSocketTimeoutException:
       pass
     except Exception:

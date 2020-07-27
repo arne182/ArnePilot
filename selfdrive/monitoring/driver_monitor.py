@@ -5,22 +5,6 @@ from common.filter_simple import FirstOrderFilter
 from common.stat_live import RunningStatFilter
 from common.op_params import opParams
 from common.travis_checker import travis
-
-<<<<<<< HEAD:selfdrive/controls/lib/driver_monitor.py
-
-if not travis:
-  awareness_factor = opParams().get('awareness_factor', default=1.0)
-else:
-  awareness_factor = 1
-
-_AWARENESS_TIME = 70. * awareness_factor  # 1.6 minutes limit without user touching steering wheels make the car enter a terminal status
-_AWARENESS_PRE_TIME_TILL_TERMINAL = 15. * awareness_factor # a first alert is issued 25s before expiration
-_AWARENESS_PROMPT_TIME_TILL_TERMINAL = 6. * awareness_factor  # a second alert is issued 15s before start decelerating the car
-
-_DISTRACTED_TIME = 11. * awareness_factor
-_DISTRACTED_PRE_TIME_TILL_TERMINAL = 8. * awareness_factor
-_DISTRACTED_PROMPT_TIME_TILL_TERMINAL = 6. * awareness_factor
-=======
 from cereal import car
 
 EventName = car.CarEvent.EventName
@@ -30,14 +14,17 @@ EventName = car.CarEvent.EventName
 #  Disabling or nerfing safety features may get you and your users banned from our servers.
 #  We recommend that you do not change these numbers from the defaults.
 # ******************************************************************************************
+if not travis:
+  awareness_factor = opParams().get('awareness_factor', default=1.0)
+else:
+  awareness_factor = 1
 
-_AWARENESS_TIME = 70.  # one minute limit without user touching steering wheels make the car enter a terminal status
-_AWARENESS_PRE_TIME_TILL_TERMINAL = 15.  # a first alert is issued 25s before expiration
-_AWARENESS_PROMPT_TIME_TILL_TERMINAL = 6.  # a second alert is issued 15s before start decelerating the car
-_DISTRACTED_TIME = 11.
-_DISTRACTED_PRE_TIME_TILL_TERMINAL = 8.
-_DISTRACTED_PROMPT_TIME_TILL_TERMINAL = 6.
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d:selfdrive/monitoring/driver_monitor.py
+_AWARENESS_TIME = 70. * awareness_factor  # 1.6 minutes limit without user touching steering wheels make the car enter a terminal status
+_AWARENESS_PRE_TIME_TILL_TERMINAL = 15. * awareness_factor # a first alert is issued 25s before expiration
+_AWARENESS_PROMPT_TIME_TILL_TERMINAL = 6. * awareness_factor  # a second alert is issued 15s before start decelerating the car
+_DISTRACTED_TIME = 11. * awareness_factor
+_DISTRACTED_PRE_TIME_TILL_TERMINAL = 8. * awareness_factor
+_DISTRACTED_PROMPT_TIME_TILL_TERMINAL = 6. * awareness_factor
 
 _FACE_THRESHOLD = 0.4
 _EYE_THRESHOLD = 0.6
@@ -56,17 +43,9 @@ _YAW_NATURAL_OFFSET = 0.08  # people don't seem to look straight when they drive
 _HI_STD_TIMEOUT = 5
 _HI_STD_FALLBACK_TIME = 10  # fall back to wheel touch if model is uncertain for a long time
 _DISTRACTED_FILTER_TS = 0.25  # 0.6Hz
-
-<<<<<<< HEAD:selfdrive/controls/lib/driver_monitor.py
-_POSE_CALIB_MIN_SPEED = 13 # 30 mph
-_POSE_OFFSET_MIN_COUNT = 600 # valid data counts before calibration completes, 1 seg is 600 counts
-_POSE_OFFSET_MAX_COUNT = 3600 # stop deweighting new data after 6 min, aka "short term memory"
-=======
 _POSE_CALIB_MIN_SPEED = 13  # 30 mph
 _POSE_OFFSET_MIN_COUNT = 600  # valid data counts before calibration completes, 1 seg is 600 counts
 _POSE_OFFSET_MAX_COUNT = 3600  # stop deweighting new data after 6 min, aka "short term memory"
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d:selfdrive/monitoring/driver_monitor.py
-
 _RECOVERY_FACTOR_MAX = 5.  # relative to minus step change
 _RECOVERY_FACTOR_MIN = 1.25  # relative to minus step change
 
@@ -100,11 +79,7 @@ def face_orientation_from_net(angles_desc, pos_desc, rpy_calib, is_rhd):
 
   # no calib for roll
   pitch -= rpy_calib[1]
-<<<<<<< HEAD:selfdrive/controls/lib/driver_monitor.py
-  yaw -= rpy_calib[2] * (1 - 2 * int(is_rhd)) # lhd -> -=, rhd -> +=
-=======
   yaw -= rpy_calib[2] * (1 - 2 * int(is_rhd))  # lhd -> -=, rhd -> +=
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d:selfdrive/monitoring/driver_monitor.py
   return roll, pitch, yaw
 
 class DriverPose():

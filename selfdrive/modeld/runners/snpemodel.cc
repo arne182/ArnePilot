@@ -103,19 +103,13 @@ SNPEModel::SNPEModel(const char *path, float *loutput, size_t loutput_size, int 
 }
 
 void SNPEModel::addRecurrent(float *state, int state_size) {
-<<<<<<< HEAD
-=======
   recurrent = state;
   recurrent_size = state_size;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   recurrentBuffer = this->addExtra(state, state_size, 3);
 }
 
 void SNPEModel::addTrafficConvention(float *state, int state_size) {
-<<<<<<< HEAD
-=======
   trafficConvention = state;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   trafficConventionBuffer = this->addExtra(state, state_size, 2);
 }
 
@@ -186,4 +180,3 @@ void SNPEModel::execute(float *net_input_buf, int buf_size) {
   }
 #endif
 }
-

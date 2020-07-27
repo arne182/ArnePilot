@@ -4,42 +4,6 @@
 #include <stdlib.h>
 #include <atomic>
 #include "common/swaglog.h"
-<<<<<<< HEAD
-
-typedef struct {
-  AudibleAlert alert;
-  const char* uri;
-  bool loop;
-} sound_file;
-
-extern "C"{
-#include "slplay.h"
-}
-
-int last_volume = 0;
-
-void set_volume(int volume) {
-  if (last_volume != volume) {
-    char volume_change_cmd[64];
-    sprintf(volume_change_cmd, "service call audio 3 i32 3 i32 %d i32 1 &", volume);
-
-    // 5 second timeout at 60fps
-    int volume_changed = system(volume_change_cmd);
-    last_volume = volume;
-  }
-}
-
-
-sound_file sound_table[] = {
-  { cereal_CarControl_HUDControl_AudibleAlert_chimeDisengage, "../assets/sounds/disengaged.wav", false },
-  { cereal_CarControl_HUDControl_AudibleAlert_chimeEngage, "../assets/sounds/engaged.wav", false },
-  { cereal_CarControl_HUDControl_AudibleAlert_chimeWarning1, "../assets/sounds/warning_1.wav", false },
-  { cereal_CarControl_HUDControl_AudibleAlert_chimeWarning2, "../assets/sounds/warning_2.wav", false },
-  { cereal_CarControl_HUDControl_AudibleAlert_chimeWarningRepeat, "../assets/sounds/warning_repeat.wav", true },
-  { cereal_CarControl_HUDControl_AudibleAlert_chimeError, "../assets/sounds/error.wav", false },
-  { cereal_CarControl_HUDControl_AudibleAlert_chimePrompt, "../assets/sounds/error.wav", false },
-  { cereal_CarControl_HUDControl_AudibleAlert_none, NULL, false },
-=======
 #include "common/timing.h"
 
 #define LogOnError(func, msg) \
@@ -63,7 +27,6 @@ struct Sound::Player {
   SLPlayItf playItf;
   // slplay_callback runs on a background thread,use atomic to ensure thread safe.
   std::atomic<int> repeat;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 };
 
 bool Sound::init(int volume) {
@@ -141,7 +104,7 @@ void Sound::stop() {
 
 void Sound::setVolume(int volume) {
   if (last_volume_ == volume) return;
-  
+
   double current_time = nanos_since_boot();
   if ((current_time - last_set_volume_time_) > (5 * (1e+9))) { // 5s timeout on updating the volume
     char volume_change_cmd[64];

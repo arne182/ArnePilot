@@ -139,10 +139,10 @@ class PathPlanner():
       self.lane_change_direction = LaneChangeDirection.none
     else:
       torque_applied = (sm['carState'].steeringPressed and \
-                       ((sm['carState'].steeringTorque > 0 and lane_change_direction == LaneChangeDirection.left and not sm['carState'].leftBlindspot) or \
-                        (sm['carState'].steeringTorque < 0 and lane_change_direction == LaneChangeDirection.right and not sm['carState'].rightBlindspot))) or \
-                       (not self.alca_nudge_required and self.blindspotTrueCounterleft > self.blindspotwait and lane_change_direction == LaneChangeDirection.left) or \
-                       (not self.alca_nudge_required and self.blindspotTrueCounterright > self.blindspotwait and lane_change_direction == LaneChangeDirection.right)
+                       ((sm['carState'].steeringTorque > 0 and self.lane_change_direction == LaneChangeDirection.left and not sm['carState'].leftBlindspot) or \
+                        (sm['carState'].steeringTorque < 0 and self.lane_change_direction == LaneChangeDirection.right and not sm['carState'].rightBlindspot))) or \
+                       (not self.alca_nudge_required and self.blindspotTrueCounterleft > self.blindspotwait and self.lane_change_direction == LaneChangeDirection.left) or \
+                       (not self.alca_nudge_required and self.blindspotTrueCounterright > self.blindspotwait and self.lane_change_direction == LaneChangeDirection.right)
 
       #blindspot_detected = ((sm['carState'].leftBlindspot and self.lane_change_direction == LaneChangeDirection.left) or
       #                      (sm['carState'].rightBlindspot and self.lane_change_direction == LaneChangeDirection.right))
@@ -173,7 +173,7 @@ class PathPlanner():
         # 98% certainty
         if lane_change_prob < 0.02 and self.lane_change_ll_prob < 0.01:
           self.lane_change_state = LaneChangeState.laneChangeFinishing
-        if (self.arne_sm['arne182Status'].rightBlindspot and lane_change_direction == LaneChangeDirection.right) or (self.arne_sm['arne182Status'].leftBlindspot and lane_change_direction == LaneChangeDirection.left):
+        if (self.arne_sm['arne182Status'].rightBlindspot and self.lane_change_direction == LaneChangeDirection.right) or (self.arne_sm['arne182Status'].leftBlindspot and self.lane_change_direction == LaneChangeDirection.left):
           self.lane_change_state = LaneChangeState.preLaneChange
           self.blindspotTrueCounterleft = 0
           self.blindspotTrueCounterright = 0

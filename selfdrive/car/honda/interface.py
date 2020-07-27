@@ -3,7 +3,6 @@ import numpy as np
 from cereal import car, arne182
 from common.numpy_fast import clip, interp
 from common.realtime import DT_CTRL
-from common.params import Params
 from selfdrive.swaglog import cloudlog
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.events import ET
@@ -11,6 +10,9 @@ from selfdrive.car.honda.values import CruiseButtons, CAR, HONDA_BOSCH, Ecu, ECU
 from selfdrive.car import STD_CARGO_KG, CivicParams, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
 from selfdrive.controls.lib.planner import _A_CRUISE_MAX_V_FOLLOWING
 from selfdrive.car.interfaces import CarInterfaceBase
+from common.params import Params
+
+params = Params()
 
 A_ACC_MAX = max(_A_CRUISE_MAX_V_FOLLOWING)
 
@@ -161,8 +163,8 @@ class CarInterface(CarInterfaceBase):
     # Tire stiffness factor fictitiously lower if it includes the steering column torsion effect.
     # For modeling details, see p.198-200 in "The Science of Vehicle Dynamics (2014), M. Guiggiani"
     ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0], [0]]
-    ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-    ret.lateralTuning.pid.kf = 0.00006  # conservative feed-forward
+    ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kfBP = [[0.], [0.], [0.]]
+    ret.lateralTuning.pid.kfV = [0.00006]  # conservative feed-forward
 
     eps_modified = False
     for fw in car_fw:
@@ -502,14 +504,13 @@ class CarInterface(CarInterfaceBase):
     ret.buttonEvents = buttonEvents
 
     # events
-<<<<<<< HEAD
-    events, ret_arne182.events =  self.create_common_events(ret, pcm_enable=False)
+    events, events_arne182 =  self.create_common_events(ret, pcm_enable=False)
     if ret.brakePressed:# or (self.CS.CP.openpilotLongitudinalControl and ret.gasPressed):
-      events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
+      events.add(EventName.pedalPressed)
     if self.CS.brake_error:
-      events.add(EventName.brakeUnavailable, [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE, ET.PERMANENT]))
+      events.add(EventName.brakeUnavailable)
     if self.CS.brake_hold and self.CS.CP.openpilotLongitudinalControl:
-      events.events.add(EventName.brakeHold, [ET.NO_ENTRY, ET.USER_DISABLE]))
+      events.events.add(EventName.brakeHold)
     if self.CS.park_brake:
       events.add(EventName.parkBrake)
 
@@ -557,6 +558,8 @@ class CarInterface(CarInterfaceBase):
       events.add(EventName.buttonEnable)
 
     ret.events = events.to_msg()
+    
+    ret_arne182.events = events_arne182.to_msg()
     
     self.CS.out = ret.as_reader()
     return self.CS.out, ret_arne182.as_reader()

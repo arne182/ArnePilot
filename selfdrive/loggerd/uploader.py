@@ -105,13 +105,8 @@ class Uploader():
     self.last_resp = None
     self.last_exc = None
 
-<<<<<<< HEAD
     self.immediate_priority = {"qlog.bz2": 0, "qcamera.ts": 1, "rlog.bz2": 2}
     self.high_priority = {"fcamera.hevc": 0, "dcamera.hevc": 1}
-=======
-    self.immediate_priority = {"qlog.bz2": 0, "qcamera.ts": 1}
-    self.high_priority = {"rlog.bz2": 0, "fcamera.hevc": 1, "dcamera.hevc": 2}
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
   def get_upload_sort(self, name):
     if name in self.immediate_priority:
@@ -140,11 +135,7 @@ class Uploader():
           is_uploaded = getxattr(fn, UPLOAD_ATTR_NAME)
         except OSError:
           cloudlog.event("uploader_getxattr_failed", exc=self.last_exc, key=key, fn=fn)
-<<<<<<< HEAD
-          is_uploaded = True # deleter could have deleted
-=======
           is_uploaded = True  # deleter could have deleted
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
         if is_uploaded:
           continue
 
@@ -176,11 +167,7 @@ class Uploader():
       if url_resp.status_code == 412:
         self.last_resp = url_resp
         return
-<<<<<<< HEAD
-        
-=======
 
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
       url_resp_json = json.loads(url_resp.text)
       url = url_resp_json['url']
       headers = url_resp_json['headers']
@@ -284,13 +271,13 @@ def uploader_fn(exit_event):
       last_gps_size = None
     if exit_event.is_set():
       return
-<<<<<<< HEAD
     # Todo: setup own upload for traffic light analysis
     #Don't try and upload to comma servers 
     
     #d = uploader.next_file_to_upload(with_raw=allow_raw_upload and should_upload)
-    #if d is None:
-    #  time.sleep(5)
+    #if d is None:  # Nothing to upload
+    #  offroad = params.get("IsOffroad") == b'1'
+    #  time.sleep(60 if offroad else 5)
     #  continue
 
     #key, fn = d
@@ -305,27 +292,6 @@ def uploader_fn(exit_event):
     #  time.sleep(backoff + random.uniform(0, backoff))
     #  backoff = min(backoff*2, 120)
     #cloudlog.info("upload done, success=%r", success)
-=======
-
-    d = uploader.next_file_to_upload(with_raw=allow_raw_upload and should_upload)
-    if d is None:  # Nothing to upload
-      offroad = params.get("IsOffroad") == b'1'
-      time.sleep(60 if offroad else 5)
-      continue
-
-    key, fn = d
-
-    cloudlog.event("uploader_netcheck", is_on_hotspot=on_hotspot, is_on_wifi=on_wifi)
-    cloudlog.info("to upload %r", d)
-    success = uploader.upload(key, fn)
-    if success:
-      backoff = 0.1
-    else:
-      cloudlog.info("backoff %r", backoff)
-      time.sleep(backoff + random.uniform(0, backoff))
-      backoff = min(backoff*2, 120)
-    cloudlog.info("upload done, success=%r", success)
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
 def main():
   uploader_fn(threading.Event())

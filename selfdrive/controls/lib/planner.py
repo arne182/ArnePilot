@@ -15,7 +15,7 @@ from selfdrive.controls.lib.speed_smoother import speed_smoother
 from selfdrive.controls.lib.longcontrol import LongCtrlState, MIN_CAN_SPEED
 from selfdrive.controls.lib.fcw import FCWChecker
 from selfdrive.controls.lib.long_mpc import LongitudinalMpc
-<<<<<<< HEAD
+from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX
 from selfdrive.controls.lib.long_mpc_model import LongitudinalMpcModel
 from common.travis_checker import travis
 from common.op_params import opParams
@@ -30,9 +30,7 @@ if not travis:
   curvature_factor = opParams().get('curvature_factor', default=1.0)
 else:
   curvature_factor = 1.0
-=======
-from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
+
 
 MAX_SPEED = 255.0
 NO_CURVATURE_SPEED = 90.0
@@ -43,16 +41,11 @@ AWARENESS_DECEL = -0.2     # car smoothly decel at .2m/s^2 when user is distract
 
 # lookup tables VS speed to determine min and max accels in cruise
 # make sure these accelerations are smaller than mpc limits
-<<<<<<< HEAD
 _A_CRUISE_MIN_V_ECO = [-1.0, -0.7, -0.6, -0.5, -0.3]
 _A_CRUISE_MIN_V_SPORT = [-3.0, -2.6, -2.3, -2.0, -1.0]
 _A_CRUISE_MIN_V_FOLLOWING = [-4.0, -4.0, -3.5, -2.5, -2.0]
 _A_CRUISE_MIN_V = [-2.0, -1.5, -1.0, -0.7, -0.5]
 _A_CRUISE_MIN_BP = [0.0, 5.0, 10.0, 20.0, 55.0]
-=======
-_A_CRUISE_MIN_V = [-1.0, -.8, -.67, -.5, -.30]
-_A_CRUISE_MIN_BP = [   0., 5.,  10., 20.,  40.]
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
 # need fast accel at very low speed for stop and go
 # make sure these accelerations are smaller than mpc limits
@@ -126,10 +119,7 @@ class Planner():
     self.a_acc = 0.0
     self.v_cruise = 0.0
     self.a_cruise = 0.0
-<<<<<<< HEAD
     self.osm = True
-=======
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
     self.longitudinalPlanSource = 'cruise'
     self.fcw_checker = FCWChecker()
@@ -154,13 +144,8 @@ class Planner():
       lead1_check = math.sqrt((lead_1.dRel-center_x)**2+(lead_1.yRel-center_y)**2) < abs(2.5/math.sin(steeringAngle/1800.*math.pi))+1.
       lead2_check = math.sqrt((lead_2.dRel-center_x)**2+(lead_2.yRel-center_y)**2) < abs(2.5/math.sin(steeringAngle/1800.*math.pi))+1.
     if enabled:
-<<<<<<< HEAD
       solutions = {}
       if self.mpc1.prev_lead_status and lead1_check:
-=======
-      solutions = {'cruise': self.v_cruise}
-      if self.mpc1.prev_lead_status:
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
         solutions['mpc1'] = self.mpc1.v_mpc
       if self.mpc2.prev_lead_status and lead2_check:
         solutions['mpc2'] = self.mpc2.v_mpc
@@ -184,7 +169,6 @@ class Planner():
       elif slowest == 'cruise':
         self.v_acc = self.v_cruise
         self.a_acc = self.a_cruise
-<<<<<<< HEAD
       elif slowest == 'model':
         self.v_acc = self.mpc_model.v_mpc + mpc_offset
         self.a_acc = self.mpc_model.a_mpc
@@ -199,12 +183,6 @@ class Planner():
     
 
   def update(self, sm, pm, CP, VM, PP, arne_sm):
-=======
-
-    self.v_acc_future = min([self.mpc1.v_mpc_future, self.mpc2.v_mpc_future, v_cruise_setpoint])
-
-  def update(self, sm, pm, CP, VM, PP):
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     """Gets called when new radarState is available"""
     cur_time = sec_since_boot()
     
@@ -249,9 +227,8 @@ class Planner():
     lead_2 = sm['radarState'].leadTwo
 
     enabled = (long_control_state == LongCtrlState.pid) or (long_control_state == LongCtrlState.stopping)
-<<<<<<< HEAD
     
-    following = (lead_1.status and lead_1.dRel < 40.0 and lead_1.vRel < 0.0) or (lead_2.status and lead_2.dRel < 40.0 and lead_2.vRel < 0.0)
+    following = (lead_1.status and lead_1.dRel < 45.0 and lead_1.vRel < 0.0) or (lead_2.status and lead_2.dRel < 45.0 and lead_2.vRel < 0.0) #lead_1.status and lead_1.dRel < 45.0 and lead_1.vLeadK > v_ego and lead_1.aLeadK > 0.0
      
     if gas_button_status == 1:
       speed_ahead_distance = 150
@@ -317,9 +294,6 @@ class Planner():
       pass
 
     decel_for_turn = bool(v_curvature_map < min([v_cruise_setpoint, v_speedlimit, v_ego + 1.]))
-=======
-    following = lead_1.status and lead_1.dRel < 45.0 and lead_1.vLeadK > v_ego and lead_1.aLeadK > 0.0
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
     # Calculate speed for normal cruise control
     if enabled and not self.first_loop and not sm['carState'].brakePressed and not sm['carState'].gasPressed:

@@ -61,13 +61,14 @@ class CarInterface(CarInterfaceBase):
     ret.canValid = self.cp.can_valid
 
     # events
-    events, eventsArne182 = self.create_common_events(ret)
+    events, events_arne182 = self.create_common_events(ret)
 
     if self.CS.lkas_state not in [2, 3] and ret.vEgo > 13.* CV.MPH_TO_MS and ret.cruiseState.enabled:
-      events.add(car.CarEvent.EventName.steerTempUnavailableMute, [ET.WARNING])
+      events.add(car.CarEvent.EventName.steerTempUnavailableMute)
 
-    ret.events = events
-    ret_arne182.events = eventsArne182
+    ret.events = events.to_msg()
+
+    ret_arne182.events = events_arne182.to_msg()
 
     self.gas_pressed_prev = ret.gasPressed
     self.brake_pressed_prev = ret.brakePressed

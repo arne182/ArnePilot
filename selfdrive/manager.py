@@ -441,7 +441,6 @@ def manager_init(should_register=True):
 def manager_thread():
   # now loop
   thermal_sock = messaging.sub_sock('thermal')
-  gps_sock = messaging.sub_sock('gpsLocation', conflate=True)
 
   cloudlog.info("manager start")
   cloudlog.info({"environ": os.environ})
@@ -471,16 +470,10 @@ def manager_thread():
     for k in os.getenv("BLOCK").split(","):
       del managed_processes[k]
 
-  logger_dead = False
+  logger_dead = True
 
   while 1:
-    gps = messaging.recv_one_or_none(gps_sock)
     msg = messaging.recv_sock(thermal_sock, wait=True)
-    if gps:
-      if 47.3024876979 < gps.gpsLocation.latitude < 54.983104153 and 5.98865807458 < gps.gpsLocation.longitude < 15.0169958839:
-        logger_dead = True
-      else:
-        logger_dead = True
     # heavyweight batch processes are gated on favorable thermal conditions
     if msg.thermal.thermalStatus >= ThermalStatus.yellow:
       for p in green_temp_processes:
@@ -517,20 +510,6 @@ def manager_thread():
     # Exit main loop when uninstall is needed
     if params.get("DoUninstall", encoding='utf8') == "1":
       break
-
-    if os.getenv("GET_CPU_USAGE"):
-      dt = time.time() - start_t
-
-      # Get first sample
-      if dt > 30 and first_proc is None:
-        first_proc = messaging.recv_sock(proc_sock)
-
-      # Get last sample and exit
-      if dt > 90:
-        last_proc = messaging.recv_sock(proc_sock, wait=True)
-
-        cleanup_all_processes(None, None)
-        sys.exit(print_cpu_usage(first_proc, last_proc))
 
 def manager_prepare(spinner=None):
   # build all processes
@@ -638,6 +617,9 @@ if __name__ == "__main__":
       t.wait_for_exit()
     process = subprocess.check_output(['git', 'pull'])
     os.system('reboot')
+
+    raise
+
 
   # manual exit because we are forked
   sys.exit(0)

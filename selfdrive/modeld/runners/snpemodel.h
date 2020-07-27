@@ -60,15 +60,10 @@ private:
   float *recurrent;
   size_t recurrent_size;
   std::unique_ptr<zdl::DlSystem::IUserBuffer> recurrentBuffer;
-<<<<<<< HEAD
-  std::unique_ptr<zdl::DlSystem::IUserBuffer> trafficConventionBuffer;
-=======
   float *trafficConvention;
   std::unique_ptr<zdl::DlSystem::IUserBuffer> trafficConventionBuffer;
   float *desire;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   std::unique_ptr<zdl::DlSystem::IUserBuffer> desireBuffer;
 };
 
 #endif
-

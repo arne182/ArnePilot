@@ -9,18 +9,6 @@ const int CHRYSLER_STANDSTILL_THRSLD = 10;  // about 1m/s
 const CanMsg CHRYSLER_TX_MSGS[] = {{571, 0, 3}, {658, 0, 6}, {678, 0, 8}};
 
 AddrCheckStruct chrysler_rx_checks[] = {
-<<<<<<< HEAD
-  {.msg = {{544, 0, 8}}, .check_checksum = true, .max_counter = 15U, .expected_timestep = 10000U},
-  {.msg = {{514, 0, 8}}, .check_checksum = false, .max_counter = 0U, .expected_timestep = 10000U},
-  {.msg = {{500, 0, 8}}, .check_checksum = true, .max_counter = 15U, .expected_timestep = 20000U},
-  {.msg = {{308, 0, 8}}, .check_checksum = false, .max_counter = 15U,  .expected_timestep = 20000U},
-  {.msg = {{320, 0, 8}}, .check_checksum = true, .max_counter = 15U,  .expected_timestep = 20000U},
-};
-const int CHRYSLER_RX_CHECK_LEN = sizeof(chrysler_rx_checks) / sizeof(chrysler_rx_checks[0]);
-
-int chrysler_speed = 0;
-
-=======
   {.msg = {{544, 0, 8, .check_checksum = true, .max_counter = 15U, .expected_timestep = 10000U}}},
   {.msg = {{514, 0, 8, .check_checksum = false, .max_counter = 0U, .expected_timestep = 10000U}}},
   {.msg = {{500, 0, 8, .check_checksum = true, .max_counter = 15U, .expected_timestep = 20000U}}},
@@ -29,7 +17,6 @@ int chrysler_speed = 0;
 };
 const int CHRYSLER_RX_CHECK_LEN = sizeof(chrysler_rx_checks) / sizeof(chrysler_rx_checks[0]);
 
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 static uint8_t chrysler_get_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
   int checksum_byte = GET_LEN(to_push) - 1;
   return (uint8_t)(GET_BYTE(to_push, checksum_byte));
@@ -79,8 +66,6 @@ static int chrysler_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
                                  chrysler_get_checksum, chrysler_compute_checksum,
                                  chrysler_get_counter);
 
-  bool unsafe_allow_gas = unsafe_mode & UNSAFE_DISABLE_DISENGAGE_ON_GAS;
-
   if (valid && (GET_BUS(to_push) == 0)) {
     int addr = GET_ADDR(to_push);
 
@@ -108,49 +93,25 @@ static int chrysler_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     if (addr == 514) {
       int speed_l = (GET_BYTE(to_push, 0) << 4) + (GET_BYTE(to_push, 1) >> 4);
       int speed_r = (GET_BYTE(to_push, 2) << 4) + (GET_BYTE(to_push, 3) >> 4);
-<<<<<<< HEAD
-      chrysler_speed = (speed_l + speed_r) / 2;
-      vehicle_moving = chrysler_speed > CHRYSLER_STANDSTILL_THRSLD;
-=======
       vehicle_speed = (speed_l + speed_r) / 2;
       vehicle_moving = (int)vehicle_speed > CHRYSLER_STANDSTILL_THRSLD;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     }
 
     // exit controls on rising edge of gas press
     if (addr == 308) {
-<<<<<<< HEAD
-      bool gas_pressed = (GET_BYTE(to_push, 5) & 0x7F) != 0;
-      if (!unsafe_allow_gas && gas_pressed && !gas_pressed_prev && (chrysler_speed > CHRYSLER_GAS_THRSLD)) {
-        controls_allowed = 0;
-      }
-      gas_pressed_prev = gas_pressed;
-=======
       gas_pressed = ((GET_BYTE(to_push, 5) & 0x7F) != 0) && ((int)vehicle_speed > CHRYSLER_GAS_THRSLD);
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     }
 
     // exit controls on rising edge of brake press
     if (addr == 320) {
-<<<<<<< HEAD
-      bool brake_pressed = (GET_BYTE(to_push, 0) & 0x7) == 5;
-=======
       brake_pressed = (GET_BYTE(to_push, 0) & 0x7) == 5;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
       if (brake_pressed && (!brake_pressed_prev || vehicle_moving)) {
         controls_allowed = 0;
       }
       brake_pressed_prev = brake_pressed;
     }
 
-<<<<<<< HEAD
-    // check if stock camera ECU is on bus 0
-    if ((safety_mode_cnt > RELAY_TRNS_TIMEOUT) && (addr == 0x292)) {
-      relay_malfunction_set();
-    }
-=======
     generic_rx_checks((addr == 0x292));
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   }
   return valid;
 }

@@ -18,11 +18,7 @@ from selfdrive.swaglog import cloudlog
 #from laika.gps_time import GPSTime
 
 from sympy.utilities.lambdify import lambdify
-<<<<<<< HEAD
-from selfdrive.locationd.kalman.helpers.sympy_helpers import euler_rotate
-=======
 from rednose.helpers.sympy_helpers import euler_rotate
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
 
 VISION_DECIMATION = 2
@@ -64,12 +60,6 @@ class Localizer():
     self.calibrated = 0
     self.H = get_H()
 
-<<<<<<< HEAD
-  def liveLocationMsg(self, time):
-    predicted_state = self.kf.x
-    predicted_cov = self.kf.P
-    predicted_std = np.sqrt(np.diagonal(self.kf.P))
-=======
     self.posenet_invalid_count = 0
     self.posenet_speed = 0
     self.car_speed = 0
@@ -82,7 +72,6 @@ class Localizer():
   @staticmethod
   def msg_from_state(converter, calib_from_device, H, predicted_state, predicted_cov):
     predicted_std = np.sqrt(np.diagonal(predicted_cov))
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
     fix_ecef = predicted_state[States.ECEF_POS]
     fix_ecef_std = predicted_std[States.ECEF_POS_ERR]
@@ -92,39 +81,8 @@ class Localizer():
     #fix_pos_geo_std = np.abs(coord.ecef2geodetic(fix_ecef + fix_ecef_std) - fix_pos_geo)
     orientation_ecef = euler_from_quat(predicted_state[States.ECEF_ORIENTATION])
     orientation_ecef_std = predicted_std[States.ECEF_ORIENTATION_ERR]
-<<<<<<< HEAD
-
-    acc_calib = self.calib_from_device.dot(predicted_state[States.ACCELERATION])
-    acc_calib_std = np.sqrt(np.diagonal(self.calib_from_device.dot(
-                                                 predicted_cov[States.ACCELERATION_ERR, States.ACCELERATION_ERR]).dot(
-                                                 self.calib_from_device.T)))
-    ang_vel_calib = self.calib_from_device.dot(predicted_state[States.ANGULAR_VELOCITY])
-    ang_vel_calib_std = np.sqrt(np.diagonal(self.calib_from_device.dot(
-                                                 predicted_cov[States.ANGULAR_VELOCITY_ERR, States.ANGULAR_VELOCITY_ERR]).dot(
-                                                 self.calib_from_device.T)))
-
-    device_from_ecef = rot_from_quat(predicted_state[States.ECEF_ORIENTATION]).T
-    vel_device = device_from_ecef.dot(vel_ecef)
-    device_from_ecef_eul = euler_from_quat(predicted_state[States.ECEF_ORIENTATION]).T
-    idxs = list(range(States.ECEF_ORIENTATION_ERR.start, States.ECEF_ORIENTATION_ERR.stop)) + list(range(States.ECEF_VELOCITY_ERR.start, States.ECEF_VELOCITY_ERR.stop))
-    condensed_cov = predicted_cov[idxs][:,idxs]
-    H = self.H(*list(np.concatenate([device_from_ecef_eul, vel_ecef])))
-    vel_device_cov = H.dot(condensed_cov).dot(H.T)
-    vel_device_std = np.sqrt(np.diagonal(vel_device_cov))
-
-    vel_calib = self.calib_from_device.dot(vel_device)
-    vel_calib_std = np.sqrt(np.diagonal(self.calib_from_device.dot(
-                                                 vel_device_cov).dot(
-                                                 self.calib_from_device.T)))
-
-    orientation_ned = ned_euler_from_ecef(fix_ecef, orientation_ecef)
-    #orientation_ned_std = ned_euler_from_ecef(fix_ecef, orientation_ecef + orientation_ecef_std) - orientation_ned
-    ned_vel = self.converter.ecef2ned(fix_ecef + vel_ecef) - self.converter.ecef2ned(fix_ecef)
-    #ned_vel_std = self.converter.ecef2ned(fix_ecef + vel_ecef + vel_ecef_std) - self.converter.ecef2ned(fix_ecef + vel_ecef)
-=======
     device_from_ecef = rot_from_quat(predicted_state[States.ECEF_ORIENTATION]).T
     calibrated_orientation_ecef = euler_from_rot(calib_from_device.dot(device_from_ecef))
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
     acc_calib = calib_from_device.dot(predicted_state[States.ACCELERATION])
     acc_calib_std = np.sqrt(np.diagonal(calib_from_device.dot(

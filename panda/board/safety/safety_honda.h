@@ -26,30 +26,18 @@ const int HONDA_BOSCH_ACCEL_MIN = -350; // max braking == -3.5m/s2
 
 // Nidec and Bosch giraffe have pt on bus 0
 AddrCheckStruct honda_rx_checks[] = {
-<<<<<<< HEAD
-  {.msg = {{0x1A6, 0, 8},  {0x296, 0, 4}}, .check_checksum = true, .max_counter = 3U, .expected_timestep = 40000U},
-  {.msg = {{0x158, 0, 8}}, .check_checksum = true, .max_counter = 3U, .expected_timestep = 10000U},
-  {.msg = {{0x17C, 0, 8}}, .check_checksum = true, .max_counter = 3U, .expected_timestep = 10000U},
-=======
   {.msg = {{0x1A6, 0, 8, .check_checksum = true, .max_counter = 3U, .expected_timestep = 40000U},
            {0x296, 0, 4, .check_checksum = true, .max_counter = 3U, .expected_timestep = 40000U}}},
   {.msg = {{0x158, 0, 8, .check_checksum = true, .max_counter = 3U, .expected_timestep = 10000U}}},
   {.msg = {{0x17C, 0, 8, .check_checksum = true, .max_counter = 3U, .expected_timestep = 10000U}}},
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 };
 const int HONDA_RX_CHECKS_LEN = sizeof(honda_rx_checks) / sizeof(honda_rx_checks[0]);
 
 // Bosch harness has pt on bus 1
 AddrCheckStruct honda_bh_rx_checks[] = {
-<<<<<<< HEAD
-  {.msg = {{0x296, 1, 4}}, .check_checksum = true, .max_counter = 3U, .expected_timestep = 40000U},
-  {.msg = {{0x158, 1, 8}}, .check_checksum = true, .max_counter = 3U, .expected_timestep = 10000U},
-  {.msg = {{0x17C, 1, 8}}, .check_checksum = true, .max_counter = 3U, .expected_timestep = 10000U},
-=======
   {.msg = {{0x296, 1, 4, .check_checksum = true, .max_counter = 3U, .expected_timestep = 40000U}}},
   {.msg = {{0x158, 1, 8, .check_checksum = true, .max_counter = 3U, .expected_timestep = 10000U}}},
   {.msg = {{0x17C, 1, 8, .check_checksum = true, .max_counter = 3U, .expected_timestep = 10000U}}},
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 };
 const int HONDA_BH_RX_CHECKS_LEN = sizeof(honda_bh_rx_checks) / sizeof(honda_bh_rx_checks[0]);
 
@@ -101,8 +89,6 @@ static int honda_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
                               honda_get_checksum, honda_compute_checksum, honda_get_counter);
   }
 
-  bool unsafe_allow_gas = unsafe_mode & UNSAFE_DISABLE_DISENGAGE_ON_GAS;
-
   if (valid) {
     int addr = GET_ADDR(to_push);
     int len = GET_LEN(to_push);
@@ -139,43 +125,20 @@ static int honda_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     // accord, crv: 0x1BE bit 4
     bool is_user_brake_msg = honda_alt_brake_msg ? ((addr) == 0x1BE) : ((addr) == 0x17C);
     if (is_user_brake_msg) {
-<<<<<<< HEAD
-      bool brake_pressed = honda_alt_brake_msg ? (GET_BYTE((to_push), 0) & 0x10) : (GET_BYTE((to_push), 6) & 0x20);
-      if (brake_pressed && (!brake_pressed_prev || vehicle_moving)) {
-        controls_allowed = 0;
-      }
-      brake_pressed_prev = brake_pressed;
-=======
       brake_pressed = honda_alt_brake_msg ? (GET_BYTE((to_push), 0) & 0x10) : (GET_BYTE((to_push), 6) & 0x20);
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     }
 
     // length check because bosch hardware also uses this id (0x201 w/ len = 8)
     if ((addr == 0x201) && (len == 6)) {
       gas_interceptor_detected = 1;
       int gas_interceptor = HONDA_GET_INTERCEPTOR(to_push);
-<<<<<<< HEAD
-      if (!unsafe_allow_gas && (gas_interceptor > HONDA_GAS_INTERCEPTOR_THRESHOLD) &&
-          (gas_interceptor_prev <= HONDA_GAS_INTERCEPTOR_THRESHOLD)) {
-        controls_allowed = 0;
-      }
-=======
       gas_pressed = gas_interceptor > HONDA_GAS_INTERCEPTOR_THRESHOLD;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
       gas_interceptor_prev = gas_interceptor;
     }
 
     if (!gas_interceptor_detected) {
       if (addr == 0x17C) {
-<<<<<<< HEAD
-        bool gas_pressed = GET_BYTE(to_push, 0) != 0;
-        if (!unsafe_allow_gas && gas_pressed && !gas_pressed_prev) {
-          controls_allowed = 0;
-        }
-        gas_pressed_prev = gas_pressed;
-=======
         gas_pressed = GET_BYTE(to_push, 0) != 0;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
       }
     }
 
@@ -204,11 +167,7 @@ static int honda_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     if ((safety_mode_cnt > RELAY_TRNS_TIMEOUT) && ((addr == 0xE4) || (addr == 0x194))) {
       if (((honda_hw != HONDA_N_HW) && (bus == bus_rdr_car)) ||
         ((honda_hw == HONDA_N_HW) && (bus == 0))) {
-<<<<<<< HEAD
-        relay_malfunction_set();
-=======
         stock_ecu_detected = true;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
       }
     }
     generic_rx_checks(stock_ecu_detected);

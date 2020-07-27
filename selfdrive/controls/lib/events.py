@@ -1,4 +1,4 @@
-from cereal import log, car
+from cereal import log, car, arne182
 
 from common.realtime import DT_CTRL
 from selfdrive.config import Conversions as CV
@@ -9,6 +9,7 @@ AlertStatus = log.ControlsState.AlertStatus
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 AudibleAlert = car.CarControl.HUDControl.AudibleAlert
 EventName = car.CarEvent.EventName
+EventNameArne182 = arne182.CarEventArne182.EventNameArne182
 
 # Alert priorities
 class Priority:
@@ -32,6 +33,8 @@ class ET:
 
 # get event name from enum
 EVENT_NAME = {v: k for k, v in EventName.schema.enumerants.items()}
+
+EVENT_NAME_ARNE182 = {v: k for k, v in EventNameArne182.schema.enumerants.items()}
 
 class Events:
   def __init__(self):
@@ -89,6 +92,66 @@ class Events:
       event = car.CarEvent.new_message()
       event.name = event_name
       for event_type in EVENTS.get(event_name, {}).keys():
+        setattr(event, event_type , True)
+      ret.append(event)
+    return ret
+  
+class Events_arne182:
+  def __init__(self):
+    self.events = []
+    self.static_events = []
+    self.events_prev = dict.fromkeys(EVENTSARNE182.keys(), 0)
+
+  @property
+  def names(self):
+    return self.events
+
+  def __len__(self):
+    return len(self.events)
+
+  def add(self, event_name, static=False):
+    if static:
+      self.static_events.append(event_name)
+    self.events.append(event_name)
+
+  def clear(self):
+    self.events_prev = {k: (v+1 if k in self.events else 0) for k, v in self.events_prev.items()}
+    self.events = self.static_events.copy()
+
+  def any(self, event_type):
+    for e in self.events:
+      if event_type in EVENTSARNE182.get(e, {}).keys():
+        return True
+    return False
+
+  def create_alerts(self, event_types, callback_args=None):
+    if callback_args is None:
+      callback_args = []
+
+    ret = []
+    for e in self.events:
+      types = EVENTSARNE182[e].keys()
+      for et in event_types:
+        if et in types:
+          alert = EVENTSARNE182[e][et]
+          if not isinstance(alert, Alert):
+            alert = alert(*callback_args)
+
+          if DT_CTRL * (self.events_prev[e] + 1) >= alert.creation_delay:
+            alert.alert_type = f"{EVENT_NAME_ARNE182[e]}/{et}"
+            ret.append(alert)
+    return ret
+
+  def add_from_msg(self, events):
+    for e in events:
+      self.events.append(e.name.raw)
+
+  def to_msg(self):
+    ret = []
+    for event_name in self.events:
+      event = arne182.CarEventArne182.new_message()
+      event.name = event_name
+      for event_type in EVENTSARNE182.get(event_name, {}).keys():
         setattr(event, event_type , True)
       ret.append(event)
     return ret
@@ -786,6 +849,75 @@ EVENTS = {
       AlertStatus.normal, AlertSize.small,
       Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., .2),
     ET.NO_ENTRY: NoEntryAlert("Cruise Fault: Restart the Car"),
+  },
+
+}
+
+EVENTSARNE182 = {
+
+  EventNameArne182.dfButtonAlert: {
+    ET.WARNING: Alert(
+      "Using profile:",
+      "",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.LOWER, VisualAlert.none, AudibleAlert.chimeWarning1, 0.2, 0., 2.),
+  },
+  
+  EventNameArne182.preventALC: {
+    ET.WARNING: Alert(
+      "TAKE CONTROL",
+      "Lane Change Cancelled, Lane Unsafe",
+      AlertStatus.critical, AlertSize.full,
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .4, 3., 3.),
+  },
+  
+  EventNameArne182.leftALCbsm: {
+    ET.WARNING: Alert(
+      "Vehicle in Left Lane",
+      "Waiting for Lane to be clear",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0.4, .3),
+  },
+  
+  EventNameArne182.rightALCbsm: {
+    ET.WARNING: Alert(
+      "Vehicle in Right Lane",
+      "Waiting for Lane to be clear",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0.4, .3),
+  },
+  
+  EventNameArne182.longControlDisabled: {
+    ET.WARNING: Alert(
+      "Steer Assist Active",
+      "Brake Pressed Acceleration Disabled",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.LOW, VisualAlert.none, AudibleAlert.none, .4, 2., 0.2),
+  },
+  
+  EventNameArne182.waitingMode: {
+    ET.WARNING: Alert(
+      "WAITING...",
+      "Press gas/resume to gain full control!",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, .4, 2., 0.2),
+  },
+  
+  EventNameArne182.wrongGearArne: {
+    ET.WARNING: Alert(
+      "TAKE CONTROL IMMEDIATELY",
+      "Gear not yet in D",
+      AlertStatus.critical, AlertSize.full,
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.none, .1, 2., 2.),
+  },
+  
+  EventNameArne182.reverseGearArne: {
+    ET.WARNING: Alert(
+      "REVERSING",
+      "Reverse Gear",
+      AlertStatus.critical, AlertSize.full,
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.none, 2.2, 3., 4.),
+    ET.NO_ENTRY: NoEntryAlert("Reverse Gear"),
   },
 
 }

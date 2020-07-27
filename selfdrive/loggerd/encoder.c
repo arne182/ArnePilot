@@ -26,10 +26,7 @@
 
 #include "encoder.h"
 
-<<<<<<< HEAD
-=======
 
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 //#define ALOG(...) __android_log_print(ANDROID_LOG_VERBOSE, "omxapp", ##__VA_ARGS__)
 
 // encoder: lossey codec using hardware hevc

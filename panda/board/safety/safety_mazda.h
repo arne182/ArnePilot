@@ -91,17 +91,11 @@ static int mazda_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
       gas_pressed = (GET_BYTE(to_push, 4) || (GET_BYTE(to_push, 5) & 0xF0));
     }
 
-<<<<<<< HEAD
-  // if we see wheel speed msgs on MAZDA_CAM bus then relay is closed
-  if ((safety_mode_cnt > RELAY_TRNS_TIMEOUT) && (bus == MAZDA_CAM) && (addr == MAZDA_WHEEL_SPEED)) {
-    relay_malfunction_set();
-=======
     if (addr == MAZDA_PEDALS) {
       brake_pressed = (GET_BYTE(to_push, 0) & 0x10);
     }
 
     generic_rx_checks((addr == MAZDA_LKAS));
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   }
   return valid;
 }
@@ -134,11 +128,7 @@ static int mazda_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
         violation |= max_limit_check(desired_torque, MAZDA_MAX_STEER, -MAZDA_MAX_STEER);
 
         // *** torque rate limit check ***
-<<<<<<< HEAD
-        violation |= driver_limit_check(desired_torque, mazda_desired_torque_last, &mazda_torque_driver,
-=======
         violation |= driver_limit_check(desired_torque, desired_torque_last, &torque_driver,
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
                                         MAZDA_MAX_STEER, MAZDA_MAX_RATE_UP, MAZDA_MAX_RATE_DOWN,
                                         MAZDA_DRIVER_TORQUE_ALLOWANCE, MAZDA_DRIVER_TORQUE_FACTOR);
 

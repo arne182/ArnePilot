@@ -3,19 +3,10 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <assert.h>
-#include <time.h>
 #include <sys/mman.h>
 #include <string>
 #include <sstream>
 #include <sys/resource.h>
-<<<<<<< HEAD
-
-#include <capnp/serialize.h>
-#include "cereal/gen/cpp/arne182.capnp.h"
-
-#include <json.h> // Might not be needed
-=======
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 #include <czmq.h>
 #include "common/util.h"
 #include "common/timing.h"
@@ -25,12 +16,6 @@
 #include "common/params.h"
 #include "common/utilpp.h"
 #include "ui.hpp"
-<<<<<<< HEAD
-#include "sound.hpp"
-#include "dashcam.h"
-
-=======
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
 static void ui_set_brightness(UIState *s, int brightness) {
   static int last_brightness = -1;
@@ -68,11 +53,7 @@ static void set_awake(UIState *s, bool awake) {
       enable_event_processing(true);
     } else {
       LOGW("awake off");
-<<<<<<< HEAD
-      set_brightness(s, 0);
-=======
       ui_set_brightness(s, 0);
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
       framebuffer_set_power(s->fb, HWC_POWER_MODE_OFF);
       enable_event_processing(false);
     }
@@ -84,53 +65,6 @@ static void set_awake(UIState *s, bool awake) {
 }
 
 static void update_offroad_layout_state(UIState *s) {
-<<<<<<< HEAD
-  struct capn rc;
-  capn_init_malloc(&rc);
-  struct capn_segment *cs = capn_root(&rc).seg;
-
-  cereal_UiLayoutState_ptr layoutp = cereal_new_UiLayoutState(cs);
-  struct cereal_UiLayoutState layoutd = {
-    .activeApp = (cereal_UiLayoutState_App)s->active_app,
-    .sidebarCollapsed = s->scene.uilayout_sidebarcollapsed,
-  };
-  cereal_write_UiLayoutState(&layoutd, layoutp);
-  LOGD("setting active app to %d with sidebar %d", layoutd.activeApp, layoutd.sidebarCollapsed);
-
-  cereal_Event_ptr eventp = cereal_new_Event(cs);
-  struct cereal_Event event = {
-    .logMonoTime = nanos_since_boot(),
-    .which = cereal_Event_uiLayoutState,
-    .uiLayoutState = layoutp,
-  };
-  cereal_write_Event(&event, eventp);
-  capn_setp(capn_root(&rc), 0, eventp.p);
-  uint8_t buf[4096];
-  ssize_t rs = capn_write_mem(&rc, buf, sizeof(buf), 0);
-  s->offroad_sock->send((char*)buf, rs);
-  capn_free(&rc);
-}
-
-static void navigate_to_settings(UIState *s) {
-#ifdef QCOM
-  s->active_app = cereal_UiLayoutState_App_settings;
-  update_offroad_layout_state(s);
-#else
-  // computer UI doesn't have offroad settings
-#endif
-}
-
-static void navigate_to_home(UIState *s) {
-#ifdef QCOM
-  if (s->started) {
-    s->active_app = cereal_UiLayoutState_App_none;
-  } else {
-    s->active_app = cereal_UiLayoutState_App_home;
-  }
-  update_offroad_layout_state(s);
-#else
-  // computer UI doesn't have offroad home
-=======
 #ifdef QCOM
   static int timeout = 0;
   static bool prev_collapsed = false;
@@ -151,38 +85,8 @@ static void navigate_to_home(UIState *s) {
     prev_app = s->active_app;
     timeout = 2 * UI_FREQ;
   }
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 #endif
 }
-
-static void send_df(UIState *s, int status) {
-  capnp::MallocMessageBuilder msg;
-  cereal::EventArne182::Builder event = msg.initRoot<cereal::EventArne182>();
-  auto dfStatus = event.initDynamicFollowButton();
-  dfStatus.setStatus(status);
-
-  auto words = capnp::messageToFlatArray(msg);
-  auto bytes = words.asBytes();
-  s->dynamicfollowbutton_sock->send((char*)bytes.begin(), bytes.size());
-}
-
-static bool handle_df_touch(UIState *s, int touch_x, int touch_y) {
-  //dfButton manager  // code below thanks to kumar: https://github.com/arne182/openpilot/commit/71d5aac9f8a3f5942e89634b20cbabf3e19e3e78
-   if (s->awake && s->vision_connected && s->status != STATUS_STOPPED) {
-    int padding = 40;
-   if (touch_x >= 1212 && touch_x <= 1310 && touch_y >= 902 && touch_y <= 1013) {
-      s->scene.uilayout_sidebarcollapsed = true;  // collapse sidebar when tapping df button
-      s->scene.dfButtonStatus++;
-      if (s->scene.dfButtonStatus > 3) {
-        s->scene.dfButtonStatus = 0;
-      }
-      send_df(s, s->scene.dfButtonStatus);
-      return true;
-    }
-  }
-  return false;
-}
-
 
 static void handle_sidebar_touch(UIState *s, int touch_x, int touch_y) {
   if (!s->scene.uilayout_sidebarcollapsed && touch_x <= sbr_w) {
@@ -192,45 +96,24 @@ static void handle_sidebar_touch(UIState *s, int touch_x, int touch_y) {
     }
     else if (touch_x >= home_btn_x && touch_x < (home_btn_x + home_btn_w)
       && touch_y >= home_btn_y && touch_y < (home_btn_y + home_btn_h)) {
-<<<<<<< HEAD
-      navigate_to_home(s);
-      if (s->started) {
-        s->scene.uilayout_sidebarcollapsed = true;
-        update_offroad_layout_state(s);
-=======
       if (s->started) {
         s->active_app = cereal::UiLayoutState::App::NONE;
         s->scene.uilayout_sidebarcollapsed = true;
       } else {
         s->active_app = cereal::UiLayoutState::App::HOME;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
       }
     }
   }
 }
 
-static void handle_driver_view_touch(UIState *s, int touch_x, int touch_y) {
-  int err = write_db_value(NULL, "IsDriverViewEnabled", "0", 1);
-}
-
 static void handle_vision_touch(UIState *s, int touch_x, int touch_y) {
   if (s->started && (touch_x >= s->scene.ui_viz_rx - bdr_s)
-<<<<<<< HEAD
-    && (s->active_app != cereal_UiLayoutState_App_settings)) {
-    if (!s->scene.frontview) {
-      s->scene.uilayout_sidebarcollapsed = !s->scene.uilayout_sidebarcollapsed;
-    } else {
-      handle_driver_view_touch(s, touch_x, touch_y);
-    }
-    update_offroad_layout_state(s);
-=======
     && (s->active_app != cereal::UiLayoutState::App::SETTINGS)) {
     if (!s->scene.frontview) {
       s->scene.uilayout_sidebarcollapsed = !s->scene.uilayout_sidebarcollapsed;
     } else {
       write_db_value("IsDriverViewEnabled", "0", 1);
     }
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   }
 }
 
@@ -263,23 +146,9 @@ static int read_param(T* param, const char *param_name, bool persistent_param = 
   return result;
 }
 
-<<<<<<< HEAD
-static int read_param_uint64(uint64_t* dest, const char* param_name) {
-  char *s;
-  const int result = read_db_value(NULL, param_name, &s, NULL);
-  if (result == 0) {
-    *dest = strtoull(s, NULL, 0);
-    free(s);
-  }
-  return result;
-}
-
-static void read_param_bool_timeout(bool* param, const char* param_name, int* timeout) {
-=======
 template <class T>
 static int read_param_timeout(T* param, const char* param_name, int* timeout, bool persistent_param = false) {
   int result = -1;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   if (*timeout > 0){
     (*timeout)--;
   } else {
@@ -295,96 +164,11 @@ static int write_param_float(float param, const char* param_name, bool persisten
   return write_db_value(param_name, s, MIN(size, sizeof(s)), persistent_param);
 }
 
-static int read_param_uint64_timeout(uint64_t* dest, const char* param_name, int* timeout) {
-  if (*timeout > 0){
-    (*timeout)--;
-    return 0;
-  } else {
-    return read_param_uint64(dest, param_name);
-    *timeout = 2 * UI_FREQ; // 0.5Hz
-  }
-}
-
-static void update_offroad_layout_timeout(UIState *s, int* timeout) {
-  if (*timeout > 0) {
-    (*timeout)--;
-  } else {
-    update_offroad_layout_state(s);
-    *timeout = 2 * UI_FREQ;
-  }
-}
-
 static void ui_init(UIState *s) {
 
   pthread_mutex_init(&s->lock, NULL);
-<<<<<<< HEAD
-
-  s->ctx = Context::create();
-  s->ctxarne182 = Context::create();
-  s->model_sock = SubSocket::create(s->ctx, "model");
-  s->controlsstate_sock = SubSocket::create(s->ctx, "controlsState");
-  s->uilayout_sock = SubSocket::create(s->ctx, "uiLayoutState");
-  s->livecalibration_sock = SubSocket::create(s->ctx, "liveCalibration");
-  s->radarstate_sock = SubSocket::create(s->ctx, "radarState");
-  s->carstate_sock = SubSocket::create(s->ctx, "carState");
-  s->livempc_sock = SubSocket::create(s->ctx, "liveMpc");
-  s->gps_sock = SubSocket::create(s->ctx, "gpsLocationExternal");
-  s->thermalonline_sock = SubSocket::create(s->ctxarne182, "thermalonline");
-  s->arne182_sock = SubSocket::create(s->ctxarne182, "arne182Status");
-  s->ipaddress_sock = SubSocket::create(s->ctxarne182, "ipAddress");
-  s->dynamicfollowbutton_sock = PubSocket::create(s->ctxarne182, "dynamicFollowButton");
-  s->thermal_sock = SubSocket::create(s->ctx, "thermal");
-  s->health_sock = SubSocket::create(s->ctx, "health");
-  s->ubloxgnss_sock = SubSocket::create(s->ctx, "ubloxGnss");
-  s->driverstate_sock = SubSocket::create(s->ctx, "driverState");
-  s->dmonitoring_sock = SubSocket::create(s->ctx, "dMonitoringState");
-  s->offroad_sock = PubSocket::create(s->ctx, "offroadLayout");
-
-  assert(s->model_sock != NULL);
-  assert(s->controlsstate_sock != NULL);
-  assert(s->uilayout_sock != NULL);
-  assert(s->livecalibration_sock != NULL);
-  assert(s->radarstate_sock != NULL);
-  assert(s->carstate_sock != NULL);
-  assert(s->livempc_sock != NULL);
-  assert(s->gps_sock != NULL);
-  assert(s->thermal_sock != NULL);
-  assert(s->thermalonline_sock != NULL);
-  assert(s->arne182_sock != NULL);
-  assert(s->ipaddress_sock != NULL);
-  assert(s->dynamicfollowbutton_sock != NULL);
-  assert(s->health_sock != NULL);
-  assert(s->ubloxgnss_sock != NULL);
-  assert(s->driverstate_sock != NULL);
-  assert(s->dmonitoring_sock != NULL);
-  assert(s->offroad_sock != NULL);
-
-
-  s->poller = Poller::create({
-                              s->model_sock,
-                              s->controlsstate_sock,
-                              s->uilayout_sock,
-                              s->livecalibration_sock,
-                              s->radarstate_sock,
-                              s->thermal_sock,
-                              s->health_sock,
-                              s->ubloxgnss_sock,
-                              s->driverstate_sock,
-                              s->dmonitoring_sock,
-                              s->carstate_sock,
-                              s->livempc_sock,
-                              s->gps_sock
-                             });
-  s->pollerarne182 = Poller::create({
-                              s->thermalonline_sock,
-                              s->arne182_sock,
-                              s->ipaddress_sock
-                             });
-
-=======
   s->sm = new SubMaster({"model", "controlsState", "uiLayoutState", "liveCalibration", "radarState", "thermal",
                          "health", "ubloxGnss", "driverState", "dMonitoringState"
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 #ifdef SHOW_SPEEDLIMIT
                                     , "liveMapData"
 #endif
@@ -420,22 +204,6 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
   s->cur_vision_idx = -1;
   s->cur_vision_front_idx = -1;
 
-<<<<<<< HEAD
-  s->scene = (UIScene){
-      .frontview = getenv("FRONTVIEW") != NULL,
-      .fullview = getenv("FULLVIEW") != NULL,
-      .transformed_width = ui_info.transformed_width,
-      .transformed_height = ui_info.transformed_height,
-      .front_box_x = ui_info.front_box_x,
-      .front_box_y = ui_info.front_box_y,
-      .front_box_width = ui_info.front_box_width,
-      .front_box_height = ui_info.front_box_height,
-      .world_objects_visible = false,  // Invisible until we receive a calibration message.
-      .gps_planner_active = false,
-      .recording = false,
-      .dfButtonStatus = 0,
-  };
-=======
   s->scene.frontview = getenv("FRONTVIEW") != NULL;
   s->scene.fullview = getenv("FULLVIEW") != NULL;
   s->scene.transformed_width = ui_info.transformed_width;
@@ -446,7 +214,6 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
   s->scene.front_box_height = ui_info.front_box_height;
   s->scene.world_objects_visible = false;  // Invisible until we receive a calibration message.
   s->scene.gps_planner_active = false;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
   s->rgb_width = back_bufs.width;
   s->rgb_height = back_bufs.height;
@@ -465,34 +232,19 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
     0.0f, 0.0f, 0.0f, 1.0f,
   }};
 
-<<<<<<< HEAD
-  read_param_float(&s->speed_lim_off, "SpeedLimitOffset");
-  read_param_bool(&s->is_metric, "IsMetric");
-  read_param_bool(&s->longitudinal_control, "LongitudinalControl");
-  read_param_bool(&s->limit_set_speed, "LimitSetSpeed");
-  //read_param_str(s->ipAddr, "IPAddress");
-=======
   read_param(&s->speed_lim_off, "SpeedLimitOffset");
   read_param(&s->is_metric, "IsMetric");
   read_param(&s->longitudinal_control, "LongitudinalControl");
   read_param(&s->limit_set_speed, "LimitSetSpeed");
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
   // Set offsets so params don't get read at the same time
   s->longitudinal_control_timeout = UI_FREQ / 3;
   s->is_metric_timeout = UI_FREQ / 2;
   s->limit_set_speed_timeout = UI_FREQ;
-  //s->ipAddr_timeout = UI_FREQ/5;
 }
 
-<<<<<<< HEAD
-
-static PathData read_path(cereal_ModelData_PathData_ptr pathp) {
-  PathData ret = {0};
-=======
 static void read_path(PathData& p, const cereal::ModelData::PathData::Reader &pathp) {
   p = {};
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
   p.prob = pathp.getProb();
   p.std = pathp.getStd();
@@ -527,102 +279,6 @@ static void update_status(UIState *s, int status) {
   }
 }
 
-<<<<<<< HEAD
-
-void handle_message(UIState *s, Message * msg) {
-  struct capn ctx;
-  capn_init_mem(&ctx, (uint8_t*)msg->getData(), msg->getSize(), 0);
-
-  cereal_Event_ptr eventp;
-  eventp.p = capn_getp(capn_root(&ctx), 0, 1);
-  struct cereal_Event eventd;
-  cereal_read_Event(&eventd, eventp);
-
-  if (eventd.which == cereal_Event_controlsState && s->started) {
-    struct cereal_ControlsState datad;
-    cereal_read_ControlsState(&datad, eventd.controlsState);
-
-    struct cereal_ControlsState_LateralPIDState pdata;
-    cereal_read_ControlsState_LateralPIDState(&pdata, datad.lateralControlState.pidState);
-
-    struct cereal_ControlsState_LateralLQRState qdata;
-    cereal_read_ControlsState_LateralLQRState(&qdata, datad.lateralControlState.lqrState);
-
-    struct cereal_ControlsState_LateralINDIState rdata;
-    cereal_read_ControlsState_LateralINDIState(&rdata, datad.lateralControlState.indiState);
-
-    s->controls_timeout = 1 * UI_FREQ;
-    s->scene.frontview = datad.rearViewCam;
-    if (!s->scene.frontview){s->controls_seen = true;}
-
-    if (datad.vCruise != s->scene.v_cruise) {
-      s->scene.v_cruise_update_ts = eventd.logMonoTime;
-    }
-    s->scene.v_cruise = datad.vCruise;
-    s->scene.angleSteers = datad.angleSteers;
-    s->scene.v_ego = datad.vEgo;
-    s->scene.angleSteers = datad.angleSteers;
-    s->scene.curvature = datad.curvature;
-    s->scene.engaged = datad.enabled;
-    s->scene.engageable = datad.engageable;
-    s->scene.gps_planner_active = datad.gpsPlannerActive;
-    s->scene.monitoring_active = datad.driverMonitoringOn;
-    s->scene.steerOverride = datad.steerOverride;
-    s->scene.output_scale = qdata.output + rdata.output + pdata.output;
-
-    s->scene.decel_for_model = datad.decelForModel;
-
-    // getting steering related data for dev ui
-    s->scene.angleSteersDes = datad.angleSteersDes;
-
-    if (datad.alertSound != cereal_CarControl_HUDControl_AudibleAlert_none && datad.alertSound != s->alert_sound) {
-      if (s->alert_sound != cereal_CarControl_HUDControl_AudibleAlert_none) {
-        stop_alert_sound(s->alert_sound);
-      }
-      play_alert_sound(datad.alertSound);
-
-      s->alert_sound = datad.alertSound;
-      snprintf(s->alert_type, sizeof(s->alert_type), "%s", datad.alertType.str);
-    } else if ((!datad.alertSound || datad.alertSound == cereal_CarControl_HUDControl_AudibleAlert_none)
-                  && s->alert_sound != cereal_CarControl_HUDControl_AudibleAlert_none) {
-      stop_alert_sound(s->alert_sound);
-      s->alert_type[0] = '\0';
-      s->alert_sound = cereal_CarControl_HUDControl_AudibleAlert_none;
-    }
-
-    if (datad.alertText1.str) {
-      snprintf(s->scene.alert_text1, sizeof(s->scene.alert_text1), "%s", datad.alertText1.str);
-    } else {
-      s->scene.alert_text1[0] = '\0';
-    }
-    if (datad.alertText2.str) {
-      snprintf(s->scene.alert_text2, sizeof(s->scene.alert_text2), "%s", datad.alertText2.str);
-    } else {
-      s->scene.alert_text2[0] = '\0';
-    }
-
-    s->scene.alert_ts = eventd.logMonoTime;
-
-    s->scene.alert_size = datad.alertSize;
-    if (datad.alertSize == cereal_ControlsState_AlertSize_none) {
-      s->alert_size = ALERTSIZE_NONE;
-    } else if (datad.alertSize == cereal_ControlsState_AlertSize_small) {
-      s->alert_size = ALERTSIZE_SMALL;
-    } else if (datad.alertSize == cereal_ControlsState_AlertSize_mid) {
-      s->alert_size = ALERTSIZE_MID;
-    } else if (datad.alertSize == cereal_ControlsState_AlertSize_full) {
-      s->alert_size = ALERTSIZE_FULL;
-    }
-
-    if (datad.alertStatus == cereal_ControlsState_AlertStatus_userPrompt) {
-      update_status(s, STATUS_WARNING);
-    } else if (datad.alertStatus == cereal_ControlsState_AlertStatus_critical) {
-      update_status(s, STATUS_ALERT);
-    } else if (datad.enabled) {
-      update_status(s, STATUS_ENGAGED);
-    } else {
-      update_status(s, STATUS_DISENGAGED);
-=======
 void handle_message(UIState *s, SubMaster &sm) {
   UIScene &scene = s->scene;
   if (s->started && sm.updated("controlsState")) {
@@ -639,7 +295,6 @@ void handle_message(UIState *s, SubMaster &sm) {
       } else {
         s->sound.play(alert_sound);
       }
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     }
     scene.alert_text1 = scene.controls_state.getAlertText1();
     scene.alert_text2 = scene.controls_state.getAlertText2();
@@ -671,31 +326,6 @@ void handle_message(UIState *s, SubMaster &sm) {
         }
       }
     }
-<<<<<<< HEAD
-  } else if (eventd.which == cereal_Event_radarState) {
-    struct cereal_RadarState datad;
-    cereal_read_RadarState(&datad, eventd.radarState);
-    struct cereal_RadarState_LeadData leaddatad;
-    struct cereal_RadarState_LeadData leaddatae;
-    cereal_read_RadarState_LeadData(&leaddatad, datad.leadOne);
-    s->scene.lead_status = leaddatad.status;
-    s->scene.lead_d_rel = leaddatad.dRel;
-    s->scene.lead_y_rel = leaddatad.yRel;
-    s->scene.lead_v_rel = leaddatad.vRel;
-    cereal_read_RadarState_LeadData(&leaddatad, datad.leadTwo);
-    s->scene.lead_status2 = leaddatad.status;
-    s->scene.lead_d_rel2 = leaddatad.dRel;
-    s->scene.lead_y_rel2 = leaddatad.yRel;
-    s->scene.lead_v_rel2 = leaddatad.vRel;
-    s->livempc_or_radarstate_changed = true;
-  } else if (eventd.which == cereal_Event_liveCalibration) {
-    s->scene.world_objects_visible = true;
-    struct cereal_LiveCalibrationData datad;
-    cereal_read_LiveCalibrationData(&datad, eventd.liveCalibration);
-
-    capn_list32 extrinsicl = datad.extrinsicMatrix;
-    capn_resolve(&extrinsicl.p);  // is this a bug?
-=======
   }
   if (sm.updated("radarState")) {
     auto data = sm["radarState"].getRadarState();
@@ -705,7 +335,6 @@ void handle_message(UIState *s, SubMaster &sm) {
   if (sm.updated("liveCalibration")) {
     scene.world_objects_visible = true;
     auto extrinsicl = sm["liveCalibration"].getLiveCalibration().getExtrinsicMatrix();
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     for (int i = 0; i < 3 * 4; i++) {
       scene.extrinsic_matrix.v[i] = extrinsicl[i];
     }
@@ -764,115 +393,6 @@ void handle_message(UIState *s, SubMaster &sm) {
       s->controls_seen = false;
       s->active_app = cereal::UiLayoutState::App::HOME;
 
-<<<<<<< HEAD
-    for (int i = 0; i < 50; i++){
-      s->scene.mpc_y[i] = capn_to_f32(capn_get32(y_list, i));
-    }
-    s->livempc_or_radarstate_changed = true;
-  } else if (eventd.which == cereal_Event_uiLayoutState) {
-    struct cereal_UiLayoutState datad;
-    cereal_read_UiLayoutState(&datad, eventd.uiLayoutState);
-    s->active_app = datad.activeApp;
-    s->scene.uilayout_sidebarcollapsed = datad.sidebarCollapsed;
-    if (datad.mockEngaged != s->scene.uilayout_mockengaged) {
-      s->scene.uilayout_mockengaged = datad.mockEngaged;
-    }
-  } else if (eventd.which == cereal_Event_liveMapData) {
-    struct cereal_LiveMapData datad;
-    cereal_read_LiveMapData(&datad, eventd.liveMapData);
-    s->scene.map_valid = datad.mapValid;
-    s->scene.speedlimit = datad.speedLimit;
-    s->scene.speedlimitahead_valid = datad.speedLimitAheadValid;
-    s->scene.speedlimitaheaddistance = datad.speedLimitAheadDistance;
-    s->scene.speedlimit_valid = datad.speedLimitValid;
-  } else if (eventd.which == cereal_Event_carState) {
-    struct cereal_CarState datad;
-    cereal_read_CarState(&datad, eventd.carState);
-    s->scene.gear = datad.gearShifter;
-    s->scene.brakeLights = datad.brakeLights;
-    if(s->scene.leftBlinker!=datad.leftBlinker || s->scene.rightBlinker!=datad.rightBlinker)
-      s->scene.blinker_blinkingrate = 100;
-    s->scene.leftBlinker = datad.leftBlinker;
-    s->scene.rightBlinker = datad.rightBlinker;
-  } else if (eventd.which == cereal_Event_gpsLocationExternal) {
-    struct cereal_GpsLocationData datad;
-    cereal_read_GpsLocationData(&datad, eventd.gpsLocationExternal);
-    s->scene.gpsAccuracy = datad.accuracy;
-    if (s->scene.gpsAccuracy > 100)
-    {
-      s->scene.gpsAccuracy = 99.99;
-    }
-    else if (s->scene.gpsAccuracy == 0)
-    {
-      s->scene.gpsAccuracy = 99.8;
-    }
-  } else if (eventd.which == cereal_Event_thermal) {
-    struct cereal_ThermalData datad;
-    cereal_read_ThermalData(&datad, eventd.thermal);
-
-    s->scene.networkType = datad.networkType;
-    s->scene.networkStrength = datad.networkStrength;
-    s->scene.batteryPercent = datad.batteryPercent;
-    snprintf(s->scene.batteryStatus, sizeof(s->scene.batteryStatus), "%s", datad.batteryStatus.str);
-    s->scene.freeSpace = datad.freeSpace;
-    s->scene.thermalStatus = datad.thermalStatus;
-    s->scene.paTemp = datad.pa0;
-
-    s->thermal_started = datad.started;
-
-  } else if (eventd.which == cereal_Event_ubloxGnss) {
-    struct cereal_UbloxGnss datad;
-    cereal_read_UbloxGnss(&datad, eventd.ubloxGnss);
-    if (datad.which == cereal_UbloxGnss_measurementReport) {
-      struct cereal_UbloxGnss_MeasurementReport reportdatad;
-      cereal_read_UbloxGnss_MeasurementReport(&reportdatad, datad.measurementReport);
-      s->scene.satelliteCount = reportdatad.numMeas;
-    }
-  } else if (eventd.which == cereal_Event_health) {
-    struct cereal_HealthData datad;
-    cereal_read_HealthData(&datad, eventd.health);
-
-    s->scene.hwType = datad.hwType;
-    s->hardware_timeout = 5*30; // 5 seconds at 30 fps
-  } else if (eventd.which == cereal_Event_driverState) {
-    struct cereal_DriverState datad;
-    cereal_read_DriverState(&datad, eventd.driverState);
-
-    s->scene.face_prob = datad.faceProb;
-
-    capn_list32 fxy_list = datad.facePosition;
-    capn_resolve(&fxy_list.p);
-    s->scene.face_x = capn_to_f32(capn_get32(fxy_list, 0));
-    s->scene.face_y = capn_to_f32(capn_get32(fxy_list, 1));
-  } else if (eventd.which == cereal_Event_dMonitoringState) {
-    struct cereal_DMonitoringState datad;
-    cereal_read_DMonitoringState(&datad, eventd.dMonitoringState);
-
-    s->scene.is_rhd = datad.isRHD;
-    s->scene.awareness_status = datad.awarenessStatus;
-    s->preview_started = datad.isPreview;
-  }
-
-  s->started = s->thermal_started || s->preview_started ;
-  // Handle onroad/offroad transition
-  if (!s->started) {
-    if (s->status != STATUS_STOPPED) {
-      update_status(s, STATUS_STOPPED);
-      s->alert_sound_timeout = 0;
-      s->vision_seen = false;
-      s->controls_seen = false;
-      s->active_app = cereal_UiLayoutState_App_home;
-      update_offroad_layout_state(s);
-    }
-  } else if (s->status == STATUS_STOPPED) {
-    update_status(s, STATUS_DISENGAGED);
-
-    s->active_app = cereal_UiLayoutState_App_none;
-    update_offroad_layout_state(s);
-  }
-
-  capn_free(&ctx);
-=======
       #ifndef QCOM
       // disconnect from visionipc on PC
       close(s->ipc_fd);
@@ -883,60 +403,11 @@ void handle_message(UIState *s, SubMaster &sm) {
     update_status(s, STATUS_DISENGAGED);
     s->active_app = cereal::UiLayoutState::App::NONE;
   }
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
-}
-
-void handle_message_arne182(UIState *s, Message * msg) {
-  struct capn ctxarne182;
-  capn_init_mem(&ctxarne182, (uint8_t*)msg->getData(), msg->getSize(), 0);
-
-  cereal_EventArne182_ptr eventarne182p;
-  eventarne182p.p = capn_getp(capn_root(&ctxarne182), 0, 1);
-  struct cereal_EventArne182 eventarne182d;
-  cereal_read_EventArne182(&eventarne182d, eventarne182p);
-
-  if (eventarne182d.which == cereal_EventArne182_thermalonline) {
-    struct cereal_ThermalOnlineData datad;
-    cereal_read_ThermalOnlineData(&datad, eventarne182d.thermalonline);
-
-    s->scene.pa0 = datad.pa0;
-    s->scene.freeSpace = datad.freeSpace;
-  } else if (eventarne182d.which == cereal_EventArne182_arne182Status) {
-    struct cereal_Arne182Status datad;
-    cereal_read_Arne182Status(&datad, eventarne182d.arne182Status);
-    s->scene.leftblindspot = datad.leftBlindspot;
-    s->scene.leftblindspotD1 = datad.leftBlindspotD1;
-    s->scene.leftblindspotD2 = datad.leftBlindspotD2;
-    s->scene.rightblindspot = datad.rightBlindspot;
-    s->scene.rightblindspotD1 = datad.rightBlindspotD1;
-    s->scene.rightblindspotD2 = datad.rightBlindspotD2;
-  } else if (eventarne182d.which == cereal_EventArne182_ipAddress) {
-    struct cereal_IPAddress datad;
-    cereal_read_IPAddress(&datad, eventarne182d.ipAddress);
-    snprintf(s->scene.ipAddr, sizeof(s->scene.ipAddr), "%s", datad.ipAddr.str);
-  }
-
-  capn_free(&ctxarne182);
 }
 
 static void check_messages(UIState *s) {
   if (s->sm->update(0) > 0){
     handle_message(s, *(s->sm));
-  }
-  while(true) {
-    auto pollsarne182 = s->pollerarne182->poll(0);
-
-    if (pollsarne182.size() == 0)
-      return;
-
-    for (auto sock : pollsarne182){
-      Message * msgarne182 = sock->receive();
-      if (msgarne182 == NULL) continue;
-
-      handle_message_arne182(s, msgarne182);
-
-      delete msgarne182;
-    }
   }
 }
 
@@ -1010,7 +481,6 @@ static void ui_update(UIState *s) {
     assert(glGetError() == GL_NO_ERROR);
 
     s->scene.uilayout_sidebarcollapsed = true;
-    update_offroad_layout_state(s);
     s->scene.ui_viz_rx = (box_x-sbr_w+bdr_s*2);
     s->scene.ui_viz_rw = (box_w+sbr_w-(bdr_s*2));
     s->scene.ui_viz_ro = 0;
@@ -1166,32 +636,7 @@ static void* vision_connect_thread(void *args) {
     s->vision_connect_firstrun = true;
 
     // Drain sockets
-<<<<<<< HEAD
-    while (true){
-      auto polls = s->poller->poll(0);
-      if (polls.size() == 0)
-        break;
-
-      for (auto sock : polls){
-        Message * msg = sock->receive();
-        if (msg == NULL) continue;
-        delete msg;
-      }
-    }
-    while (true){
-      auto polls = s->pollerarne182->poll(0);
-      if (polls.size() == 0)
-        break;
-
-      for (auto sock : polls){
-        Message * msg = sock->receive();
-        if (msg == NULL) continue;
-        delete msg;
-      }
-    }
-=======
     s->sm->drain();
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
     pthread_mutex_unlock(&s->lock);
   }
@@ -1263,7 +708,6 @@ int main(int argc, char* argv[]) {
   UIState uistate = {};
   UIState *s = &uistate;
   ui_init(s);
-  enable_event_processing(true);
 
   enable_event_processing(true);
 
@@ -1305,13 +749,6 @@ int main(int argc, char* argv[]) {
 
   int draws = 0;
 
-<<<<<<< HEAD
-  s->scene.satelliteCount = -1;
-  s->started = false;
-  s->vision_seen = false;
-
-=======
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   while (!do_exit) {
     bool should_swap = false;
     if (!s->started) {
@@ -1341,9 +778,7 @@ int main(int argc, char* argv[]) {
     if (touched == 1) {
       set_awake(s, true);
       handle_sidebar_touch(s, touch_x, touch_y);
-      if (!handle_df_touch(s, touch_x, touch_y)){  // disables sidebar from popping out when tapping df button
-        handle_vision_touch(s, touch_x, touch_y);
-      }
+      handle_vision_touch(s, touch_x, touch_y);
     }
 
     if (!s->started) {
@@ -1354,16 +789,7 @@ int main(int argc, char* argv[]) {
         s->controls_timeout = 5 * UI_FREQ;
       }
     } else {
-<<<<<<< HEAD
-      // blank screen on reverse gear
-      if (s->scene.gear == 4) {
-        set_awake(s, false);
-      } else {
-        set_awake(s, true);
-      }
-=======
       set_awake(s, true);
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
       // Car started, fetch a new rgb image from ipc
       if (s->vision_connected){
         ui_update(s);
@@ -1373,12 +799,7 @@ int main(int argc, char* argv[]) {
 
       // Visiond process is just stopped, force a redraw to make screen blank again.
       if (!s->started) {
-<<<<<<< HEAD
-        s->scene.satelliteCount = -1;
-=======
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
         s->scene.uilayout_sidebarcollapsed = false;
-        update_offroad_layout_state(s);
         ui_draw(s);
         glFinish();
         should_swap = true;
@@ -1401,7 +822,6 @@ int main(int argc, char* argv[]) {
 
     // Don't waste resources on drawing in case screen is off
     if (s->awake) {
-      dashcam(s, touch_x, touch_y);
       ui_draw(s);
       glFinish();
       should_swap = true;
@@ -1409,51 +829,8 @@ int main(int argc, char* argv[]) {
 
     s->sound.setVolume(fmin(MAX_VOLUME, MIN_VOLUME + s->scene.controls_state.getVEgo() / 5)); // up one notch every 5 m/s
 
-    // If car is started and controlsState times out, display an alert
     if (s->controls_timeout > 0) {
       s->controls_timeout--;
-<<<<<<< HEAD
-    } else {
-      if (s->started && s->controls_seen && strcmp(s->scene.alert_text2, "Controls Unresponsive") != 0) {
-        LOGE("Controls unresponsive");
-        s->scene.alert_size = ALERTSIZE_FULL;
-        update_status(s, STATUS_ALERT);
-
-        snprintf(s->scene.alert_text1, sizeof(s->scene.alert_text1), "%s", "TAKE CONTROL IMMEDIATELY");
-        snprintf(s->scene.alert_text2, sizeof(s->scene.alert_text2), "%s", "Controls Unresponsive");
-        ui_draw_vision_alert(s, s->scene.alert_size, s->status, s->scene.alert_text1, s->scene.alert_text2);
-
-        s->alert_sound_timeout = 2 * UI_FREQ;
-        s->alert_sound = cereal_CarControl_HUDControl_AudibleAlert_chimeWarningRepeat;
-        play_alert_sound(s->alert_sound);
-      }
-
-      s->alert_sound_timeout--;
-      s->controls_seen = false;
-    }
-
-    // stop playing alert sound
-    if ((!s->started || (s->started && s->alert_sound_timeout == 0)) &&
-        s->alert_sound != cereal_CarControl_HUDControl_AudibleAlert_none) {
-      stop_alert_sound(s->alert_sound);
-      s->alert_sound = cereal_CarControl_HUDControl_AudibleAlert_none;
-    }
-
-    read_param_bool_timeout(&s->is_metric, "IsMetric", &s->is_metric_timeout);
-    read_param_bool_timeout(&s->longitudinal_control, "LongitudinalControl", &s->longitudinal_control_timeout);
-    read_param_bool_timeout(&s->limit_set_speed, "LimitSetSpeed", &s->limit_set_speed_timeout);
-    read_param_float_timeout(&s->speed_lim_off, "SpeedLimitOffset", &s->limit_set_speed_timeout);
-    int param_read = read_param_uint64_timeout(&s->last_athena_ping, "LastAthenaPingTime", &s->last_athena_ping_timeout);
-    if (param_read != 0) {
-      s->scene.athenaStatus = NET_DISCONNECTED;
-    } else if (nanos_since_boot() - s->last_athena_ping < 70e9) {
-      s->scene.athenaStatus = NET_CONNECTED;
-    } else {
-      s->scene.athenaStatus = NET_ERROR;
-    }
-    update_offroad_layout_timeout(s, &s->offroad_layout_timeout);
-    //read_param_str_timeout(s->ipAddr, "IPAddress", &s->ipAddr_timeout);
-=======
     } else if (s->started) {
       if (!s->controls_seen) {
         // car is started, but controlsState hasn't been seen at all
@@ -1491,7 +868,6 @@ int main(int argc, char* argv[]) {
       }
     }
     update_offroad_layout_state(s);
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
     pthread_mutex_unlock(&s->lock);
 

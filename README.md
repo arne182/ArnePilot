@@ -2,7 +2,6 @@ This README describes the custom features build by me (Arne Schwarck) on top of 
 - [ ] TODO describe which other cars and countries are known
 [![](https://i.imgur.com/UelUjKAh.png)](#)
 
-<<<<<<< HEAD
 For a demo of this version of ArnePilot check the video below:
 [![demo of ArnePilot with this branch](https://img.youtube.com/vi/WKwSq8TPdpo/0.jpg)](https://www.youtube.com/playlist?list=PL3CGUyxys8DuTE1JTkdZwY93ejSfAGxyV)
 
@@ -12,7 +11,7 @@ Find me on Discord https://discord.gg/Ebgn8Mr
 Put this URL in the custom URL field after uninstalling through the UI
 https://d.sdut.me/arne/release4
 or if you want to use the command line or https://github.com/jfrux/workbench
-`cd /data; rm -rf openpilot; git clone https://github.com/arne182/openpilot; git checkout release4; reboot`
+`cd /data; rm -rf openpilot; git clone --depth 1 https://github.com/arne182/openpilot -b release4; reboot`
 
 still have trouble ?? More info about how to install this fork can be found [here](https://medium.com/@jfrux/comma-eon-installing-a-fork-of-openpilot-5c2b5c134b4b).
 ## Panda flashing
@@ -94,7 +93,7 @@ This aims to provide a smoother driving experience in stop and go traffic (under
 ArnePilot is released under the MIT license. Some parts of the software are released under other licenses as specified.
 
 Any user of this software shall indemnify and hold harmless Comma.ai, Inc. and its directors, officers, employees, agents, stockholders, affiliates, subcontractors and customers from and against all allegations, claims, actions, suits, demands, damages, liabilities, obligations, losses, settlements, judgments, costs and expenses (including without limitation attorneys’ fees and costs) which arise out of, relate to or result from any use of this software by user.
-=======
+
 Table of Contents
 =======================
 
@@ -418,7 +417,6 @@ Licensing
 openpilot is released under the MIT license. Some parts of the software are released under other licenses as specified.
 
 Any user of this software shall indemnify and hold harmless comma.ai, Inc. and its directors, officers, employees, agents, stockholders, affiliates, subcontractors and customers from and against all allegations, claims, actions, suits, demands, damages, liabilities, obligations, losses, settlements, judgments, costs and expenses (including without limitation attorneys’ fees and costs) which arise out of, relate to or result from any use of this software by user.
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
 **THIS IS ALPHA QUALITY SOFTWARE FOR RESEARCH PURPOSES ONLY. THIS IS NOT A PRODUCT.
 YOU ARE RESPONSIBLE FOR COMPLYING WITH LOCAL LAWS AND REGULATIONS.

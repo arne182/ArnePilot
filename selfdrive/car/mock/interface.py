@@ -84,9 +84,9 @@ class CarInterface(CarInterfaceBase):
     ret.steeringAngle = curvature * self.CP.steerRatio * self.CP.wheelbase * CV.RAD_TO_DEG
 
     events = []
-    eventsArne182 = []
+    events_arne182 = []
     ret.events = events
-    ret_arne182.events = eventsArne182
+    ret_arne182.events = events_arne182
     return ret.as_reader(), ret_arne182.as_reader()
 
   def apply(self, c):

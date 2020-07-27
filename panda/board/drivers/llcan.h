@@ -92,11 +92,7 @@ bool llcan_init(CAN_TypeDef *CAN_obj) {
       break;
     }
   }
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   if(ret){
     // no mask
     // For some weird reason some of these registers do not want to set properly on CAN2 and CAN3. Probably something to do with the single/dual mode and their different filters.

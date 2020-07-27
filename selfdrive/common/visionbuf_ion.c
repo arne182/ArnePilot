@@ -7,11 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-<<<<<<< HEAD
-
-=======
 #include <unistd.h>
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 #include <linux/ion.h>
 #include <CL/cl_ext.h>
 

@@ -25,11 +25,8 @@ USB_Setup_TypeDef;
 
 #define MAX_CAN_MSGS_PER_BULK_TRANSFER 4U
 
-<<<<<<< HEAD
-=======
 bool usb_eopf_detected = false;
 
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 void usb_init(void);
 int usb_cb_control_msg(USB_Setup_TypeDef *setup, uint8_t *resp, bool hardwired);
 int usb_cb_ep1_in(void *usbdata, int len, bool hardwired);

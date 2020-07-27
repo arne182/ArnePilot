@@ -31,13 +31,13 @@ class LoggerThread(threading.Thread):
         self.threadID = threadID
         self.name = name
         self.logger = logging.getLogger(name)
-        h = logging.handlers.RotatingFileHandler(str(name)+'-Thread.log', 'a', 10*1024*1024, 5) 
+        h = logging.handlers.RotatingFileHandler(str(name)+'-Thread.log', 'a', 10*1024*1024, 5)
         f = logging.Formatter('%(asctime)s %(processName)-10s %(name)s %(levelname)-8s %(message)s')
         h.setFormatter(f)
         self.logger.addHandler(h)
         self.logger.setLevel(logging.CRITICAL) # set to logging.DEBUG to enable logging
         # self.logger.setLevel(logging.DEBUG) # set to logging.CRITICAL to disable logging
-        
+
     def save_gps_data(self, gps):
         try:
             location = [gps.speed, gps.bearing, gps.latitude, gps.longitude, gps.altitude, gps.accuracy, time.time()]
@@ -45,7 +45,7 @@ class LoggerThread(threading.Thread):
                 f.write("{}\n".format(location))
         except:
             self.logger.error("Unable to write gps data to external file")
-            
+
     def run(self):
         pass # will be overridden in the child class
 
@@ -65,7 +65,7 @@ class QueryThread(LoggerThread):
             'Accept-Encoding': 'gzip'
         }
         self.prev_ecef = None
-        
+
     def is_connected_to_local(self, timeout=3.0):
         try:
             requests.get(self.OVERPASS_API_LOCAL, timeout=timeout)
@@ -73,7 +73,7 @@ class QueryThread(LoggerThread):
             return True
         except:
             self.logger.error("No local server available.")
-            return False 
+            return False
 
     def is_connected_to_internet(self, timeout=1.0):
         try:
@@ -82,7 +82,7 @@ class QueryThread(LoggerThread):
             return True
         except:
             self.logger.error("No internet connection available.")
-            return False 
+            return False
 
     def is_connected_to_internet2(self, timeout=1.0):
         try:
@@ -91,7 +91,7 @@ class QueryThread(LoggerThread):
             return True
         except:
             self.logger.error("No internet connection available.")
-            return False 
+            return False
 
     def build_way_query(self, lat, lon, heading, radius=50):
         """Builds a query to find all highways within a given radius around a point"""
@@ -115,7 +115,7 @@ class QueryThread(LoggerThread):
 
     def run(self):
         self.logger.debug("run method started for thread %s" % self.name)
-        
+
         # for now we follow old logic, will be optimized later
         start = time.time()
         radius = 3000
@@ -131,7 +131,7 @@ class QueryThread(LoggerThread):
             self.logger.debug("Starting after sleeping for 1 second ...")
             last_gps = self.sharedParams.get('last_gps', None)
             self.logger.debug("last_gps = %s" % str(last_gps))
-            
+
             if last_gps is not None:
                 fix_ok = last_gps.flags & 1
                 if not fix_ok:
@@ -144,7 +144,7 @@ class QueryThread(LoggerThread):
                 cur_ecef = geodetic2ecef((last_gps.latitude, last_gps.longitude, last_gps.altitude))
                 if self.prev_ecef is None:
                     self.prev_ecef = geodetic2ecef((last_query_pos.latitude, last_query_pos.longitude, last_query_pos.altitude))
-                
+
                 dist = np.linalg.norm(cur_ecef - self.prev_ecef)
                 if dist < radius - self.distance_to_edge: #updated when we are close to the edge of the downloaded circle
                     continue
@@ -201,7 +201,7 @@ class QueryThread(LoggerThread):
 
                     nodes = np.asarray(nodes)
                     nodes = geodetic2ecef(nodes)
-                    tree = spatial.cKDTree(nodes)
+                    tree = spatial.KDTree(nodes)
                     self.logger.debug("query thread, ... %s %s" % (str(nodes), str(tree)))
 
                     # write result
@@ -237,7 +237,7 @@ class QueryThread(LoggerThread):
 
 class MapsdThread(LoggerThread):
     def __init__(self, threadID, name, sharedParams={}):
-        # invoke parent constructor 
+        # invoke parent constructor
         LoggerThread.__init__(self, threadID, name)
         self.sharedParams = sharedParams
         self.pm = messaging.PubMaster(['liveMapData'])
@@ -444,10 +444,10 @@ class MapsdThread(LoggerThread):
             dat.liveMapData.mapValid = map_valid
             self.logger.debug("Sending ... liveMapData ... %s", str(dat))
             self.pm.send('liveMapData', dat)
-            
+
 class MessagedGPSThread(LoggerThread):
     def __init__(self, threadID, name, sharedParams={}):
-        # invoke parent constructor 
+        # invoke parent constructor
         LoggerThread.__init__(self, threadID, name)
         self.sharedParams = sharedParams
         self.sm = messaging.SubMaster(['gpsLocationExternal'])
@@ -469,9 +469,9 @@ class MessagedGPSThread(LoggerThread):
             if self.sm.updated['gpsLocationExternal']:
                 gps = self.sm['gpsLocationExternal']
                 self.save_gps_data(gps)
-            
+
             query_lock = self.sharedParams.get('query_lock', None)
-            
+
             query_lock.acquire()
             self.sharedParams['last_gps'] = gps
             query_lock.release()
@@ -479,7 +479,7 @@ class MessagedGPSThread(LoggerThread):
 
 class MessagedArneThread(LoggerThread):
     def __init__(self, threadID, name, sharedParams={}):
-        # invoke parent constructor 
+        # invoke parent constructor
         LoggerThread.__init__(self, threadID, name)
         self.sharedParams = sharedParams
         self.arne_sm = messaging_arne.SubMaster(['liveTrafficData','trafficModelEvent'])
@@ -537,7 +537,7 @@ class MessagedArneThread(LoggerThread):
                 speedLimittrafficAdvisoryvalid = True
             else:
                 speedLimittrafficAdvisoryvalid = False
-            
+
             query_lock.acquire()
             self.sharedParams['traffic_status'] = traffic_status
             self.sharedParams['traffic_confidence'] = traffic_confidence
@@ -554,7 +554,7 @@ def main():
     crash.bind_user(id=dongle_id)
     crash.bind_extra(version=version, dirty=dirty, is_eon=True)
     crash.install()
-    
+
     # setup shared parameters
     last_gps = None
     query_lock = threading.Lock()
@@ -578,11 +578,11 @@ def main():
     mt = MapsdThread(2, "MapsdThread", sharedParams=sharedParams)
     mggps = MessagedGPSThread(3, "MessagedGPSThread", sharedParams=sharedParams)
     mgarne = MessagedArneThread(4, "MessagedArneThread", sharedParams=sharedParams)
-    
+
     qt.start()
     mt.start()
     mggps.start()
     mgarne.start()
-    
+
 if __name__ == "__main__":
     main()

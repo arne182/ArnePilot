@@ -22,19 +22,11 @@ const CanMsg VOLKSWAGEN_MQB_TX_MSGS[] = {{MSG_HCA_01, 0, 8}, {MSG_GRA_ACC_01, 0,
 const int VOLKSWAGEN_MQB_TX_MSGS_LEN = sizeof(VOLKSWAGEN_MQB_TX_MSGS) / sizeof(VOLKSWAGEN_MQB_TX_MSGS[0]);
 
 AddrCheckStruct volkswagen_mqb_rx_checks[] = {
-<<<<<<< HEAD
-  {.msg = {{MSG_ESP_19, 0, 8}}, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U},
-  {.msg = {{MSG_EPS_01, 0, 8}}, .check_checksum = true,  .max_counter = 15U, .expected_timestep = 10000U},
-  {.msg = {{MSG_ESP_05, 0, 8}}, .check_checksum = true,  .max_counter = 15U, .expected_timestep = 20000U},
-  {.msg = {{MSG_TSK_06, 0, 8}}, .check_checksum = true,  .max_counter = 15U, .expected_timestep = 20000U},
-  {.msg = {{MSG_MOTOR_20, 0, 8}}, .check_checksum = true,  .max_counter = 15U, .expected_timestep = 20000U},
-=======
   {.msg = {{MSG_ESP_19, 0, 8, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U}}},
   {.msg = {{MSG_EPS_01, 0, 8, .check_checksum = true,  .max_counter = 15U, .expected_timestep = 10000U}}},
   {.msg = {{MSG_ESP_05, 0, 8, .check_checksum = true,  .max_counter = 15U, .expected_timestep = 20000U}}},
   {.msg = {{MSG_TSK_06, 0, 8, .check_checksum = true,  .max_counter = 15U, .expected_timestep = 20000U}}},
   {.msg = {{MSG_MOTOR_20, 0, 8, .check_checksum = true,  .max_counter = 15U, .expected_timestep = 20000U}}},
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 };
 const int VOLKSWAGEN_MQB_RX_CHECKS_LEN = sizeof(volkswagen_mqb_rx_checks) / sizeof(volkswagen_mqb_rx_checks[0]);
 
@@ -52,17 +44,10 @@ const CanMsg VOLKSWAGEN_PQ_TX_MSGS[] = {{MSG_HCA_1, 0, 5}, {MSG_GRA_NEU, 0, 4}, 
 const int VOLKSWAGEN_PQ_TX_MSGS_LEN = sizeof(VOLKSWAGEN_PQ_TX_MSGS) / sizeof(VOLKSWAGEN_PQ_TX_MSGS[0]);
 
 AddrCheckStruct volkswagen_pq_rx_checks[] = {
-<<<<<<< HEAD
-  {.msg = {{MSG_LENKHILFE_3, 0, 6}}, .check_checksum = true,  .max_counter = 15U, .expected_timestep = 10000U},
-  {.msg = {{MSG_MOTOR_2, 0, 8}}, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 20000U},
-  {.msg = {{MSG_MOTOR_3, 0, 8}}, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U},
-  {.msg = {{MSG_BREMSE_3, 0, 8}}, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U},
-=======
   {.msg = {{MSG_LENKHILFE_3, 0, 6, .check_checksum = true,  .max_counter = 15U, .expected_timestep = 10000U}}},
   {.msg = {{MSG_MOTOR_2, 0, 8, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 20000U}}},
   {.msg = {{MSG_MOTOR_3, 0, 8, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U}}},
   {.msg = {{MSG_BREMSE_3, 0, 8, .check_checksum = false, .max_counter = 0U,  .expected_timestep = 10000U}}},
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 };
 const int VOLKSWAGEN_PQ_RX_CHECKS_LEN = sizeof(volkswagen_pq_rx_checks) / sizeof(volkswagen_pq_rx_checks[0]);
 
@@ -191,24 +176,11 @@ static int volkswagen_mqb_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
     // Signal: Motor_20.MO_Fahrpedalrohwert_01
     if (addr == MSG_MOTOR_20) {
-<<<<<<< HEAD
-      bool gas_pressed = ((GET_BYTES_04(to_push) >> 12) & 0xFF) != 0;
-      if (gas_pressed && !gas_pressed_prev && !(unsafe_mode & UNSAFE_DISABLE_DISENGAGE_ON_GAS)) {
-        controls_allowed = 0;
-      }
-      gas_pressed_prev = gas_pressed;
-=======
       gas_pressed = ((GET_BYTES_04(to_push) >> 12) & 0xFF) != 0;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     }
 
     // Signal: ESP_05.ESP_Fahrer_bremst
     if (addr == MSG_ESP_05) {
-<<<<<<< HEAD
-      bool brake_pressed = (GET_BYTE(to_push, 3) & 0x4) >> 2;
-      if (brake_pressed && (!brake_pressed_prev || vehicle_moving)) {
-        controls_allowed = 0;
-=======
       brake_pressed = (GET_BYTE(to_push, 3) & 0x4) >> 2;
     }
 
@@ -244,89 +216,15 @@ static int volkswagen_pq_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
       int sign = (GET_BYTE(to_push, 3) & 0x4) >> 2;
       if (sign == 1) {
         torque_driver_new *= -1;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
       }
       update_sample(&torque_driver, torque_driver_new);
     }
 
-<<<<<<< HEAD
-    // If there are HCA messages on bus 0 not sent by OP, there's a relay problem
-    if ((safety_mode_cnt > RELAY_TRNS_TIMEOUT) && (addr == MSG_HCA_01)) {
-      relay_malfunction_set();
-    }
-  }
-  return valid;
-}
-
-static int volkswagen_pq_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
-
-  bool valid = addr_safety_check(to_push, volkswagen_pq_rx_checks, VOLKSWAGEN_PQ_RX_CHECKS_LEN,
-                                volkswagen_get_checksum, volkswagen_pq_compute_checksum, volkswagen_pq_get_counter);
-
-  if (valid) {
-    int bus = GET_BUS(to_push);
-    int addr = GET_ADDR(to_push);
-
-    // Update in-motion state by sampling front wheel speeds
-    // Signal: Bremse_3.Radgeschw__VL_4_1 (front left)
-    // Signal: Bremse_3.Radgeschw__VR_4_1 (front right)
-    if ((bus == 0) && (addr == MSG_BREMSE_3)) {
-      int wheel_speed_fl = (GET_BYTE(to_push, 0) | (GET_BYTE(to_push, 1) << 8)) >> 1;
-      int wheel_speed_fr = (GET_BYTE(to_push, 2) | (GET_BYTE(to_push, 3) << 8)) >> 1;
-      // Check for average front speed in excess of 0.3m/s, 1.08km/h
-      // DBC speed scale 0.01: 0.3m/s = 108, sum both wheels to compare
-      vehicle_moving = (wheel_speed_fl + wheel_speed_fr) > 216;
-    }
-
-    // Update driver input torque samples
-    // Signal: Lenkhilfe_3.LH3_LM (absolute torque)
-    // Signal: Lenkhilfe_3.LH3_LMSign (direction)
-    if ((bus == 0) && (addr == MSG_LENKHILFE_3)) {
-      int torque_driver_new = GET_BYTE(to_push, 2) | ((GET_BYTE(to_push, 3) & 0x3) << 8);
-      int sign = (GET_BYTE(to_push, 3) & 0x4) >> 2;
-      if (sign == 1) {
-        torque_driver_new *= -1;
-      }
-      update_sample(&torque_driver, torque_driver_new);
-    }
-
-    // Update ACC status from ECU for controls-allowed state
-    // Signal: Motor_2.GRA_Status
-    if ((bus == 0) && (addr == MSG_MOTOR_2)) {
-      int acc_status = (GET_BYTE(to_push, 2) & 0xC0) >> 6;
-      controls_allowed = ((acc_status == 1) || (acc_status == 2)) ? 1 : 0;
-    }
-
-    // Exit controls on rising edge of gas press
-    // Signal: Motor_3.Fahrpedal_Rohsignal
-    if ((bus == 0) && (addr == MSG_MOTOR_3)) {
-      int gas_pressed = (GET_BYTE(to_push, 2));
-      if (gas_pressed && !gas_pressed_prev && !(unsafe_mode & UNSAFE_DISABLE_DISENGAGE_ON_GAS)) {
-        controls_allowed = 0;
-      }
-      gas_pressed_prev = gas_pressed;
-    }
-
-    // Exit controls on rising edge of brake press
-    // Signal: Motor_2.Bremslichtschalter
-    if ((bus == 0) && (addr == MSG_MOTOR_2)) {
-      bool brake_pressed = (GET_BYTE(to_push, 2) & 0x1);
-      if (brake_pressed && (!(brake_pressed_prev) || vehicle_moving)) {
-        controls_allowed = 0;
-      }
-      brake_pressed_prev = brake_pressed;
-    }
-
-    // If there are HCA messages on bus 0 not sent by OP, there's a relay problem
-    if ((safety_mode_cnt > RELAY_TRNS_TIMEOUT) && (bus == 0) && (addr == MSG_HCA_1)) {
-      relay_malfunction_set();
-=======
     // Update ACC status from ECU for controls-allowed state
     // Signal: Motor_2.GRA_Status
     if (addr == MSG_MOTOR_2) {
       int acc_status = (GET_BYTE(to_push, 2) & 0xC0) >> 6;
       controls_allowed = ((acc_status == 1) || (acc_status == 2)) ? 1 : 0;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     }
 
     // Signal: Motor_3.Fahrpedal_Rohsignal

@@ -67,25 +67,17 @@ def flash_release(path=None, st_serial=None):
   # flashing ESP
   if panda.is_white():
     status("4. Flashing ESP (slow!)")
-<<<<<<< HEAD
-    align = lambda x, sz=0x1000: x+"\xFF"*((sz-len(x)) % sz)
-=======
 
     def align(x, sz=0x1000):
       x + "\xFF" * ((sz - len(x)) % sz)
 
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     esp = ESPROM(st_serial)
     esp.connect()
     flasher = CesantaFlasher(esp, 230400)
     flasher.flash_write(0x0, align(code_boot_15), True)
     flasher.flash_write(0x1000, align(code_user1), True)
     flasher.flash_write(0x81000, align(code_user2), True)
-<<<<<<< HEAD
-    flasher.flash_write(0x3FE000, "\xFF"*0x1000)
-=======
     flasher.flash_write(0x3FE000, "\xFF" * 0x1000)
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     flasher.boot_fw()
     del flasher
     del esp

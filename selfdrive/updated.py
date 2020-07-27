@@ -34,7 +34,6 @@ import fcntl
 import threading
 import time
 from cffi import FFI
-import time
 
 from common.basedir import BASEDIR
 from common.params import Params

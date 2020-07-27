@@ -26,12 +26,9 @@ from selfdrive.locationd.calibration_helpers import Calibration
 from selfdrive.car.disable_radar import disable_radar
 from common.op_params import opParams
 from selfdrive.controls.lib.dynamic_follow.df_manager import dfManager
-
-op_params = opParams()
-df_manager = dfManager(op_params)
-
-hide_auto_df_alerts = op_params.get('hide_auto_df_alerts', False)
-traffic_light_alerts = op_params.get('traffic_light_alerts', True)
+#import selfdrive.crash as crash
+#from selfdrive.swaglog import cloudlog
+#from selfdrive.version import version, dirty
 
 LDW_MIN_SPEED = 12.5
 LANE_DEPARTURE_THRESHOLD = 0.1
@@ -67,6 +64,12 @@ class Controls:
     self.arne_sm = arne_sm
     if self.arne_sm is None:
       self.arne_sm = messaging_arne.SubMaster(['arne182Status', 'dynamicFollowButton', 'trafficModelEvent'])
+
+    self.op_params = opParams()
+    self.df_manager = dfManager(self.op_params)
+    self.hide_auto_df_alerts = self.op_params.get('hide_auto_df_alerts', False)
+    self.hide_auto_df_alerts = self.op_params.get('hide_auto_df_alerts', False)
+    self.traffic_light_alerts = self.op_params.get('traffic_light_alerts', True)
 
     self.can_sock = can_sock
     if can_sock is None:
@@ -108,7 +111,7 @@ class Controls:
     params.put("CarParams", cp_bytes)
     put_nonblocking("CarParamsCache", cp_bytes)
     put_nonblocking("LongitudinalControl", "1" if self.CP.openpilotLongitudinalControl else "0")
-    if CP.openpilotLongitudinalControl and CP.safetyModel in [car.CarParams.SafetyModel.hondaBoschGiraffe, car.CarParams.SafetyModel.hondaBoschHarness]:
+    if self.CP.openpilotLongitudinalControl and self.CP.safetyModel in [car.CarParams.SafetyModel.hondaBoschGiraffe, car.CarParams.SafetyModel.hondaBoschHarness]:
       disable_radar(can_sock, pm.sock['sendcan'], 1 if has_relay else 0, timeout=1, retry=10)
 
     self.CC = car.CarControl.new_message()
@@ -138,6 +141,7 @@ class Controls:
     self.saturated_count = 0
     self.distance_traveled = 0
     self.distance_traveled_override = 0
+    self.distance_traveled_engaged = 0
     self.events_prev = []
     self.current_alert_types = [ET.PERMANENT]
 
@@ -249,7 +253,7 @@ class Controls:
 
     # Only allow engagement with brake pressed when stopped behind another stopped car
     if CS.brakePressed and self.sm['plan'].vTargetFuture >= STARTING_TARGET_SPEED \
-       and CP.openpilotLongitudinalControl and CS.vEgo < 0.3:
+       and self.CP.openpilotLongitudinalControl and CS.vEgo < 0.3:
       self.events.add(EventName.noTarget)
 
   def data_sample(self):
@@ -279,8 +283,10 @@ class Controls:
       self.mismatch_counter += 1
 
     self.distance_traveled += CS.vEgo * DT_CTRL
-    if CS.steeringPressed:
-      self.distance_traveled_override += CS.vEgo * DT_CTRL
+    if self.enabled:
+      self.distance_traveled_engaged += CS.vEgo * DT_CTRL
+      if CS.steeringPressed:
+        self.distance_traveled_override += CS.vEgo * DT_CTRL
 
     return CS, CS_arne182
 
@@ -387,7 +393,7 @@ class Controls:
 
     # Gas/Brake PID loop
     if self.arne_sm.updated['arne182Status']:
-      gas_button_status = arne_sm['arne182Status'].gasbuttonstatus
+      gas_button_status = self.arne_sm['arne182Status'].gasbuttonstatus
     else:
       gas_button_status = 0
 
@@ -445,48 +451,51 @@ class Controls:
 
     recent_blinker = (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 5.0  # 5s blinker cooldown
     ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED and not recent_blinker \
-                    and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED  # and not self.active 
+                    and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED  # and not self.active
 
     meta = self.sm['model'].meta
     if len(meta.desirePrediction) and ldw_allowed:
-      l_lane_change_prob = meta.desirePrediction[Desire.laneChangeLeft - 1]
-      r_lane_change_prob = meta.desirePrediction[Desire.laneChangeRight - 1]
-      
-      CAMERA_OFFSET = op_params.get('camera_offset', 0.06)
-      
+      #l_lane_change_prob = meta.desirePrediction[Desire.laneChangeLeft - 1]
+      #r_lane_change_prob = meta.desirePrediction[Desire.laneChangeRight - 1]
+
+      CAMERA_OFFSET = self.op_params.get('camera_offset', 0.06)
+
       l_lane_close = left_lane_visible and (self.sm['pathPlan'].lPoly[3] < (0.9 - CAMERA_OFFSET))
       r_lane_close = right_lane_visible and (self.sm['pathPlan'].rPoly[3] > -(0.8 + CAMERA_OFFSET))
 
-      CC.hudControl.leftLaneDepart = bool(l_lane_close)  # l_lane_change_prob > LANE_DEPARTURE_THRESHOLD and 
-      CC.hudControl.rightLaneDepart = bool(r_lane_close)  # r_lane_change_prob > LANE_DEPARTURE_THRESHOLD and 
+      CC.hudControl.leftLaneDepart = bool(l_lane_close)  # l_lane_change_prob > LANE_DEPARTURE_THRESHOLD and
+      CC.hudControl.rightLaneDepart = bool(r_lane_close)  # r_lane_change_prob > LANE_DEPARTURE_THRESHOLD and
 
     if CC.hudControl.rightLaneDepart or CC.hudControl.leftLaneDepart:
       self.events.add(EventName.ldw)
 
     alerts = self.events.create_alerts(self.current_alert_types, [self.CP, self.sm, self.is_metric])
     self.AM.add_many(self.sm.frame, alerts, self.enabled)
-    self.AM.process_alerts(self.sm.frame)
-    df_out = df_manager.update()
+
+    df_out = self.df_manager.update()
+    frame = self.sm.frame
     if df_out.changed:
       df_alert = 'dfButtonAlert'
       if df_out.is_auto and df_out.last_is_auto:
-        if CS.cruiseState.enabled and not hide_auto_df_alerts:
-          df_alert += 'NoSound'
-          self.AM.add(frame, df_alert, enabled, extra_text_1=df_out.model_profile_text + ' (auto)', extra_text_2='Dynamic follow: {} profile active'.format(df_out.model_profile_text))
+        # only show auto alert if engaged, not hiding auto, and time since lane speed alert not showing
+        if CS.cruiseState.enabled and not self.hide_auto_df_alerts:
+          df_alert += 'Silent'
+          self.AM.add_custom(frame, df_alert, self.enabled, extra_text_1=df_out.model_profile_text + ' (auto)')
+          return
       else:
-        self.AM.add(frame, df_alert, enabled, extra_text_1=df_out.user_profile_text, extra_text_2='Dynamic follow: {} profile active'.format(df_out.user_profile_text))
-
-    if traffic_light_alerts:
+        self.AM.add_custom(frame, df_alert, self.enabled, extra_text_1=df_out.user_profile_text, extra_text_2='Dynamic follow: {} profile active'.format(df_out.user_profile_text))
+        return
+    if self.traffic_light_alerts:
       traffic_status = self.arne_sm['trafficModelEvent'].status
       traffic_confidence = round(self.arne_sm['trafficModelEvent'].confidence * 100, 2)
       if traffic_confidence >= 75:
         if traffic_status == 'SLOW':
-          self.AM.add(frame, 'trafficSlow', enabled, extra_text_2=' ({}%)'.format(traffic_confidence))
+          self.AM.add_custom(self.sm.frame, 'trafficSlow', self.enabled, extra_text_2=' ({}%)'.format(traffic_confidence))
         elif traffic_status == 'GREEN':
-          self.AM.add(frame, 'trafficGreen', enabled, extra_text_2=' ({}%)'.format(traffic_confidence))
+          self.AM.add_custom(self.sm.frame, 'trafficGreen', self.enabled, extra_text_2=' ({}%)'.format(traffic_confidence))
         elif traffic_status == 'DEAD':  # confidence will be 100
-          self.AM.add(frame, 'trafficDead', enabled)
-        
+          self.AM.add_custom(self.sm.frame, 'trafficDead', self.enabled)
+    self.AM.process_alerts(self.sm.frame)
     CC.hudControl.visualAlert = self.AM.visual_alert
 
     if not self.read_only:
@@ -520,7 +529,7 @@ class Controls:
     controlsState.vEgoRaw = CS.vEgoRaw
     controlsState.angleSteers = CS.steeringAngle
     controlsState.curvature = self.VM.calc_curvature(steer_angle_rad, CS.vEgo)
-    controlsState.decelForTurn = self.sm['plan'].decelForTurn,
+    controlsState.decelForTurn = self.sm['plan'].decelForTurn
     controlsState.steerOverride = CS.steeringPressed
     controlsState.state = self.state
     controlsState.engageable = not self.events.any(ET.NO_ENTRY)
@@ -612,6 +621,12 @@ class Controls:
       self.prof.display()
 
 def main(sm=None, pm=None, logcan=None, arne_sm=None):
+  #params = Params()
+  #dongle_id = params.get("DongleId").decode('utf-8')
+  #cloudlog.bind_global(dongle_id=dongle_id, version=version, dirty=dirty, is_eon=True)
+  #crash.bind_user(id=dongle_id)
+  #crash.bind_extra(version=version, dirty=dirty, is_eon=True)
+  #crash.install()
   controls = Controls(sm, pm, logcan, arne_sm)
   controls.controlsd_thread()
 

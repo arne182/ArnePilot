@@ -24,8 +24,6 @@ void dmonitoring_init(DMonitoringModelState* s) {
   s->m = new DefaultRunModel(model_path, (float*)&s->output, OUTPUT_SIZE, USE_DSP_RUNTIME);
   s->is_rhd = false;
   s->is_rhd_checked = false;
-<<<<<<< HEAD
-=======
 }
 
 template <class T>
@@ -34,7 +32,6 @@ static inline T *get_buffer(std::vector<T> &buf, const size_t size) {
     buf.resize(size);
   }
   return buf.data();
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 }
 
 DMonitoringResult dmonitoring_eval_frame(DMonitoringModelState* s, void* stream_buf, int width, int height) {
@@ -79,7 +76,6 @@ DMonitoringResult dmonitoring_eval_frame(DMonitoringModelState* s, void* stream_
                        cropped_u_buf, cropped_width/2,
                        cropped_v_buf, cropped_width/2,
                        cropped_width, cropped_height);
-    delete[] premirror_cropped_buf;
   }
 
   uint8_t *resized_buf = get_buffer(s->resized_buf, resized_width*resized_height*3/2);

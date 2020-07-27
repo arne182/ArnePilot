@@ -145,7 +145,7 @@ def pretransform_from_calib(calib):
   camera_frame_from_road_frame = np.dot(eon_intrinsics, view_frame_from_road_frame)
   camera_frame_from_calib_frame = get_camera_frame_from_calib_frame(camera_frame_from_road_frame)
   return np.linalg.inv(camera_frame_from_calib_frame)
-<<<<<<< HEAD
+
 
 def transform_img_M(size,
                    augment_trans=np.array([0,0,0]),
@@ -226,5 +226,4 @@ def yuv_crop(frame, output_size, center=None):
   rgb_crop = rgb[center[0] - output_size[1]/2: center[0] + output_size[1]/2,
                  center[1] - output_size[0]/2: center[1] + output_size[0]/2]
   return cv2.cvtColor(rgb_crop, cv2.COLOR_RGB2YUV_I420)
-=======
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
+

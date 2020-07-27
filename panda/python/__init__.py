@@ -9,14 +9,6 @@ import time
 import traceback
 import subprocess
 import sys
-<<<<<<< HEAD
-from .dfu import PandaDFU
-from .esptool import ESPROM, CesantaFlasher  # noqa: F401
-from .flash_release import flash_release  # noqa: F401
-from .update import ensure_st_up_to_date  # noqa: F401
-from .serial import PandaSerial  # noqa: F401
-from .isotp import isotp_send, isotp_recv
-=======
 from .dfu import PandaDFU  # pylint: disable=import-error
 from .esptool import ESPROM, CesantaFlasher  # noqa pylint: disable=import-error
 from .flash_release import flash_release  # noqa pylint: disable=import-error
@@ -24,7 +16,6 @@ from .update import ensure_st_up_to_date  # noqa pylint: disable=import-error
 from .serial import PandaSerial  # noqa pylint: disable=import-error
 from .isotp import isotp_send, isotp_recv  # pylint: disable=import-error
 
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
 __version__ = '0.0.9'
 
@@ -194,11 +185,7 @@ class Panda(object):
                 self.bootstub = device.getProductID() == 0xddee
                 self.legacy = (device.getbcdDevice() != 0x2300)
                 self._handle = device.open()
-<<<<<<< HEAD
-                if not sys.platform in ["win32", "cygwin", "msys"]:
-=======
                 if sys.platform not in ["win32", "cygwin", "msys"]:
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
                   self._handle.setAutoDetachKernelDriver(True)
                 if claim:
                   self._handle.claimInterface(0)

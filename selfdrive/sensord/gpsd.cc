@@ -20,11 +20,8 @@
 #include "common/timing.h"
 #include "common/swaglog.h"
 
-<<<<<<< HEAD
 #include "cereal/gen/cpp/log.capnp.h"
 
-=======
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 volatile sig_atomic_t do_exit = 0;
 
 namespace {

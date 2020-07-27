@@ -23,15 +23,6 @@ static void set_do_exit(int sig) {
 
 int main(int argc, char **argv) {
   int err;
-<<<<<<< HEAD
-  set_realtime_priority(4);
-
-  // messaging
-  Context *msg_context = Context::create();
-  PubSocket *dmonitoring_sock = PubSocket::create(msg_context, "driverState");
-  SubSocket *dmonstate_sock = SubSocket::create(msg_context, "dMonitoringState", "127.0.0.1", true);
-  assert(dmonstate_sock != NULL);
-=======
   set_realtime_priority(51);
 
   signal(SIGINT, (sighandler_t)set_do_exit);
@@ -40,7 +31,6 @@ int main(int argc, char **argv) {
   // messaging
   SubMaster sm({"dMonitoringState"});
   PubMaster pm({"driverState"});
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
   // init the models
   DMonitoringModelState dmonitoringmodel;
@@ -72,23 +62,10 @@ int main(int argc, char **argv) {
       //printf("frame_id: %d %dx%d\n", extra.frame_id, buf_info.width, buf_info.height);
       if (!dmonitoringmodel.is_rhd_checked) {
         if (chk_counter >= RHD_CHECK_INTERVAL) {
-<<<<<<< HEAD
-          Message *msg = dmonstate_sock->receive(true);
-          if (msg != NULL) {
-            auto amsg = kj::heapArray<capnp::word>((msg->getSize() / sizeof(capnp::word)) + 1);
-            memcpy(amsg.begin(), msg->getData(), msg->getSize());
-
-            capnp::FlatArrayMessageReader cmsg(amsg);
-            cereal::Event::Reader event = cmsg.getRoot<cereal::Event>();
-
-            dmonitoringmodel.is_rhd = event.getDMonitoringState().getIsRHD();
-            dmonitoringmodel.is_rhd_checked = event.getDMonitoringState().getRhdChecked();
-=======
           if (sm.update(0) > 0) {
             auto state = sm["dMonitoringState"].getDMonitoringState();
             dmonitoringmodel.is_rhd = state.getIsRHD();
             dmonitoringmodel.is_rhd_checked = state.getRhdChecked();
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
           }
           chk_counter = 0;
         }
@@ -110,14 +87,8 @@ int main(int argc, char **argv) {
     }
 
   }
-
+  
   visionstream_destroy(&stream);
-
-<<<<<<< HEAD
-  delete dmonitoring_sock;
-  delete dmonstate_sock;
-=======
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   dmonitoring_free(&dmonitoringmodel);
 
   return 0;

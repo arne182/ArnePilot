@@ -21,14 +21,9 @@ typedef struct {
 } CanMsg;
 
 typedef struct {
-<<<<<<< HEAD
-  // const params
-  const CanMsg msg[3];               // check either messages (e.g. honda steer). Array MUST terminate with an empty struct to know its length.
-=======
   const int addr;
   const int bus;
   const int len;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   const bool check_checksum;         // true is checksum check is performed
   const uint8_t max_counter;         // maximum value of the counter. 0 means that the counter check is skipped
   const uint32_t expected_timestep;  // expected time between message updates [us]
@@ -74,10 +69,7 @@ bool addr_safety_check(CAN_FIFOMailBox_TypeDef *to_push,
                        uint8_t (*get_checksum)(CAN_FIFOMailBox_TypeDef *to_push),
                        uint8_t (*compute_checksum)(CAN_FIFOMailBox_TypeDef *to_push),
                        uint8_t (*get_counter)(CAN_FIFOMailBox_TypeDef *to_push));
-<<<<<<< HEAD
-=======
 void generic_rx_checks(bool stock_ecu_detected);
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 void relay_malfunction_set(void);
 void relay_malfunction_reset(void);
 
@@ -109,30 +101,21 @@ bool gas_pressed_prev = false;
 bool brake_pressed = false;
 bool brake_pressed_prev = false;
 bool cruise_engaged_prev = false;
-<<<<<<< HEAD
-bool vehicle_moving = false;
-
-// for torque-based safety modes
-=======
 float vehicle_speed = 0;
 bool vehicle_moving = false;
 
 // for safety modes with torque steering control
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 int desired_torque_last = 0;       // last desired steer torque
 int rt_torque_last = 0;            // last desired torque for real time check
 struct sample_t torque_meas;       // last 3 motor torques produced by the eps
 struct sample_t torque_driver;     // last 3 driver torques measured
 uint32_t ts_last = 0;
 
-<<<<<<< HEAD
-=======
 // for safety modes with angle steering control
 uint32_t ts_angle_last = 0;
 int desired_angle_last = 0;
 struct sample_t angle_meas;         // last 3 steer angles
 
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 // This can be set with a USB command
 // It enables features we consider to be unsafe, but understand others may have different opinions
 // It is always 0 on mainline comma.ai openpilot
@@ -149,11 +132,7 @@ struct sample_t angle_meas;         // last 3 steer angles
 // See ISO 15622:2018 for more information.
 #define UNSAFE_RAISE_LONGITUDINAL_LIMITS_TO_ISO_MAX 8
 
-<<<<<<< HEAD
 int unsafe_mode = 1;
-=======
-int unsafe_mode = 0;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
 // time since safety mode has been changed
 uint32_t safety_mode_cnt = 0U;

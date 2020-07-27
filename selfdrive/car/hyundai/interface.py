@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from cereal import car, arne182
 from selfdrive.config import Conversions as CV
-from selfdrive.controls.lib.drive_helpers import EventTypes as ET, create_event
 from selfdrive.car.hyundai.values import Ecu, ECU_FINGERPRINT, CAR, FINGERPRINTS
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
@@ -182,7 +181,7 @@ class CarInterface(CarInterfaceBase):
     ret.buttonEvents = []
 
 
-    events, eventsArne182 = self.create_common_events(ret)
+    events, events_arne182 = self.create_common_events(ret)
     #TODO: addd abs(self.CS.angle_steers) > 90 to 'steerTempUnavailable' event
 
 
@@ -194,12 +193,11 @@ class CarInterface(CarInterfaceBase):
 
     if self.low_speed_alert:
 
-      events.add(car.CarEvent.EventName.belowSteerSpeed, [ET.WARNING]))
-
-    ret.events = events
-    ret_arne182.events = eventsArne182
+      events.add(car.CarEvent.EventName.belowSteerSpeed)
 
     ret.events = events.to_msg()
+
+    ret_arne182.events = events_arne182.to_msg()
 
     self.CS.out = ret.as_reader()
     return self.CS.out, ret_arne182.as_reader()

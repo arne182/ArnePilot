@@ -150,14 +150,11 @@ def calibrationd_thread(sm=None, pm=None):
   while 1:
     sm.update()
 
-<<<<<<< HEAD
-=======
     # if no inputs still publish calibration
     if not sm.updated['carState'] and not sm.updated['cameraOdometry']:
       calibrator.send_data(pm)
       continue
 
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     if sm.updated['carState']:
       calibrator.handle_v_ego(sm['carState'].vEgo)
       if send_counter % 25 == 0:

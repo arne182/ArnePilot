@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from cereal import car, arne182
 from selfdrive.config import Conversions as CV
-from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from selfdrive.car.nissan.values import CAR
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
@@ -78,13 +77,13 @@ class CarInterface(CarInterfaceBase):
     be.type = car.CarState.ButtonEvent.Type.accelCruise
     buttonEvents.append(be)
 
-    events, eventsArne182 = self.create_common_events(ret)
+    events, events_arne182 = self.create_common_events(ret)
 
     if self.CS.lkas_enabled:
-      events.add(car.CarEvent.EventName.invalidLkasSetting, [ET.PERMANENT]))
+      events.add(car.CarEvent.EventName.invalidLkasSetting)
 
     ret.events = events.to_msg()
-    ret_arne182.events = eventsArne182
+    ret_arne182.events = events_arne182.to_msg()
 
     self.CS.out = ret.as_reader()
     return self.CS.out, ret_arne182.as_reader()

@@ -6,20 +6,6 @@ const int HYUNDAI_MAX_RATE_DOWN = 7;
 const int HYUNDAI_DRIVER_TORQUE_ALLOWANCE = 50;
 const int HYUNDAI_DRIVER_TORQUE_FACTOR = 2;
 const int HYUNDAI_STANDSTILL_THRSLD = 30;  // ~1kph
-<<<<<<< HEAD
-const CanMsg HYUNDAI_TX_MSGS[] = {{832, 0, 8}, {1265, 0, 4}, {1157, 0, 4}};
-
-// TODO: do checksum checks
-AddrCheckStruct hyundai_rx_checks[] = {
-  {.msg = {{608, 0, 8}}, .max_counter = 3U, .expected_timestep = 10000U},
-  {.msg = {{897, 0, 8}}, .max_counter = 255U, .expected_timestep = 10000U},
-  {.msg = {{902, 0, 8}}, .max_counter = 3U,  .expected_timestep = 10000U},
-  {.msg = {{916, 0, 8}}, .max_counter = 7U, .expected_timestep = 10000U},
-  {.msg = {{1057, 0, 8}}, .max_counter = 15U, .expected_timestep = 20000U},
-};
-const int HYUNDAI_RX_CHECK_LEN = sizeof(hyundai_rx_checks) / sizeof(hyundai_rx_checks[0]);
-
-=======
 const CanMsg HYUNDAI_TX_MSGS[] = {
   {832, 0, 8},  // LKAS11 Bus 0
   {1265, 0, 4}, // CLU11 Bus 0
@@ -53,22 +39,14 @@ const int HYUNDAI_LEGACY_RX_CHECK_LEN = sizeof(hyundai_legacy_rx_checks) / sizeo
 
 bool hyundai_legacy = false;
 
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 static uint8_t hyundai_get_counter(CAN_FIFOMailBox_TypeDef *to_push) {
   int addr = GET_ADDR(to_push);
 
   uint8_t cnt;
   if (addr == 608) {
     cnt = (GET_BYTE(to_push, 7) >> 4) & 0x3;
-<<<<<<< HEAD
-  } else if (addr == 897) {
-    cnt = GET_BYTE(to_push, 5);
-  } else if (addr == 902) {
-    cnt = (GET_BYTE(to_push, 1) >> 6) & 0x3;
-=======
   } else if (addr == 902) {
     cnt = ((GET_BYTE(to_push, 3) >> 6) << 2) | (GET_BYTE(to_push, 1) >> 6);
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   } else if (addr == 916) {
     cnt = (GET_BYTE(to_push, 1) >> 5) & 0x7;
   } else if (addr == 1057) {
@@ -78,20 +56,6 @@ static uint8_t hyundai_get_counter(CAN_FIFOMailBox_TypeDef *to_push) {
   }
   return cnt;
 }
-<<<<<<< HEAD
-
-static int hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
-
-  bool valid = addr_safety_check(to_push, hyundai_rx_checks, HYUNDAI_RX_CHECK_LEN,
-                                 NULL, NULL, hyundai_get_counter);
-
-  bool unsafe_allow_gas = unsafe_mode & UNSAFE_DISABLE_DISENGAGE_ON_GAS;
-
-  int addr = GET_ADDR(to_push);
-  int bus = GET_BUS(to_push);
-
-  if (valid && (bus == 0)) {
-=======
 
 static uint8_t hyundai_get_checksum(CAN_FIFOMailBox_TypeDef *to_push) {
   int addr = GET_ADDR(to_push);
@@ -141,7 +105,6 @@ static int hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   if (valid && (GET_BUS(to_push) == 0)) {
     int addr = GET_ADDR(to_push);
 
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     if (addr == 593) {
       int torque_driver_new = ((GET_BYTES_04(to_push) & 0x7ff) * 0.79) - 808; // scale down new driver torque signal to match previous one
       // update array of samples
@@ -161,19 +124,11 @@ static int hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
       cruise_engaged_prev = cruise_engaged;
     }
 
-<<<<<<< HEAD
-    // exit controls on rising edge of gas press
-    if (addr == 608) {
-      bool gas_pressed = (GET_BYTE(to_push, 7) >> 6) != 0;
-      if (!unsafe_allow_gas && gas_pressed && !gas_pressed_prev) {
-        controls_allowed = 0;
-=======
     if ((addr == 608) || (hyundai_legacy && (addr == 881))) {
       if (addr == 608) {
         gas_pressed = (GET_BYTE(to_push, 7) >> 6) != 0;
       } else {
         gas_pressed = (((GET_BYTE(to_push, 4) & 0x7F) << 1) | GET_BYTE(to_push, 3) >> 7) != 0;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
       }
     }
 
@@ -186,24 +141,10 @@ static int hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     }
 
     if (addr == 916) {
-<<<<<<< HEAD
-      bool brake_pressed = (GET_BYTE(to_push, 6) >> 7) != 0;
-      if (brake_pressed && (!brake_pressed_prev || vehicle_moving) && !unsafe_mode) {
-        controls_allowed = 0;
-      }
-      brake_pressed_prev = brake_pressed;
-    }
-
-    // check if stock camera ECU is on bus 0
-    if ((safety_mode_cnt > RELAY_TRNS_TIMEOUT) && (addr == 832)) {
-      relay_malfunction_set();
-    }
-=======
       brake_pressed = (GET_BYTE(to_push, 6) >> 7) != 0;
     }
 
     generic_rx_checks((addr == 832));
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   }
   return valid;
 }

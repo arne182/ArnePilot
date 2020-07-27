@@ -1,10 +1,4 @@
-<<<<<<< HEAD
 from cereal import car, arne182
-from selfdrive.config import Conversions as CV
-from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
-=======
-from cereal import car
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 from selfdrive.car.volkswagen.values import CAR, BUTTON_STATES
 from common.params import put_nonblocking
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
@@ -138,17 +132,17 @@ class CarInterface(CarInterfaceBase):
         be.pressed = self.CS.buttonStates[button]
         buttonEvents.append(be)
 
-    events, eventsArne182 = self.create_common_events(ret, extra_gears=[GEAR.eco, GEAR.sport])
+    events, events_arne182 = self.create_common_events(ret, extra_gears=[GEAR.eco, GEAR.sport])
 
     # Vehicle health and operation safety checks
     if self.CS.parkingBrakeSet:
       events.add(EventName.parkBrake)
     if self.CS.steeringFault:
-      events.add(EventName.steerTempUnavailable, [ET.NO_ENTRY, ET.WARNING]))
+      events.add(EventName.steerTempUnavailable)
 
-    ret_arne182.events = eventsArne182
+    ret_arne182.events = events_arne182.to_msg()
     ret.events = events.to_msg()
-    
+
     ret.buttonEvents = buttonEvents
     ret.canMonoTimes = canMonoTimes
 

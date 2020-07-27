@@ -37,11 +37,7 @@ static int ford_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   // exit controls on rising edge of brake press or on brake press when
   // speed > 0
   if (addr == 0x165) {
-<<<<<<< HEAD
-    int brake_pressed = GET_BYTE(to_push, 0) & 0x20;
-=======
     brake_pressed = GET_BYTE(to_push, 0) & 0x20;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     if (brake_pressed && (!brake_pressed_prev || vehicle_moving)) {
       controls_allowed = 0;
     }
@@ -50,11 +46,7 @@ static int ford_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
   // exit controls on rising edge of gas press
   if (addr == 0x204) {
-<<<<<<< HEAD
-    bool gas_pressed = ((GET_BYTE(to_push, 0) & 0x03) | GET_BYTE(to_push, 1)) != 0;
-=======
     gas_pressed = ((GET_BYTE(to_push, 0) & 0x03) | GET_BYTE(to_push, 1)) != 0;
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
     if (!unsafe_allow_gas && gas_pressed && !gas_pressed_prev) {
       controls_allowed = 0;
     }

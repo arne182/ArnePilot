@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-<<<<<<< HEAD
-=======
 # type: ignore
 
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 import cereal.messaging as messaging
 from cereal.services import service_list
 

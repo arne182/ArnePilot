@@ -89,16 +89,16 @@ class LanePlanner():
     # Find current lanewidth
     self.lane_width_certainty += 0.05 * (self.l_prob * self.r_prob - self.lane_width_certainty)
     current_lane_width = abs(self.l_poly[3] - self.r_poly[3])
-    if not op_params.get('use_virutual_middle_line', False):
-      lane_width = self.lane_width
-      #print(current_lane_width)
-      if current_lane_width < 2.0:
-        self.r_poly[3] -= 2.0 - current_lane_width # TODO: this should be l_poly if isRHD
-        current_lane_width = 2.0
-      elif current_lane_width > 4.0:
-        self.l_poly[3] -= current_lane_width/2 # TODO: this should be r_poly if isRHD
-        current_lane_width = current_lane_width/2
     self.lane_width_estimate += 0.005 * (current_lane_width - self.lane_width_estimate)
+    if op_params.get('use_virutual_middle_line', False) and v_ego < 14.15:
+      #lane_width = self.lane_width
+      #print(current_lane_width)
+      if self.lane_width_estimate < 2.0:
+        self.r_poly[3] -= 2.0 - self.lane_width_estimate # TODO: this should be l_poly if isRHD
+        self.lane_width_estimate = 2.0
+      elif self.lane_width_estimate > 4.0:
+        self.l_poly[3] -= self.lane_width_estimate/2 # TODO: this should be r_poly if isRHD
+        self.lane_width_estimate = self.lane_width_estimate/2
     speed_lane_width = interp(v_ego, [0., 14., 20.], [2.5, 3., 3.5]) # German Standards
     self.lane_width = self.lane_width_certainty * self.lane_width_estimate + \
                       (1 - self.lane_width_certainty) * speed_lane_width

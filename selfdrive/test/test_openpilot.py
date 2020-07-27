@@ -4,16 +4,11 @@ os.environ['FAKEUPLOAD'] = "1"
 
 from common.params import Params
 from common.realtime import sec_since_boot
-<<<<<<< HEAD
-from common.testing import phone_only
-from selfdrive.manager import manager_init, manager_prepare
-from selfdrive.manager import start_managed_process, kill_managed_process, get_running
-from selfdrive.manager import start_daemon_process
-from functools import wraps
-=======
+#from common.testing import phone_only // what is this used for ?
 from selfdrive.manager import manager_init, manager_prepare, start_daemon_process
+from selfdrive.manager import start_managed_process, kill_managed_process, get_running
+from functools import wraps
 from selfdrive.test.helpers import phone_only, with_processes
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 import json
 import requests
 import signal

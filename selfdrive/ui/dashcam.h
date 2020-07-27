@@ -227,7 +227,6 @@ void draw_lock_button(UIState *s) {
   int btn_h = 150;
   int btn_x = 1920 - btn_w - 150;
   int btn_y = 1080 - btn_h;
-  int imgw, imgh;
   float alpha = 0.3f;
 
   if (!lock_image) {

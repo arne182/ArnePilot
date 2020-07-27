@@ -1,7 +1,6 @@
-from cereal import car, arne182
+from cereal import car
 from common.numpy_fast import clip, interp
 from selfdrive.config import Conversions as CV
-from cereal import car
 
 # kph
 V_CRUISE_MAX = 169
@@ -23,38 +22,6 @@ class MPC_COST_LONG:
   ACCELERATION = 10.0
   JERK = 20.0
 
-class EventTypes:
-  ENABLE = 'enable'
-  PRE_ENABLE = 'preEnable'
-  NO_ENTRY = 'noEntry'
-  WARNING = 'warning'
-  USER_DISABLE = 'userDisable'
-  SOFT_DISABLE = 'softDisable'
-  IMMEDIATE_DISABLE = 'immediateDisable'
-  PERMANENT = 'permanent'
-
-
-def create_event(name, types):
-  event = car.CarEvent.new_message()
-  event.name = name
-  for t in types:
-    setattr(event, t, True)
-  return event
-
-def create_event_arne(name, types):
-  event = arne182.CarEventArne182.new_message()
-  event.name = name
-  for t in types:
-    setattr(event, t, True)
-  return event
-
-def get_events(events, types):
-  out = []
-  for e in events:
-    for t in types:
-      if getattr(e, t):
-        out.append(e.name)
-  return out
 
 def rate_limit(new_value, last_value, dw_step, up_step):
   return clip(new_value, last_value + dw_step, last_value + up_step)

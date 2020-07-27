@@ -88,8 +88,6 @@ class CarInterface(CarInterfaceBase):
 
     ret.events, ret_arne182.events = self.create_common_events(ret, extra_gears=[car.CarState.GearShifter.unknown])
 
-    ret.events = self.create_common_events(ret).to_msg()
-
     self.CS.out = ret.as_reader()
     return self.CS.out, ret_arne182.as_reader()
 

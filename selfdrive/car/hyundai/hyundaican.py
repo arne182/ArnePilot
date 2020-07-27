@@ -66,7 +66,6 @@ def create_clu11(packer, frame, clu11, button):
   values = clu11
   values["CF_Clu_CruiseSwState"] = button
   values["CF_Clu_AliveCnt1"] = frame % 0x10
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   return packer.make_can_msg("CLU11", 0, values)
 
 

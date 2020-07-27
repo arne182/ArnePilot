@@ -156,15 +156,7 @@ void* frontview_thread(void *arg) {
   set_thread_name("frontview");
   // we subscribe to this for placement of the AE metering box
   // TODO: the loop is bad, ideally models shouldn't affect sensors
-<<<<<<< HEAD
-  Context *msg_context = Context::create();
-  SubSocket *monitoring_sock = SubSocket::create(msg_context, "driverState", "127.0.0.1", true);
-  SubSocket *dmonstate_sock = SubSocket::create(msg_context, "dMonitoringState", "127.0.0.1", true);
-  assert(monitoring_sock != NULL);
-  assert(dmonstate_sock != NULL);
-=======
   SubMaster sm({"driverState", "dMonitoringState"});
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
   cl_command_queue q = clCreateCommandQueue(s->context, s->device_id, 0, &err);
   assert(err == 0);
@@ -179,24 +171,14 @@ void* frontview_thread(void *arg) {
     int rgb_idx = ui_idx;
     FrameMetadata frame_data = s->cameras.front.camera_bufs_metadata[buf_idx];
 
-<<<<<<< HEAD
-    double t1 = millis_since_boot();
-=======
     //double t1 = millis_since_boot();
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
     cl_event debayer_event;
     if (s->cameras.front.ci.bayer) {
       err = clSetKernelArg(s->krnl_debayer_front, 0, sizeof(cl_mem), &s->front_camera_bufs_cl[buf_idx]);
-<<<<<<< HEAD
-      cl_check_error(err);
-      err = clSetKernelArg(s->krnl_debayer_front, 1, sizeof(cl_mem), &s->rgb_front_bufs_cl[rgb_idx]);
-      cl_check_error(err);
-=======
       assert(err == 0);
       err = clSetKernelArg(s->krnl_debayer_front, 1, sizeof(cl_mem), &s->rgb_front_bufs_cl[rgb_idx]);
       assert(err == 0);
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
       float digital_gain = 1.0;
       err = clSetKernelArg(s->krnl_debayer_front, 2, sizeof(float), &digital_gain);
       assert(err == 0);
@@ -218,32 +200,6 @@ void* frontview_thread(void *arg) {
     tbuffer_release(&s->cameras.front.camera_tb, buf_idx);
     visionbuf_sync(&s->rgb_front_bufs[ui_idx], VISIONBUF_SYNC_FROM_DEVICE);
 
-<<<<<<< HEAD
-    // no more check after gps check
-    if (!s->rhd_front_checked) {
-      Message *msg_dmon = dmonstate_sock->receive(true);
-      if (msg_dmon != NULL) {
-        auto amsg = kj::heapArray<capnp::word>((msg_dmon->getSize() / sizeof(capnp::word)) + 1);
-        memcpy(amsg.begin(), msg_dmon->getData(), msg_dmon->getSize());
-
-        capnp::FlatArrayMessageReader cmsg(amsg);
-        cereal::Event::Reader event = cmsg.getRoot<cereal::Event>();
-
-        s->rhd_front = event.getDMonitoringState().getIsRHD();
-        s->rhd_front_checked = event.getDMonitoringState().getRhdChecked();
-
-        delete msg_dmon;
-      }
-    }
-
-    Message *msg = monitoring_sock->receive(true);
-    if (msg != NULL) {
-      auto amsg = kj::heapArray<capnp::word>((msg->getSize() / sizeof(capnp::word)) + 1);
-      memcpy(amsg.begin(), msg->getData(), msg->getSize());
-
-      capnp::FlatArrayMessageReader cmsg(amsg);
-      cereal::Event::Reader event = cmsg.getRoot<cereal::Event>();
-=======
     sm.update(0);
     // no more check after gps check
     if (!s->rhd_front_checked && sm.updated("dMonitoringState")) {
@@ -251,7 +207,6 @@ void* frontview_thread(void *arg) {
       s->rhd_front = state.getIsRHD();
       s->rhd_front_checked = state.getRhdChecked();
     }
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
     if (sm.updated("driverState")) {
       auto state = sm["driverState"].getDriverState();
@@ -261,12 +216,7 @@ void* frontview_thread(void *arg) {
       face_position[1] = state.getFacePosition()[1];
 
       // set front camera metering target
-<<<<<<< HEAD
-      if (face_prob > 0.4)
-      {
-=======
       if (face_prob > 0.4) {
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
         int x_offset = s->rhd_front ? 0:s->rgb_front_width - 0.5 * s->rgb_front_height;
         s->front_meteringbox_xmin = x_offset + (face_position[0] + 0.5) * (0.5 * s->rgb_front_height) - 72;
         s->front_meteringbox_xmax = x_offset + (face_position[0] + 0.5) * (0.5 * s->rgb_front_height) + 72;
@@ -349,11 +299,7 @@ void* frontview_thread(void *arg) {
 
     // send frame event
     {
-<<<<<<< HEAD
-      if (s->front_frame_sock != NULL) {
-=======
       if (s->pm != NULL) {
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
         capnp::MallocMessageBuilder msg;
         cereal::Event::Builder event = msg.initRoot<cereal::Event>();
         event.setLogMonoTime(nanos_since_boot());
@@ -372,13 +318,7 @@ void* frontview_thread(void *arg) {
         framed.setGainFrac(frame_data.gain_frac);
         framed.setFrameType(cereal::FrameData::FrameType::FRONT);
 
-<<<<<<< HEAD
-        auto words = capnp::messageToFlatArray(msg);
-        auto bytes = words.asBytes();
-        s->front_frame_sock->send((char*)bytes.begin(), bytes.size());
-=======
         s->pm->send("frontFrame", msg);
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
       }
     }
 
@@ -393,12 +333,6 @@ void* frontview_thread(void *arg) {
     //LOGD("front process: %.2fms", t2-t1);
   }
 
-<<<<<<< HEAD
-  delete monitoring_sock;
-  delete dmonstate_sock;
-
-=======
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   return NULL;
 }
 // processing
@@ -591,11 +525,7 @@ void* processing_thread(void *arg) {
 
     // send frame event
     {
-<<<<<<< HEAD
-      if (s->frame_sock != NULL) {
-=======
       if (s->pm != NULL) {
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
         capnp::MallocMessageBuilder msg;
         cereal::Event::Builder event = msg.initRoot<cereal::Event>();
         event.setLogMonoTime(nanos_since_boot());
@@ -613,21 +543,14 @@ void* processing_thread(void *arg) {
         framed.setLensTruePos(frame_data.lens_true_pos);
         framed.setGainFrac(frame_data.gain_frac);
 
-<<<<<<< HEAD
-#ifdef QCOM
-=======
 #if defined(QCOM) && !defined(QCOM_REPLAY)
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
         kj::ArrayPtr<const int16_t> focus_vals(&s->cameras.rear.focus[0], NUM_FOCUS);
         kj::ArrayPtr<const uint8_t> focus_confs(&s->cameras.rear.confidence[0], NUM_FOCUS);
         framed.setFocusVal(focus_vals);
         framed.setFocusConf(focus_confs);
-<<<<<<< HEAD
-=======
         kj::ArrayPtr<const uint16_t> sharpness_score(&s->lapres[0], (ROI_X_MAX-ROI_X_MIN+1)*(ROI_Y_MAX-ROI_Y_MIN+1));
         framed.setSharpnessScore(sharpness_score);
         framed.setRecoverState(s->cameras.rear.self_recover);
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 #endif
 
 // TODO: add this back
@@ -639,13 +562,7 @@ void* processing_thread(void *arg) {
         kj::ArrayPtr<const float> transform_vs(&s->yuv_transform.v[0], 9);
         framed.setTransform(transform_vs);
 
-<<<<<<< HEAD
-        auto words = capnp::messageToFlatArray(msg);
-        auto bytes = words.asBytes();
-        s->frame_sock->send((char*)bytes.begin(), bytes.size());
-=======
         s->pm->send("frame", msg);
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
       }
     }
 
@@ -1160,11 +1077,7 @@ void init_buffers(VisionState *s) {
     s->rgb_front_width = s->cameras.front.ci.frame_width;
     s->rgb_front_height = s->cameras.front.ci.frame_height;
   }
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
   for (int i=0; i<UI_BUF_COUNT; i++) {
     VisionImg img = visionimg_alloc_rgb24(s->rgb_front_width, s->rgb_front_height, &s->rgb_front_bufs[i]);
@@ -1297,11 +1210,7 @@ void party(VisionState *s) {
                        processing_thread, s);
   assert(err == 0);
 
-<<<<<<< HEAD
-#ifndef QCOM2
-=======
 #if !defined(QCOM2) && !defined(__APPLE__)
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   // TODO: fix front camera on qcom2
   pthread_t frontview_thread_handle;
   err = pthread_create(&frontview_thread_handle, NULL,
@@ -1322,11 +1231,7 @@ void party(VisionState *s) {
 
   zsock_signal(s->terminate_pub, 0);
 
-<<<<<<< HEAD
-#ifndef QCOM2
-=======
 #if !defined(QCOM2) && !defined(QCOM_REPLAY) && !defined(__APPLE__)
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   LOG("joining frontview_thread");
   err = pthread_join(frontview_thread_handle, NULL);
   assert(err == 0);
@@ -1365,37 +1270,17 @@ int main(int argc, char *argv[]) {
 
   init_buffers(s);
 
-<<<<<<< HEAD
-#if defined(QCOM) || defined(QCOM2)
-  s->msg_context = Context::create();
-  s->frame_sock = PubSocket::create(s->msg_context, "frame");
-  s->front_frame_sock = PubSocket::create(s->msg_context, "frontFrame");
-  s->thumbnail_sock = PubSocket::create(s->msg_context, "thumbnail");
-  assert(s->frame_sock != NULL);
-  assert(s->front_frame_sock != NULL);
-  assert(s->thumbnail_sock != NULL);
-=======
 #if (defined(QCOM) && !defined(QCOM_REPLAY)) || defined(QCOM2)
   s->pm = new PubMaster({"frame", "frontFrame", "thumbnail"});
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 #endif
 
   cameras_open(&s->cameras, &s->camera_bufs[0], &s->focus_bufs[0], &s->stats_bufs[0], &s->front_camera_bufs[0]);
 
   party(s);
 
-<<<<<<< HEAD
-#if defined(QCOM) || defined(QCOM2)
-  delete s->frame_sock;
-  delete s->front_frame_sock;
-  delete s->thumbnail_sock;
-  delete s->msg_context;
-#endif
-=======
   if (s->pm != NULL) {
     delete s->pm;
   }
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 
   free_buffers(s);
   cl_free(s);

@@ -101,13 +101,6 @@ int get_addr_check_index(CAN_FIFOMailBox_TypeDef *to_push, AddrCheckStruct addr_
 
   int index = -1;
   for (int i = 0; i < len; i++) {
-<<<<<<< HEAD
-    for (uint8_t j = 0U; addr_list[i].msg[j].addr != 0; j++) {
-      if ((addr == addr_list[i].msg[j].addr) && (bus == addr_list[i].msg[j].bus) &&
-            (length == addr_list[i].msg[j].len)) {
-        index = i;
-        goto Return;
-=======
     // if multiple msgs are allowed, determine which one is present on the bus
     if (!addr_list[i].msg_seen) {
       for (uint8_t j = 0U; addr_list[i].msg[j].addr != 0; j++) {
@@ -117,7 +110,6 @@ int get_addr_check_index(CAN_FIFOMailBox_TypeDef *to_push, AddrCheckStruct addr_
           addr_list[i].msg_seen = true;
           break;
         }
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
       }
     }
 
@@ -207,8 +199,6 @@ bool addr_safety_check(CAN_FIFOMailBox_TypeDef *to_push,
   return is_msg_valid(rx_checks, index);
 }
 
-<<<<<<< HEAD
-=======
 void generic_rx_checks(bool stock_ecu_detected) {
   // exit controls on rising edge of gas press
   if (gas_pressed && !gas_pressed_prev && !(unsafe_mode & UNSAFE_DISABLE_DISENGAGE_ON_GAS)) {
@@ -217,7 +207,7 @@ void generic_rx_checks(bool stock_ecu_detected) {
   gas_pressed_prev = gas_pressed;
 
   // exit controls on rising edge of brake press
-  if (brake_pressed && (!brake_pressed_prev || vehicle_moving)) {
+  if (!unsafe_mode && brake_pressed && (!brake_pressed_prev || vehicle_moving)) {
     controls_allowed = 0;
   }
   brake_pressed_prev = brake_pressed;
@@ -228,7 +218,6 @@ void generic_rx_checks(bool stock_ecu_detected) {
   }
 }
 
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
 void relay_malfunction_set(void) {
   relay_malfunction = true;
   fault_occurred(FAULT_RELAY_MALFUNCTION);
@@ -255,23 +244,14 @@ const safety_hook_config safety_hook_registry[] = {
   {SAFETY_HYUNDAI, &hyundai_hooks},
   {SAFETY_CHRYSLER, &chrysler_hooks},
   {SAFETY_SUBARU, &subaru_hooks},
-<<<<<<< HEAD
-  {SAFETY_SUBARU_LEGACY, &subaru_legacy_hooks},
   {SAFETY_VOLKSWAGEN_MQB, &volkswagen_mqb_hooks},
-  {SAFETY_VOLKSWAGEN_PQ, &volkswagen_pq_hooks},
-=======
-  {SAFETY_VOLKSWAGEN_MQB, &volkswagen_mqb_hooks},
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   {SAFETY_NISSAN, &nissan_hooks},
   {SAFETY_NOOUTPUT, &nooutput_hooks},
   {SAFETY_HYUNDAI_LEGACY, &hyundai_legacy_hooks},
 #ifdef ALLOW_DEBUG
   {SAFETY_MAZDA, &mazda_hooks},
-<<<<<<< HEAD
-=======
   {SAFETY_SUBARU_LEGACY, &subaru_legacy_hooks},
   {SAFETY_VOLKSWAGEN_PQ, &volkswagen_pq_hooks},
->>>>>>> b205dd6954ad6d795fc04d66e0150675b4fae28d
   {SAFETY_TESLA, &tesla_hooks},
   {SAFETY_ALLOUTPUT, &alloutput_hooks},
   {SAFETY_GM_ASCM, &gm_ascm_hooks},

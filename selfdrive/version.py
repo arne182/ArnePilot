@@ -74,7 +74,7 @@ try:
       comma_remote = origin.startswith('git@github.com:commaai') or origin.startswith('https://github.com/commaai')
     else:
       comma_remote = origin.startswith('git@github.com:arne182') or origin.startswith('https://github.com/arne182')
-    tested_branch = branch in ['release2', 'release3', 'release4', 'release5', 'release6']
+    tested_branch = get_git_branch() in ['release2', 'release3', 'release4', 'release5', 'release6']
 
     dirty = not comma_remote
     if not cloak:
