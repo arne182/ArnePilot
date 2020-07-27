@@ -195,6 +195,17 @@ static std::vector<float> getFlatVector(const VIPCBuf* buf, const bool returnBGR
 
 
 int main(){
+    signal(SIGINT, (sighandler_t)set_do_exit);
+    signal(SIGTERM, (sighandler_t)set_do_exit);
+    int err;
+    //usleep(5000000);
+    //set_realtime_priority(2);
+    initModel(); // init model
 
-    printf("here!\n");
+    VisionStream stream;
+
+    Context* c = Context::create();
+    PubSocket* traffic_lights_sock = PubSocket::create(c, "trafficModelRaw");
+    assert(traffic_lights_sock != NULL);
+    printf("HeRe!!!1\n");
 }
