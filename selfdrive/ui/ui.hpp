@@ -109,8 +109,6 @@ typedef struct UIScene {
   float speedlimitaheaddistance;
   bool speedlimitahead_valid;
   float gpsAccuracy;
-  float speedlimit;
-  float angleSteers;
 
   bool is_rhd;
   bool map_valid;
@@ -142,7 +140,7 @@ typedef struct UIScene {
 
   float angleSteersDes;
   float angleSteers;
-  
+
 } UIScene;
 
 typedef struct {
