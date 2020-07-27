@@ -149,6 +149,50 @@ double rateKeeper(double loopTime, double lastLoop) {
     return toSleep;
 }
 
+void set_do_exit(int sig) {
+    std::cout << "trafficd - received signal: " << sig << std::endl;
+    do_exit = 1;
+}
+
+uint8_t clamp(int16_t value) {
+    return value<0 ? 0 : (value>255 ? 255 : value);
+}
+
+static std::vector<float> getFlatVector(const VIPCBuf* buf, const bool returnBGR) {
+    // returns RGB if returnBGR is false
+    const size_t width = original_shape[1];
+    const size_t height = original_shape[0];
+
+    uint8_t *y = (uint8_t*)buf->addr;
+    uint8_t *u = y + (width * height);
+    uint8_t *v = u + (width / 2) * (height / 2);
+
+    int b, g, r;
+    std::vector<float> bgrVec;
+    for (int y_cord = top_crop; y_cord < (original_shape[0] - hood_crop); y_cord++) {
+        for (int x_cord = horizontal_crop; x_cord < (original_shape[1] - horizontal_crop); x_cord++) {
+            int yy = y[(y_cord * width) + x_cord];
+            int uu = u[((y_cord / 2) * (width / 2)) + (x_cord / 2)];
+            int vv = v[((y_cord / 2) * (width / 2)) + (x_cord / 2)];
+
+            r = 1.164 * (yy - 16) + 1.596 * (vv - 128);
+            g = 1.164 * (yy - 16) - 0.813 * (vv - 128) - 0.391 * (uu - 128);
+            b = 1.164 * (yy - 16) + 2.018 * (uu - 128);
+
+            if (returnBGR){
+                bgrVec.push_back(clamp(b) / 255.0);
+                bgrVec.push_back(clamp(g) / 255.0);
+                bgrVec.push_back(clamp(r) / 255.0);
+            } else {
+                bgrVec.push_back(clamp(r) / 255.0);
+                bgrVec.push_back(clamp(g) / 255.0);
+                bgrVec.push_back(clamp(b) / 255.0);
+            }
+        }
+    }
+    return bgrVec;
+}
+
 
 int main(){
 
