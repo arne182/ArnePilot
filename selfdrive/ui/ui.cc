@@ -391,7 +391,7 @@ void handle_message(UIState *s, SubMaster &sm) {
     s->preview_started = data.getIsPreview();
   }
   //dev ui
-  if (sm.update("carState")) {
+  if (sm.updated("carState")) {
     auto data = sm["carState"].getCarState();
     scene.brakeLights = data.getBrakeLights();
   }
