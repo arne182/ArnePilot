@@ -29,8 +29,9 @@ This is done automatically otherwise run (pkill -f boardd; cd /data/openpilot/pa
 
 `release4`: this is the default branch that is most up to date with the ArnePilot 0.7 release branch. Normally you should use this branch because it has been tested and verified that it is fully working without any issues.
 
-`075-clean`: this is my default testing branch. When I finishing testing/adding new structure, I'll merge this into the
-`release4` branch.
+`075-clean`: this is my old testing branch. I moved on to 077.
+
+`077-clean`: Heavily in early early in development branch of OP 077. Not recommended for any use out of testing. Is missing many features like trafficd and a working Ui. May crash and lag.
 
 `release3`: this is my old branch, that is compatible with ArnePilot 0.6.
 
@@ -39,12 +40,6 @@ This is done automatically otherwise run (pkill -f boardd; cd /data/openpilot/pa
 # Configuration
 
 - You can turn on or off some of the [Feature](https://github.com/arne182/ArnePilot/blob/81a3258da49e1bb9739a5f1d0a84b38afd10583f/common/op_params.py#L500) by editing `op_edit.py`. Run the following command `python /data/openpilot/op_edit.py`
-
-# Todo
-
-- [ ] Auto Lane change from Boggyver on release2 and release3 branch. (only used in released 3 and below)
-
-- [ ] Phantom: control open pilot via app like summon ( only on release 3 and below.)
 
 # Features
 

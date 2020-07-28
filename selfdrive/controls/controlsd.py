@@ -139,6 +139,7 @@ class Controls:
     self.mismatch_counter = 0
     self.can_error_counter = 0
     self.last_blinker_frame = 0
+    self.last_ldw_frame = 0
     self.saturated_count = 0
     self.distance_traveled = 0
     self.distance_traveled_override = 0
@@ -468,8 +469,9 @@ class Controls:
       CC.hudControl.leftLaneDepart = bool(l_lane_close)  # l_lane_change_prob > LANE_DEPARTURE_THRESHOLD and
       CC.hudControl.rightLaneDepart = bool(r_lane_close)  # r_lane_change_prob > LANE_DEPARTURE_THRESHOLD and
 
-    if CC.hudControl.rightLaneDepart or CC.hudControl.leftLaneDepart:
+    if (CC.hudControl.rightLaneDepart or CC.hudControl.leftLaneDepart) and (self.sm.frame - self.last_ldw_frame) * DT_CTRL > 5.0:
       self.events.add(EventName.ldw)
+      self.last_ldw_frame = self.sm.frame
 
     alerts = self.events.create_alerts(self.current_alert_types, [self.CP, self.sm, self.is_metric])
     alertsArne182 = self.eventsArne182.create_alerts(self.current_alert_types, [self.CP, self.sm, self.is_metric])

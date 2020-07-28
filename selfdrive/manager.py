@@ -544,10 +544,10 @@ def main():
   params.manager_start()
 
   default_params = [
-    ("CommunityFeaturesToggle", "0"),
+    ("CommunityFeaturesToggle", "1"),
     ("CompletedTrainingVersion", "0"),
     ("IsRHD", "0"),
-    ("IsMetric", "0"),
+    ("IsMetric", "1"),
     ("RecordFront", "0"),
     ("HasAcceptedTerms", "0"),
     ("HasCompletedSetup", "0"),
@@ -556,7 +556,7 @@ def main():
     ("IsGeofenceEnabled", "-1"),
     ("SpeedLimitOffset", "0"),
     ("LongitudinalControl", "0"),
-    ("LimitSetSpeed", "0"),
+    ("LimitSetSpeed", "1"),
     ("LimitSetSpeedNeural", "0"),
     ("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')),
     ("OpenpilotEnabledToggle", "1"),
