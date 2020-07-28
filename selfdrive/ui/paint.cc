@@ -729,7 +729,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
   }
 
   //add grey panda GPS accuracy
-  /*if (true) {
+  if (true) {
     char val_str[16];
     char uom_str[3];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
@@ -748,7 +748,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
         val_color, lab_color, uom_color,
         value_fontSize, label_fontSize, uom_fontSize );
     bb_ry = bb_y + bb_h;
-  }*/
+  }
 
   //add free space - from bthaler1
   if (true) {
