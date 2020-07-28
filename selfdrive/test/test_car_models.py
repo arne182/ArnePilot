@@ -391,7 +391,7 @@ routes = {
   #"059ab9162e23198e|2020-05-30--09-41-01": {
     #'carFingerprint': NISSAN.ROGUE,
     #'enableCamera': True,
-  },
+  #},
   "32a319f057902bb3|2020-04-27--15-18-58": {
     'carFingerprint': MAZDA.CX5,
     'enableCamera': True,
