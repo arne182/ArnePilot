@@ -195,6 +195,7 @@ typedef struct UIState {
   int img_network[6];
   //dev ui
   int img_brake;
+  int img_speed;
 
   // sockets
   SubMaster *sm;
