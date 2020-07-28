@@ -168,7 +168,7 @@ static void ui_init(UIState *s) {
 
   pthread_mutex_init(&s->lock, NULL);
   s->sm = new SubMaster({"model", "controlsState", "uiLayoutState", "liveCalibration", "radarState", "thermal",
-                         "health", "ubloxGnss", "driverState", "dMonitoringState", "carState"
+                         "health", "ubloxGnss", "driverState", "dMonitoringState", "carState", "gpsLocationExternal"
 #ifdef SHOW_SPEEDLIMIT
                                     , "liveMapData"
 #endif
@@ -360,6 +360,18 @@ void handle_message(UIState *s, SubMaster &sm) {
     s->active_app = data.getActiveApp();
     scene.uilayout_sidebarcollapsed = data.getSidebarCollapsed();
   }
+  if (sm.updated("gpsLocationExternal")) {
+    scene.gpsAccuracy = sm["gpsLocationExternal"].getGpsLocationData().getAccuracy();
+    if (scene.gpsAccuracy > 100)
+    {
+      scene.gpsAccuracy = 99.99;
+    }
+    else if (scene.gpsAccuracy == 0)
+    {
+      scene.gpsAccuracy = 99.8;
+    }
+  }
+  
 #ifdef SHOW_SPEEDLIMIT
   if (sm.updated("liveMapData")) {
     scene.map_valid = sm["liveMapData"].getLiveMapData().getMapValid();
