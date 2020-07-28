@@ -128,7 +128,7 @@ typedef struct UIScene {
   float rightblindspotD2;
   bool leftblindspot;
   float leftblindspotD1;
-  float leftblindspotD2
+  float leftblindspotD2;
 
   bool is_rhd;
   bool map_valid;
