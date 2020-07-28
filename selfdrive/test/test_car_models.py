@@ -380,10 +380,10 @@ routes = {
     'carFingerprint': SUBARU.IMPREZA,
     'enableCamera': True,
   },
-  "fbbfa6af821552b9|2020-03-03--08-09-43": {
-    'carFingerprint': NISSAN.XTRAIL,
-    'enableCamera': True,
-  },
+  #"fbbfa6af821552b9|2020-03-03--08-09-43": {
+  #  'carFingerprint': NISSAN.XTRAIL,
+  #  'enableCamera': True,
+  #},
   "5b7c365c50084530|2020-03-25--22-10-13": {
     'carFingerprint': NISSAN.LEAF,
     'enableCamera': True,
@@ -449,6 +449,7 @@ non_tested_cars = [
   HYUNDAI.KIA_OPTIMA_H,
   HYUNDAI.KONA,
   HYUNDAI.KONA_EV,
+  NISSAN.XTRAIL,
   TOYOTA.PRIUS_2019,
   TOYOTA.CAMRYH,
   TOYOTA.CHR,
