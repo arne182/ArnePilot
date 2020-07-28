@@ -393,9 +393,10 @@ void handle_message(UIState *s, SubMaster &sm) {
   //dev ui
   if (sm.updated("carState")) {
     auto data = sm["carState"].getCarState();
-    scene.brakeLights = data.getBrakeLights();
-    if(scene.leftBlinker!=data.getLeftBlinker() || scene.rightBlinker!=data.getRightBlinker())
+    if(scene.leftBlinker!=data.getLeftBlinker() || scene.rightBlinker!=data.getRightBlinker()){
       scene.blinker_blinkingrate = 100;
+    }
+    scene.brakeLights = data.getBrakeLights();
     scene.leftBlinker = data.getLeftBlinker();
     scene.rightBlinker = data.getRightBlinker();
   }
