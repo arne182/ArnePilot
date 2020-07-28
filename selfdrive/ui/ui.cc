@@ -361,7 +361,7 @@ void handle_message(UIState *s, SubMaster &sm) {
     scene.uilayout_sidebarcollapsed = data.getSidebarCollapsed();
   }
   if (sm.updated("gpsLocationExternal")) {
-    scene.gpsAccuracy = sm["gpsLocationExternal"].getGpsLocationData().getAccuracy();
+    scene.gpsAccuracy = sm["gpsLocationExternal"].getGpsLocationExternal().getAccuracy();
     if (scene.gpsAccuracy > 100)
     {
       scene.gpsAccuracy = 99.99;
