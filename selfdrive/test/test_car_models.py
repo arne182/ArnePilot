@@ -19,7 +19,7 @@ from selfdrive.car.ford.values import CAR as FORD
 from selfdrive.car.gm.values import CAR as GM
 from selfdrive.car.honda.values import CAR as HONDA
 from selfdrive.car.hyundai.values import CAR as HYUNDAI
-from selfdrive.car.nissan.values import CAR as NISSAN
+#from selfdrive.car.nissan.values import CAR as NISSAN
 from selfdrive.car.mazda.values import CAR as MAZDA
 from selfdrive.car.subaru.values import CAR as SUBARU
 from selfdrive.car.toyota.values import CAR as TOYOTA
@@ -384,13 +384,13 @@ routes = {
   #  'carFingerprint': NISSAN.XTRAIL,
   #  'enableCamera': True,
   #},
-  "5b7c365c50084530|2020-03-25--22-10-13": {
-    'carFingerprint': NISSAN.LEAF,
-    'enableCamera': True,
-  },
-  "059ab9162e23198e|2020-05-30--09-41-01": {
-    'carFingerprint': NISSAN.ROGUE,
-    'enableCamera': True,
+  #"5b7c365c50084530|2020-03-25--22-10-13": {
+    #'carFingerprint': NISSAN.LEAF,
+    #'enableCamera': True,
+ # },
+  #"059ab9162e23198e|2020-05-30--09-41-01": {
+    #'carFingerprint': NISSAN.ROGUE,
+    #'enableCamera': True,
   },
   "32a319f057902bb3|2020-04-27--15-18-58": {
     'carFingerprint': MAZDA.CX5,
@@ -449,7 +449,7 @@ non_tested_cars = [
   HYUNDAI.KIA_OPTIMA_H,
   HYUNDAI.KONA,
   HYUNDAI.KONA_EV,
-  NISSAN.XTRAIL,
+  #NISSAN.XTRAIL,
   TOYOTA.PRIUS_2019,
   TOYOTA.CAMRYH,
   TOYOTA.CHR,
