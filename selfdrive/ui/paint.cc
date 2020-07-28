@@ -517,7 +517,7 @@ static void ui_draw_vision_speed(UIState *s) {
 }
 
 //turning blinker from kegman
-if(scene.leftBlinker) {
+if(scene->leftBlinker) {
   nvgBeginPath(s->vg);
   nvgMoveTo(s->vg, viz_speed_x, box_y + header_h/4);
   nvgLineTo(s->vg, viz_speed_x - viz_speed_w/2, box_y + header_h/4 + header_h/4);
@@ -527,7 +527,7 @@ if(scene.leftBlinker) {
   nvgFill(s->vg);
 }
 
-if(scene.rightBlinker) {
+if(scene->rightBlinker) {
   nvgBeginPath(s->vg);
   nvgMoveTo(s->vg, viz_speed_x+viz_speed_w, box_y + header_h/4);
   nvgLineTo(s->vg, viz_speed_x+viz_speed_w + viz_speed_w/2, box_y + header_h/4 + header_h/4);
@@ -537,7 +537,7 @@ if(scene.rightBlinker) {
   nvgFill(s->vg);
 }
 
-if(scene.leftBlinker || scene.rightBlinker) {
+if(scene->leftBlinker || scene->rightBlinker) {
   s->scene.blinker_blinkingrate -= 3;
   if(scene->blinker_blinkingrate<0) s->scene.blinker_blinkingrate = 120;
 }
