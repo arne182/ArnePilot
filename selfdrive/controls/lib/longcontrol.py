@@ -119,7 +119,7 @@ class LongControl():
     max_return = 1.0
     return round(max(min(accel, max_return), min_return), 5)  # ensure we return a value between range
 
-  def update(self, active, CS, v_target, v_target_future, a_target, CP, hasLead, dRel, decelForTurn, longitudinalPlanSource, gas_button_status):
+  def update(self, active, CS, v_target, v_target_future, a_target, CP, hasLead, radarState, decelForTurn, longitudinalPlanSource, gas_button_status):
     """Update longitudinal control. This updates the state machine and runs a PID loop"""
     try:
       gas_interceptor = CP.enableGasInterceptor
@@ -132,6 +132,10 @@ class LongControl():
 
     # Update state machine
     output_gb = self.last_output_gb
+    if radarState is None:
+      dRel = 200
+    else:
+      dRel = radarState.leadOne.dRel
     if hasLead:
       stop = True if dRel < 4.0 else False
     else:

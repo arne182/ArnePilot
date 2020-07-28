@@ -104,6 +104,9 @@ typedef struct UIScene {
 
   float speedlimit;
   bool speedlimit_valid;
+  
+  float speedlimitaheaddistance;
+  bool speedlimitahead_valid;
 
   bool is_rhd;
   bool map_valid;

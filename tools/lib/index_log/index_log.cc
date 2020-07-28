@@ -41,7 +41,6 @@ int main(int argc, char** argv) {
 
   auto words = kj::arrayPtr((const capnp::word*)log_data, log_size/sizeof(capnp::word));
   while (words.size() > 0) {
-
     uint64_t idx = ((uintptr_t)words.begin() - (uintptr_t)log_data);
     // printf("%llu - %ld\n", idx, words.size());
     const char* idx_bytes = (const char*)&idx;
@@ -52,8 +51,6 @@ int main(int argc, char** argv) {
     } catch (kj::Exception exc) {
       break;
     }
-
-
   }
 
   munmap(log_data, log_size);

@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
-import time
 import os
-import sys
 import signal
 import subprocess
+import sys
+import time
+from typing import List, cast
+
 import requests
-from cereal import car
 
-import selfdrive.manager as manager
 import cereal.messaging as messaging
-from common.params import Params
+import selfdrive.manager as manager
+from cereal import car
 from common.basedir import BASEDIR
-from selfdrive.car.fingerprints import all_known_cars
-from selfdrive.car.honda.values import CAR as HONDA
-from selfdrive.car.toyota.values import CAR as TOYOTA
-from selfdrive.car.gm.values import CAR as GM
-from selfdrive.car.ford.values import CAR as FORD
-from selfdrive.car.hyundai.values import CAR as HYUNDAI
+from common.params import Params
 from selfdrive.car.chrysler.values import CAR as CHRYSLER
-from selfdrive.car.subaru.values import CAR as SUBARU
-from selfdrive.car.volkswagen.values import CAR as VOLKSWAGEN
+from selfdrive.car.fingerprints import all_known_cars
+from selfdrive.car.ford.values import CAR as FORD
+from selfdrive.car.gm.values import CAR as GM
+from selfdrive.car.honda.values import CAR as HONDA
+from selfdrive.car.hyundai.values import CAR as HYUNDAI
 from selfdrive.car.nissan.values import CAR as NISSAN
-
+from selfdrive.car.mazda.values import CAR as MAZDA
+from selfdrive.car.subaru.values import CAR as SUBARU
+from selfdrive.car.toyota.values import CAR as TOYOTA
+from selfdrive.car.volkswagen.values import CAR as VOLKSWAGEN
 
 os.environ['NOCRASH'] = '1'
 
@@ -109,11 +111,11 @@ routes = {
     'carFingerprint': HONDA.FIT,
     'enableCamera': True,
   },
-  "03be5f2fd5c508d1|2020-04-19--18-44-15": {
-    'carFingerprint': HONDA.HRV,
-    'enableCamera': True,
-    'fingerprintSource': 'fixed',
-  },
+  #"03be5f2fd5c508d1|2020-04-19--18-44-15": {
+    #'carFingerprint': HONDA.HRV,
+    #'enableCamera': True,
+    #'fingerprintSource': 'fixed',
+  #},
   "2ac95059f70d76eb|2018-02-05--15-03-29": {
     'carFingerprint': HONDA.ACURA_ILX,
     'enableCamera': True,
@@ -184,8 +186,28 @@ routes = {
     'carFingerprint': HYUNDAI.SONATA,
     'enableCamera': True,
   },
+  "b2a38c712dcf90bd|2020-05-18--18-12-48": {
+    'carFingerprint': HYUNDAI.SONATA_2019,
+    'enableCamera': True,
+  },
+  "5875672fc1d4bf57|2020-07-23--21-33-28": {
+    'carFingerprint': HYUNDAI.KIA_SORENTO,
+    'enableCamera': True,
+  },
   "9c917ba0d42ffe78|2020-04-17--12-43-19": {
     'carFingerprint': HYUNDAI.PALISADE,
+    'enableCamera': True,
+  },
+  "610ebb9faaad6b43|2020-06-13--15-28-36": {
+    'carFingerprint': HYUNDAI.IONIQ_EV_LTD,
+    'enableCamera': True,
+  },
+  "2c5cf2dd6102e5da|2020-06-26--16-00-08": {
+    'carFingerprint': HYUNDAI.IONIQ,
+    'enableCamera': True,
+  },
+  "5dddcbca6eb66c62|2020-07-26--13-24-19": {
+    'carFingerprint': HYUNDAI.KIA_STINGER,
     'enableCamera': True,
   },
   "f7b6be73e3dfd36c|2019-05-12--18-07-16": {
@@ -341,16 +363,37 @@ routes = {
     'enableCamera': True,
     'enableDsu': False,
   },
-  "791340bc01ed993d|2019-03-10--16-28-08": {
-    'carFingerprint': SUBARU.IMPREZA,
-    'enableCamera': True,
-  },
   "76b83eb0245de90e|2019-10-20--15-42-29": {
     'carFingerprint': VOLKSWAGEN.GOLF,
     'enableCamera': True,
   },
+
+  "3c8f0c502e119c1c|2020-06-30--12-58-02": {
+    'carFingerprint': SUBARU.ASCENT,
+    'enableCamera': True,
+  },
+  "c321c6b697c5a5ff|2020-06-23--11-04-33": {
+    'carFingerprint': SUBARU.FORESTER,
+    'enableCamera': True,
+  },
+  "791340bc01ed993d|2019-03-10--16-28-08": {
+    'carFingerprint': SUBARU.IMPREZA,
+    'enableCamera': True,
+  },
+  "fbbfa6af821552b9|2020-03-03--08-09-43": {
+    'carFingerprint': NISSAN.XTRAIL,
+    'enableCamera': True,
+  },
   "5b7c365c50084530|2020-03-25--22-10-13": {
     'carFingerprint': NISSAN.LEAF,
+    'enableCamera': True,
+  },
+  "059ab9162e23198e|2020-05-30--09-41-01": {
+    'carFingerprint': NISSAN.ROGUE,
+    'enableCamera': True,
+  },
+  "32a319f057902bb3|2020-04-27--15-18-58": {
+    'carFingerprint': MAZDA.CX5,
     'enableCamera': True,
   },
 
@@ -368,16 +411,15 @@ routes = {
   #},
 }
 
-passive_routes = [
+passive_routes: List[str] = [
 ]
 
 forced_dashcam_routes = [
   # Ford fusion
   "f1b4c567731f4a1b|2018-04-18--11-29-37",
   "f1b4c567731f4a1b|2018-04-30--10-15-35",
-
-  # Nissan
-  #"fbbfa6af821552b9|2020-03-03--08-09-43",
+  # Mazda
+  "32a319f057902bb3|2020-04-27--15-18-58",
 ]
 
 # TODO: add routes for these cars
@@ -395,22 +437,18 @@ non_tested_cars = [
   GM.MALIBU,
   HONDA.ACURA_RDX,
   HONDA.CRV,
+  HONDA.HRV,
   HONDA.RIDGELINE,
   HYUNDAI.ELANTRA,
   HYUNDAI.ELANTRA_GT_I30,
   HYUNDAI.GENESIS_G80,
   HYUNDAI.GENESIS_G90,
   HYUNDAI.HYUNDAI_GENESIS,
-  HYUNDAI.IONIQ,
-  HYUNDAI.IONIQ_EV_LTD,
   HYUNDAI.KIA_FORTE,
   HYUNDAI.KIA_OPTIMA,
   HYUNDAI.KIA_OPTIMA_H,
-  HYUNDAI.KIA_SORENTO,
-  HYUNDAI.KIA_STINGER,
   HYUNDAI.KONA,
   HYUNDAI.KONA_EV,
-  NISSAN.XTRAIL,
   TOYOTA.PRIUS_2019,
   TOYOTA.CAMRYH,
   TOYOTA.CHR,
@@ -447,9 +485,7 @@ if __name__ == "__main__":
 
   results = {}
   for route, checks in routes.items():
-    print("GETTING ROUTE LOGS")
     get_route_log(route)
-    print("DONE GETTING ROUTE LOGS")
 
     params = Params()
     params.clear_all()
@@ -458,8 +494,9 @@ if __name__ == "__main__":
     params.put("CommunityFeaturesToggle", "1")
     params.put("Passive", "1" if route in passive_routes else "0")
 
+    os.environ['SKIP_FW_QUERY'] = "1"
     if checks.get('fingerprintSource', None) == 'fixed':
-      os.environ['FINGERPRINT'] = checks['carFingerprint']
+      os.environ['FINGERPRINT'] = cast(str, checks['carFingerprint'])
     else:
       os.environ['FINGERPRINT'] = ""
 
@@ -471,7 +508,8 @@ if __name__ == "__main__":
     # Start unlogger
     print("Start unlogger")
     unlogger_cmd = [os.path.join(BASEDIR, 'tools/replay/unlogger.py'), route, '/tmp']
-    unlogger = subprocess.Popen(unlogger_cmd + ['--disable', 'frame,encodeIdx,plan,pathPlan,liveLongitudinalMpc,radarState,controlsState,liveTracks,liveMpc,sendcan,carState,carControl,carEvents,carParams', '--no-interactive'], preexec_fn=os.setsid)
+    disable_socks = 'frame,encodeIdx,plan,pathPlan,liveLongitudinalMpc,radarState,controlsState,liveTracks,liveMpc,sendcan,carState,carControl,carEvents,carParams'
+    unlogger = subprocess.Popen(unlogger_cmd + ['--disable', disable_socks, '--no-interactive'], preexec_fn=os.setsid)  # pylint: disable=subprocess-popen-preexec-fn
 
     print("Check sockets")
     extra_socks = []

@@ -32,12 +32,12 @@ const int TOYOTA_GAS_INTERCEPTOR_THRSLD = 845;
 const CanMsg TOYOTA_TX_MSGS[] = {{0x283, 0, 7}, {0x2E6, 0, 8}, {0x2E7, 0, 8}, {0x33E, 0, 7}, {0x344, 0, 8}, {0x365, 0, 7}, {0x366, 0, 7}, {0x4CB, 0, 8},  // DSU bus 0
                                   {0x128, 1, 6}, {0x141, 1, 4}, {0x160, 1, 8}, {0x161, 1, 7}, {0x470, 1, 4},  // DSU bus 1
                                   {0x2E4, 0, 5}, {0x411, 0, 8}, {0x412, 0, 8}, {0x343, 0, 8}, {0x1D2, 0, 8},  // LKAS + ACC
-                                  {0x200, 0, 6}};  // interceptor
+                                  {0x200, 0, 6}, {0x750, 0, 8}};  // interceptor + BSM
 
 AddrCheckStruct toyota_rx_checks[] = {
   {.msg = {{ 0xaa, 0, 8, .check_checksum = false, .expected_timestep = 12000U}}},
   {.msg = {{0x260, 0, 8, .check_checksum = true, .expected_timestep = 20000U}}},
-  {.msg = {{0x1D2, 0, 8, .check_checksum = true, .expected_timestep = 30000U}}},
+  {.msg = {{0x1D3, 0, 8, .check_checksum = true, .expected_timestep = 30000U}}},
   {.msg = {{0x224, 0, 8, .check_checksum = false, .expected_timestep = 25000U},
            {0x226, 0, 8, .check_checksum = false, .expected_timestep = 25000U}}},
 };
@@ -90,7 +90,7 @@ static int toyota_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     // enter controls on rising edge of ACC, exit controls on ACC off
     // exit controls on rising edge of gas press
     if (addr == 0x1D3) {
-      // 15th bit is CRUISE_ACTIVE
+      // 15th bit is MAIN_ON
       int cruise_engaged = GET_BYTE(to_push, 1) >> 7;
       if (!cruise_engaged) {
         controls_allowed = 0;

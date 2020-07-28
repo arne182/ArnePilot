@@ -17,7 +17,7 @@ from selfdrive.controls.lib.longcontrol import LongControl, STARTING_TARGET_SPEE
 from selfdrive.controls.lib.latcontrol_pid import LatControlPID
 from selfdrive.controls.lib.latcontrol_indi import LatControlINDI
 from selfdrive.controls.lib.latcontrol_lqr import LatControlLQR
-from selfdrive.controls.lib.events import Events, ET
+from selfdrive.controls.lib.events import Events, Events_arne182, ET
 from selfdrive.controls.lib.alertmanager import AlertManager
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.controls.lib.planner import LON_MPC_STEP
@@ -117,6 +117,7 @@ class Controls:
     self.CC = car.CarControl.new_message()
     self.AM = AlertManager()
     self.events = Events()
+    self.eventsArne182 = Events_arne182()
 
     self.LoC = LongControl(self.CP, self.CI.compute_gb)
     self.VM = VehicleModel(self.CP)
@@ -172,8 +173,9 @@ class Controls:
     """Compute carEvents from carState"""
 
     self.events.clear()
+    self.eventsArne182.clear()
     self.events.add_from_msg(CS.events)
-    self.events.add_from_msg(CS_arne182.events)
+    self.eventsArne182.add_from_msg(CS_arne182.events)
     self.events.add_from_msg(self.sm['dMonitoringState'].events)
 
     # Handle startup event
@@ -310,29 +312,29 @@ class Controls:
     # ENABLED, PRE ENABLING, SOFT DISABLING
     if self.state != State.disabled:
       # user and immediate disable always have priority in a non-disabled state
-      if self.events.any(ET.USER_DISABLE):
+      if self.events.any(ET.USER_DISABLE) or self.eventsArne182.any(ET.USER_DISABLE):
         self.state = State.disabled
         self.current_alert_types.append(ET.USER_DISABLE)
 
-      elif self.events.any(ET.IMMEDIATE_DISABLE):
+      elif self.events.any(ET.IMMEDIATE_DISABLE) or self.eventsArne182.any(ET.IMMEDIATE_DISABLE):
         self.state = State.disabled
         self.current_alert_types.append(ET.IMMEDIATE_DISABLE)
 
       else:
         # ENABLED
         if self.state == State.enabled:
-          if self.events.any(ET.SOFT_DISABLE):
+          if self.events.any(ET.SOFT_DISABLE) or self.eventsArne182.any(ET.SOFT_DISABLE):
             self.state = State.softDisabling
             self.soft_disable_timer = 300   # 3s
             self.current_alert_types.append(ET.SOFT_DISABLE)
 
         # SOFT DISABLING
         elif self.state == State.softDisabling:
-          if not self.events.any(ET.SOFT_DISABLE):
+          if not (self.events.any(ET.SOFT_DISABLE) or self.eventsArne182.any(ET.SOFT_DISABLE)):
             # no more soft disabling condition, so go back to ENABLED
             self.state = State.enabled
 
-          elif self.events.any(ET.SOFT_DISABLE) and self.soft_disable_timer > 0:
+          elif (self.events.any(ET.SOFT_DISABLE) or self.eventsArne182.any(ET.SOFT_DISABLE)) and self.soft_disable_timer > 0:
             self.current_alert_types.append(ET.SOFT_DISABLE)
 
           elif self.soft_disable_timer <= 0:
@@ -340,19 +342,19 @@ class Controls:
 
         # PRE ENABLING
         elif self.state == State.preEnabled:
-          if not self.events.any(ET.PRE_ENABLE):
+          if not (self.events.any(ET.PRE_ENABLE) or self.eventsArne182.any(ET.PRE_ENABLE)):
             self.state = State.enabled
           else:
             self.current_alert_types.append(ET.PRE_ENABLE)
 
     # DISABLED
     elif self.state == State.disabled:
-      if self.events.any(ET.ENABLE):
-        if self.events.any(ET.NO_ENTRY):
+      if self.events.any(ET.ENABLE) or self.eventsArne182.any(ET.ENABLE):
+        if self.events.any(ET.NO_ENTRY) or self.eventsArne182.any(ET.NO_ENTRY):
           self.current_alert_types.append(ET.NO_ENTRY)
 
         else:
-          if self.events.any(ET.PRE_ENABLE):
+          if self.events.any(ET.PRE_ENABLE) or self.eventsArne182.any(ET.PRE_ENABLE):
             self.state = State.preEnabled
           else:
             self.state = State.enabled
@@ -397,7 +399,7 @@ class Controls:
     else:
       gas_button_status = 0
 
-    actuators.gas, actuators.brake = self.LoC.update(self.active, CS, v_acc_sol, plan.vTargetFuture, a_acc_sol, self.CP, plan.hasLead, self.sm['radarState'].leadOne.dRel, plan.decelForTurn, plan.longitudinalPlanSource, gas_button_status)
+    actuators.gas, actuators.brake = self.LoC.update(self.active, CS, v_acc_sol, plan.vTargetFuture, a_acc_sol, self.CP, plan.hasLead, self.sm['radarState'], plan.decelForTurn, plan.longitudinalPlanSource, gas_button_status)
     # Steering PID loop and lateral MPC
     actuators.steer, actuators.steerAngle, lac_log = self.LaC.update(self.active, CS, self.CP, path_plan)
 
@@ -470,7 +472,10 @@ class Controls:
       self.events.add(EventName.ldw)
 
     alerts = self.events.create_alerts(self.current_alert_types, [self.CP, self.sm, self.is_metric])
+    alertsArne182 = self.eventsArne182.create_alerts(self.current_alert_types, [self.CP, self.sm, self.is_metric])
+    
     self.AM.add_many(self.sm.frame, alerts, self.enabled)
+    self.AM.add_many(self.sm.frame, alertsArne182, self.enabled)
 
     df_out = self.df_manager.update()
     frame = self.sm.frame

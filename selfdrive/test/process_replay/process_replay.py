@@ -95,7 +95,10 @@ class FakeSubMaster(messaging.SubMaster):
       self.update_called.set()
       wait_for_event(self.update_ready)
       self.update_ready.clear()
-    return self.data[s]
+    try:
+      return self.data[s]
+    except KeyError:
+      return None
 
   def update(self, timeout=-1):
     self.update_called.set()
@@ -211,7 +214,7 @@ CONFIGS = [
   ProcessConfig(
     proc_name="controlsd",
     pub_sub={
-      "can": ["controlsState", "carState", "carControl", "sendcan", "carEvents", "carParams"],
+      "can": ["controlsState", "carState", "carControl", "sendcan", "carEvents", "carParams", "radarState"],
       "thermal": [], "health": [], "liveCalibration": [], "dMonitoringState": [], "plan": [], "pathPlan": [], "gpsLocation": [], "liveLocationKalman": [],
       "model": [], "frame": [],
     },

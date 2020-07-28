@@ -95,7 +95,7 @@ class CarInterfaceBase():
   def apply(self, c):
     raise NotImplementedError
 
-  def create_common_events(self, cs_out, extra_gears=[], gas_resume_speed=-1, pcm_enable=True):
+  def create_common_events(self, cs_out, extra_gears=[], gas_resume_speed=-1, pcm_enable=True):  # pylint: disable=dangerous-default-value
     if cs_out.cruiseState.enabled and not self.CS.out.cruiseState.enabled:  # this lets us modularize which checks we want to turn off op if cc was engaged previoiusly or not
       disengage_event = True
     else:

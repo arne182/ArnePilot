@@ -1,3 +1,4 @@
+#pragma clang diagnostic ignored "-Wexceptions"
 #include "traffic.h"
 
 //#include <sched.h>
@@ -9,12 +10,13 @@ volatile sig_atomic_t do_exit = 0;
 
 const std::vector<std::string> modelLabels = {"SLOW", "GREEN", "NONE"};
 const int numLabels = modelLabels.size();
-const double modelRate = 1 / 5.;  // 5 Hz
+const double modelRate = 1 / 3.;  // 5 Hz
+const bool debug_mode = false;
 
 const int original_shape[3] = {874, 1164, 3};   // global constants
-const int original_size = 874 * 1164 * 3;
-const int cropped_shape[3] = {665, 814, 3};
-const int cropped_size = 665 * 814 * 3;
+//const int original_size = 874 * 1164 * 3;
+//const int cropped_shape[3] = {665, 814, 3};
+//const int cropped_size = 665 * 814 * 3;
 
 const int horizontal_crop = 175;
 const int top_crop = 0;
@@ -150,6 +152,7 @@ double rateKeeper(double loopTime, double lastLoop) {
 
 void set_do_exit(int sig) {
     std::cout << "trafficd - received signal: " << sig << std::endl;
+    std::cout << "trafficd - shutting down!" << std::endl;
     do_exit = 1;
 }
 
@@ -234,7 +237,11 @@ int main(){
             sendPrediction(modelOutputVec, traffic_lights_sock);
 
             lastLoop = rateKeeper(millis_since_boot() - loopStart, lastLoop);
-            // std::cout << "Current frequency: " << 1 / ((millis_since_boot() - loopStart) * msToSec) << " Hz" << std::endl;
+            if (debug_mode) {
+                int predictionIndex = std::max_element(modelOutputVec.begin(), modelOutputVec.end()) - modelOutputVec.begin();
+                printf("Model prediction: %s (%f%%)\n", modelLabels[predictionIndex].c_str(), 100 * modelOutputVec[predictionIndex]);
+                std::cout << "Current frequency: " << 1 / ((millis_since_boot() - loopStart) * msToSec) << " Hz" << std::endl;
+            }
         }
     }
     std::cout << "trafficd is dead" << std::endl;

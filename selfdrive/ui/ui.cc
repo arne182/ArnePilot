@@ -360,6 +360,10 @@ void handle_message(UIState *s, SubMaster &sm) {
 #ifdef SHOW_SPEEDLIMIT
   if (sm.updated("liveMapData")) {
     scene.map_valid = sm["liveMapData"].getLiveMapData().getMapValid();
+    scene.speedlimit = sm["liveMapData"].getLiveMapData().getSpeedLimit();
+    scene.speedlimit_valid = sm["liveMapData"].getLiveMapData().getSpeedLimitValid();
+    scene.speedlimitahead_valid = sm["liveMapData"].getLiveMapData().getSpeedLimitAheadValid();
+    scene.speedlimitaheaddistance = sm["liveMapData"].getLiveMapData().getSpeedLimitAheadDistance();
   }
 #endif
   if (sm.updated("thermal")) {

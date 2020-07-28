@@ -722,7 +722,11 @@ EVENTS = {
   },
 
   EventName.modeldLagging: {
-    ET.WARNING: SoftDisableAlert("Driving model lagging"),
+    ET.WARNING: Alert(
+      "Model Lagging",
+      "Cool the device!",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning2Repeat, 2.2, 3., 4.),
     ET.NO_ENTRY : NoEntryAlert("Driving model lagging"),
   },
 

@@ -214,7 +214,7 @@ void init_tests(void){
   torque_meas.min = 0;
   torque_meas.max = 0;
   vehicle_moving = false;
-  unsafe_mode = 0;
+  unsafe_mode = 1;
   set_timer(0);
 }
 
