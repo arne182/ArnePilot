@@ -95,7 +95,7 @@ class Events:
         setattr(event, event_type , True)
       ret.append(event)
     return ret
-  
+
 class Events_arne182:
   def __init__(self):
     self.events = []
@@ -605,7 +605,7 @@ EVENTS = {
       Priority.LOW, VisualAlert.none, AudibleAlert.chimeWarning1, .4, 2., 3.),
     ET.NO_ENTRY: NoEntryAlert("Planner Solution Error"),
   },
-  
+
   EventName.focusRecoverActive: {
     ET.WARNING: Alert(
       "TAKE CONTROL",
@@ -726,7 +726,7 @@ EVENTS = {
       "Model Lagging",
       "Cool the device!",
       AlertStatus.normal, AlertSize.mid,
-      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning2Repeat, 2.2, 3., 4.),
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0., .2),
     ET.NO_ENTRY : NoEntryAlert("Driving model lagging"),
   },
 
@@ -866,7 +866,7 @@ EVENTSARNE182 = {
       AlertStatus.normal, AlertSize.mid,
       Priority.LOWER, VisualAlert.none, AudibleAlert.chimeWarning1, 0.2, 0., 2.),
   },
-  
+
   EventNameArne182.preventALC: {
     ET.WARNING: Alert(
       "TAKE CONTROL",
@@ -874,7 +874,7 @@ EVENTSARNE182 = {
       AlertStatus.critical, AlertSize.full,
       Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .4, 3., 3.),
   },
-  
+
   EventNameArne182.leftALCbsm: {
     ET.WARNING: Alert(
       "Vehicle in Left Lane",
@@ -882,7 +882,7 @@ EVENTSARNE182 = {
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0.4, .3),
   },
-  
+
   EventNameArne182.rightALCbsm: {
     ET.WARNING: Alert(
       "Vehicle in Right Lane",
@@ -890,7 +890,7 @@ EVENTSARNE182 = {
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0.4, .3),
   },
-  
+
   EventNameArne182.longControlDisabled: {
     ET.WARNING: Alert(
       "Steer Assist Active",
@@ -898,7 +898,7 @@ EVENTSARNE182 = {
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.LOW, VisualAlert.none, AudibleAlert.none, .4, 2., 0.2),
   },
-  
+
   EventNameArne182.waitingMode: {
     ET.WARNING: Alert(
       "WAITING...",
@@ -906,7 +906,7 @@ EVENTSARNE182 = {
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, .4, 2., 0.2),
   },
-  
+
   EventNameArne182.wrongGearArne: {
     ET.WARNING: Alert(
       "TAKE CONTROL IMMEDIATELY",
@@ -914,7 +914,7 @@ EVENTSARNE182 = {
       AlertStatus.critical, AlertSize.full,
       Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.none, .1, 2., 2.),
   },
-  
+
   EventNameArne182.reverseGearArne: {
     ET.WARNING: Alert(
       "REVERSING",
@@ -922,6 +922,30 @@ EVENTSARNE182 = {
       AlertStatus.critical, AlertSize.full,
       Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.none, 2.2, 3., 4.),
     ET.NO_ENTRY: NoEntryAlert("Reverse Gear"),
+  },
+
+  EventNameArne182.trafficSlow: {
+    ET.WARNING: Alert(
+      "TRAFFIC LIGHT - SLOW DOWN",
+      "Red traffic light ahead",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, 0.1, 2., 0.2)
+  },
+
+  EventNameArne182.trafficGreen :{
+    ET.WARNING: Alert(
+      "TRAFFIC LIGHT - GREEN",
+      "Green traffic light ahead",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.LOW, VisualAlert.none, AudibleAlert.none, 0., 0., 0.2)
+  },
+
+  EventNameArne182.trafficDead :{
+    ET.WARNING: Alert(
+      "TRAFFICD IS DEAD",
+      "trafficd not responding!",
+      AlertStatus.critical, AlertSize.mid,
+      Priority.HIGHEST, VisualAlert.steerRequired, AudibleAlert.chimeWarning2, 2., .2, 3.)
   },
 
 }
