@@ -168,7 +168,7 @@ static void ui_init(UIState *s) {
 
   pthread_mutex_init(&s->lock, NULL);
   s->sm = new SubMaster({"model", "controlsState", "uiLayoutState", "liveCalibration", "radarState", "thermal",
-                         "health", "ubloxGnss", "driverState", "dMonitoringState", "carState", "gpsLocationExternal"
+                         "health", "ubloxGnss", "driverState", "dMonitoringState", "carState", "gpsLocationExternal, ipaddress"
 #ifdef SHOW_SPEEDLIMIT
                                     , "liveMapData"
 #endif
@@ -403,7 +403,12 @@ void handle_message(UIState *s, SubMaster &sm) {
     s->preview_started = data.getIsPreview();
   }
   //dev ui
-  snprintf(scene.ipAddr, sizeof(s->scene.ipAddr), "%s", data.ipAddr.str);
+  if (eventarne182d.which == cereal_EventArne182_ipAddress) {
+    struct cereal_IPAddress datad;
+    cereal_read_IPAddress(&datad, eventarne182d.ipAddress);
+    snprintf(s->scene.ipAddr, sizeof(s->scene.ipAddr), "%s", datad.ipAddr.str);
+  }
+
   if (sm.updated("carState")) {
     auto data = sm["carState"].getCarState();
     if(scene.leftBlinker!=data.getLeftBlinker() || scene.rightBlinker!=data.getRightBlinker()){
