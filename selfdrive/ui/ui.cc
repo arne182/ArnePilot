@@ -16,6 +16,7 @@
 #include "common/params.h"
 #include "common/utilpp.h"
 #include "ui.hpp"
+#include "cereal/gen/cpp/arne182.capnp.h"
 
 static void ui_set_brightness(UIState *s, int brightness) {
   static int last_brightness = -1;
@@ -91,7 +92,7 @@ static void update_offroad_layout_state(UIState *s) {
 //dfButton manager
 static void send_df(UIState *s, int status) {
   capnp::MallocMessageBuilder msg;
-  auto event = msg.initRoot<cereal::Event>();
+  auto EventArne182 = msg.initRoot<cereal::EventArne182>();
   event.setLogMonoTime(nanos_since_boot());
   auto dfStatus = event.initDynamicFollowButton();
   dfStatus.setStatus(status);
@@ -101,7 +102,7 @@ static void send_df(UIState *s, int status) {
 static bool handle_df_touch(UIState *s, int touch_x, int touch_y) {
   if (s->awake && s->vision_connected && s->status != STATUS_STOPPED) {
     int padding = 40;
-    if ((1660 - padding <= touch_x) && (855 - padding <= touch_y)) {
+    if (touch_x >= 1212 && touch_x <= 1310 && touch_y >= 902 && touch_y <= 1013) {
       s->scene.uilayout_sidebarcollapsed = true;  // collapse sidebar when tapping df button
       s->scene.dfButtonStatus++;
       if (s->scene.dfButtonStatus > 3) {
