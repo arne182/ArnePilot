@@ -541,7 +541,7 @@ static void ui_draw_vision_event(UIState *s) {
   const int viz_event_x = ((s->scene.ui_viz_rx + s->scene.ui_viz_rw) - (viz_event_w + (bdr_s*2)));
   const int viz_event_y = (box_y + (bdr_s*1.5));
   // for mapd speedlimit sign on the top right.
-  if (s->scene.speedlimitahead_valid() && s->scene.speedlimitaheaddistance() < 300 && s->scene.controls_state.getEnabled() && s->limit_set_speed()) {
+  if (s->scene.speedlimitahead_valid && s->scene.speedlimitaheaddistance < 300 && s->scene.controls_state.getEnabled() && s->limit_set_speed {
     // draw speed sign
     const int img_turn_size = 160;
     const int img_turn_x = viz_event_x-(img_turn_size/4)+80;
