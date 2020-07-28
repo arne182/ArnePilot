@@ -41,6 +41,7 @@
 #define COLOR_YELLOW nvgRGBA(218, 202, 37, 255)
 #define COLOR_RED nvgRGBA(201, 34, 49, 255)
 #define COLOR_OCHRE nvgRGBA(218, 111, 37, 255)
+#define COLOR_GREEN nvgRGBA(34, 201, 49, 255)
 
 #ifndef QCOM
   #define UI_60FPS
@@ -123,6 +124,7 @@ typedef struct UIScene {
   bool leftBlinker;
   bool rightBlinker;
   int blinker_blinkingrate;
+  char ipAddr[20];
 
   bool is_rhd;
   bool map_valid;

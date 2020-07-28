@@ -38,19 +38,48 @@ static void ui_draw_sidebar_network_strength(UIState *s) {
   ui_draw_image(s->vg, network_img_x, network_img_y, network_img_w, network_img_h, s->img_network[img_idx], 1.0f);
 }
 
-static void ui_draw_sidebar_battery_icon(UIState *s) {
-  const int battery_img_h = 36;
-  const int battery_img_w = 76;
-  const int battery_img_x = !s->scene.uilayout_sidebarcollapsed ? 160 : -(sbr_w);
-  const int battery_img_y = 255;
+// IP  address, thank you @eFini
+static void ui_draw_sidebar_ip_addr(UIState *s, bool hasSidebar) {
+  const int network_ip_w = 176;
+  const int network_ip_x = !s->scene.uilayout_sidebarcollapsed ? 54 : -(sbr_w);
+  const int network_ip_y = 255;
 
-  int battery_img = s->scene.thermal.getBatteryStatus() == "Charging" ? s->img_battery_charging : s->img_battery;
-
-  ui_draw_rect(s->vg, battery_img_x + 6, battery_img_y + 5,
-               ((battery_img_w - 19) * (s->scene.thermal.getBatteryPercent() * 0.01)), battery_img_h - 11, COLOR_WHITE);
-
-  ui_draw_image(s->vg, battery_img_x, battery_img_y, battery_img_w, battery_img_h, battery_img, 1.0f);
+  char network_ip_str[20];
+  snprintf(network_ip_str, sizeof(network_ip_str), "%s", s->scene.ipAddr);
+  nvgFillColor(s->vg, COLOR_WHITE);
+  nvgFontSize(s->vg, 34);
+   nvgFontFaceId(s->vg, s->font_sans_regular);
+  nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+  nvgTextBox(s->vg, network_ip_x, network_ip_y, network_ip_w, network_ip_str, NULL);
 }
+
+static void ui_draw_sidebar_battery_text(UIState *s) {
+  const int battery_img_w = 96;
+  const int battery_img_x = !s->scene.uilayout_sidebarcollapsed ? 150 : -(sbr_w);
+  const int battery_img_y = 305;
+
+  char battery_str[7];
+  snprintf(battery_str, sizeof(battery_str), "%d%%%s", s->scene.thermal.getBatteryPercent(), s->scene.thermal.getBatteryStatus() == "Charging" ? "+" : "-");
+  nvgFillColor(s->vg, COLOR_WHITE);
+  nvgFontSize(s->vg, 44);
+  nvgFontFaceId(s->vg, s->font_sans_regular);
+  nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+  nvgTextBox(s->vg, battery_img_x, battery_img_y, battery_img_w, battery_str, NULL);
+}
+
+//static void ui_draw_sidebar_battery_icon(UIState *s) {
+//  const int battery_img_h = 36;
+//  const int battery_img_w = 76;
+//  const int battery_img_x = !s->scene.uilayout_sidebarcollapsed ? 160 : -(sbr_w);
+//  const int battery_img_y = 255;
+
+//  int battery_img = s->scene.thermal.getBatteryStatus() == "Charging" ? s->img_battery_charging : s->img_battery;
+
+//  ui_draw_rect(s->vg, battery_img_x + 6, battery_img_y + 5,
+//               ((battery_img_w - 19) * (s->scene.thermal.getBatteryPercent() * 0.01)), battery_img_h - 11, COLOR_WHITE);
+
+//  ui_draw_image(s->vg, battery_img_x, battery_img_y, battery_img_w, battery_img_h, battery_img, 1.0f);
+//}
 
 static void ui_draw_sidebar_network_type(UIState *s) {
   static std::map<cereal::ThermalData::NetworkType, const char *> network_type_map = {
@@ -61,7 +90,7 @@ static void ui_draw_sidebar_network_type(UIState *s) {
       {cereal::ThermalData::NetworkType::CELL4_G, "4G"},
       {cereal::ThermalData::NetworkType::CELL5_G, "5G"}};
   const int network_x = !s->scene.uilayout_sidebarcollapsed ? 50 : -(sbr_w);
-  const int network_y = 273;
+  const int network_y = 303;
   const int network_w = 100;
   const char *network_type = network_type_map[s->scene.thermal.getNetworkType()];
   nvgFillColor(s->vg, COLOR_WHITE);
@@ -103,13 +132,13 @@ static void ui_draw_sidebar_metric(UIState *s, const char* label_str, const char
     nvgTextBox(s->vg, metric_x + 50, metric_y + 50, metric_w - 60, value_str, NULL);
 
     nvgFillColor(s->vg, COLOR_WHITE);
-    nvgFontSize(s->vg, 48);
+    nvgFontSize(s->vg, 46);
     nvgFontFaceId(s->vg, s->font_sans_regular);
     nvgTextAlign(s->vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
     nvgTextBox(s->vg, metric_x + 50, metric_y + 50 + 66, metric_w - 60, label_str, NULL);
   } else {
     nvgFillColor(s->vg, COLOR_WHITE);
-    nvgFontSize(s->vg, 48);
+    nvgFontSize(s->vg, 46);
     nvgFontFaceId(s->vg, s->font_sans_bold);
     nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
     nvgTextBox(s->vg, metric_x + 35, metric_y + (strchr(message_str, '\n') ? 40 : 50), metric_w - 50, message_str, NULL);
@@ -141,15 +170,15 @@ static void ui_draw_sidebar_panda_metric(UIState *s) {
 
   if (s->scene.hwType == cereal::HealthData::HwType::UNKNOWN) {
     panda_severity = 2;
-    snprintf(panda_message_str, sizeof(panda_message_str), "%s", "NO\nVEHICLE");
+    snprintf(panda_message_str, sizeof(panda_message_str), "%s", "VEHICLE\nNO");
   } else {
     if (s->started){
       if (s->scene.satelliteCount < 6) {
         panda_severity = 1;
-        snprintf(panda_message_str, sizeof(panda_message_str), "%s", "VEHICLE\nNO GPS");
+        snprintf(panda_message_str, sizeof(panda_message_str), "%s %d", "VEHICLE\nGPS:", s->scene.satelliteCount");
       } else if (s->scene.satelliteCount >= 6) {
         panda_severity = 0;
-        snprintf(panda_message_str, sizeof(panda_message_str), "%s", "VEHICLE\nGOOD GPS");
+        snprintf(panda_message_str, sizeof(panda_message_str), "%s %d", "VEHICLE\nGPS:", s->scene.satelliteCount");
       }
     } else {
       panda_severity = 0;
@@ -178,7 +207,8 @@ void ui_draw_sidebar(UIState *s) {
   ui_draw_sidebar_settings_button(s);
   ui_draw_sidebar_home_button(s);
   ui_draw_sidebar_network_strength(s);
-  ui_draw_sidebar_battery_icon(s);
+  ui_draw_sidebar_ip_addr(s);
+  ui_draw_sidebar_battery_text(s);
   ui_draw_sidebar_network_type(s);
   ui_draw_sidebar_temp_metric(s);
   ui_draw_sidebar_panda_metric(s);

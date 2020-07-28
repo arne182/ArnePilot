@@ -371,7 +371,7 @@ void handle_message(UIState *s, SubMaster &sm) {
       scene.gpsAccuracy = 99.8;
     }
   }
-  
+
 #ifdef SHOW_SPEEDLIMIT
   if (sm.updated("liveMapData")) {
     scene.map_valid = sm["liveMapData"].getLiveMapData().getMapValid();
@@ -403,6 +403,7 @@ void handle_message(UIState *s, SubMaster &sm) {
     s->preview_started = data.getIsPreview();
   }
   //dev ui
+  snprintf(scene.ipAddr, sizeof(s->scene.ipAddr), "%s", data.ipAddr.str);
   if (sm.updated("carState")) {
     auto data = sm["carState"].getCarState();
     if(scene.leftBlinker!=data.getLeftBlinker() || scene.rightBlinker!=data.getRightBlinker()){
