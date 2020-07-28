@@ -88,6 +88,32 @@ static void update_offroad_layout_state(UIState *s) {
 #endif
 }
 
+//dfButton manager
+static void send_df(UIState *s, int status) {
+  capnp::MallocMessageBuilder msg;
+  auto event = msg.initRoot<cereal::Event>();
+  event.setLogMonoTime(nanos_since_boot());
+  auto dfStatus = event.initDynamicFollowButton();
+  dfStatus.setStatus(status);
+  s->pm->send("dynamicFollowButton", msg);
+}
+
+static bool handle_df_touch(UIState *s, int touch_x, int touch_y) {
+  if (s->awake && s->vision_connected && s->status != STATUS_STOPPED) {
+    int padding = 40;
+    if ((1660 - padding <= touch_x) && (855 - padding <= touch_y)) {
+      s->scene.uilayout_sidebarcollapsed = true;  // collapse sidebar when tapping df button
+      s->scene.dfButtonStatus++;
+      if (s->scene.dfButtonStatus > 3) {
+        s->scene.dfButtonStatus = 0;
+      }
+      send_df(s, s->scene.dfButtonStatus);
+      return true;
+    }
+  }
+  return false;
+}
+
 static void handle_sidebar_touch(UIState *s, int touch_x, int touch_y) {
   if (!s->scene.uilayout_sidebarcollapsed && touch_x <= sbr_w) {
     if (touch_x >= settings_btn_x && touch_x < (settings_btn_x + settings_btn_w)
@@ -173,7 +199,7 @@ static void ui_init(UIState *s) {
                                     , "liveMapData"
 #endif
   });
-  s->pm = new PubMaster({"offroadLayout"});
+  s->pm = new PubMaster({"offroadLayout", "dynamicFollowButton"});
 
   s->ipc_fd = -1;
   s->scene.satelliteCount = -1;
@@ -214,6 +240,9 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
   s->scene.front_box_height = ui_info.front_box_height;
   s->scene.world_objects_visible = false;  // Invisible until we receive a calibration message.
   s->scene.gps_planner_active = false;
+
+  // Dynamic Follow
+  s->scene.dfButtonStatus = 0;
 
   s->rgb_width = back_bufs.width;
   s->rgb_height = back_bufs.height;
@@ -808,7 +837,9 @@ int main(int argc, char* argv[]) {
     if (touched == 1) {
       set_awake(s, true);
       handle_sidebar_touch(s, touch_x, touch_y);
-      handle_vision_touch(s, touch_x, touch_y);
+      if (!handle_df_touch(s, touch_x, touch_y) && !handle_ls_touch(s, touch_x, touch_y)) {  // disables sidebar from popping out when tapping df or ls button
+        handle_vision_touch(s, touch_x, touch_y);
+      }
     }
 
     if (!s->started) {

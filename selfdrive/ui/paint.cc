@@ -649,6 +649,28 @@ static void ui_draw_driver_view(UIState *s) {
   ui_draw_circle_image(s->vg, x, y, face_size, s->img_face, scene->driver_state.getFaceProb() > 0.4);
 }
 
+// @shanes, dynamic follow button.
+static void ui_draw_df_button(UIState *s) {
+  int btn_w = 150;
+  int btn_h = 150;
+  int btn_x = 1920 - btn_w;
+  int btn_y = 1080 - btn_h - 50;
+
+  nvgBeginPath(s->vg);
+  nvgRoundedRect(s->vg, btn_x-110, btn_y-45, btn_w, btn_h, 100);
+  nvgStrokeColor(s->vg, nvgRGBA(12, 79, 130, 255));
+  nvgStrokeWidth(s->vg, 11);
+  nvgStroke(s->vg);
+
+  nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 255));
+  nvgFontSize(s->vg, 80);
+  nvgText(s->vg, btn_x - 38, btn_y + 30, "DF", NULL);
+
+  nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 255));
+  nvgFontSize(s->vg, 45);
+  nvgText(s->vg, btn_x - 34, btn_y + 50 + 15, "profile", NULL);
+}
+
   //dev ui
 static void ui_draw_vision_brake(UIState *s) {
   const UIScene *scene = &s->scene;
@@ -1001,6 +1023,7 @@ static void ui_draw_vision_footer(UIState *s) {
 
   ui_draw_vision_face(s);
   ui_draw_vision_brake(s);
+  ui_draw_ls_button(s);
 
 #ifdef SHOW_SPEEDLIMIT
   ui_draw_vision_map(s);
