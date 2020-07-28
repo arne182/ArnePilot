@@ -394,6 +394,10 @@ void handle_message(UIState *s, SubMaster &sm) {
   if (sm.updated("carState")) {
     auto data = sm["carState"].getCarState();
     scene.brakeLights = data.getBrakeLights();
+    if(scene.leftBlinker!=data.getLeftBlinker() || scene.rightBlinker!=data.getRightBlinker())
+      scene.blinker_blinkingrate = 100;
+    scene.leftBlinker = data.getLeftBlinker();
+    scene.rightBlinker = data.getRightBlinker();
   }
 
   s->started = scene.thermal.getStarted() || s->preview_started;
