@@ -39,7 +39,7 @@ static void ui_draw_sidebar_network_strength(UIState *s) {
 }
 
 // IP  address, thank you @eFini
-static void ui_draw_sidebar_ip_addr(UIState *s, bool hasSidebar) {
+/*static void ui_draw_sidebar_ip_addr(UIState *s, bool hasSidebar) {
   const int network_ip_w = 176;
   const int network_ip_x = !s->scene.uilayout_sidebarcollapsed ? 54 : -(sbr_w);
   const int network_ip_y = 255;
@@ -51,7 +51,7 @@ static void ui_draw_sidebar_ip_addr(UIState *s, bool hasSidebar) {
    nvgFontFaceId(s->vg, s->font_sans_regular);
   nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
   nvgTextBox(s->vg, network_ip_x, network_ip_y, network_ip_w, network_ip_str, NULL);
-}
+}*/
 
 static void ui_draw_sidebar_battery_text(UIState *s) {
   const int battery_img_w = 96;
@@ -175,10 +175,10 @@ static void ui_draw_sidebar_panda_metric(UIState *s) {
     if (s->started){
       if (s->scene.satelliteCount < 6) {
         panda_severity = 1;
-        snprintf(panda_message_str, sizeof(panda_message_str), "%s %d", "VEHICLE\nGPS:", s->scene.satelliteCount");
+        snprintf(panda_message_str, sizeof(panda_message_str), "%s %d", "VEHICLE\nGPS:", s->scene.satelliteCount);
       } else if (s->scene.satelliteCount >= 6) {
         panda_severity = 0;
-        snprintf(panda_message_str, sizeof(panda_message_str), "%s %d", "VEHICLE\nGPS:", s->scene.satelliteCount");
+        snprintf(panda_message_str, sizeof(panda_message_str), "%s %d", "VEHICLE\nGPS:", s->scene.satelliteCount);
       }
     } else {
       panda_severity = 0;
