@@ -22,6 +22,8 @@
 #include "common/modeldata.h"
 #include "sound.hpp"
 
+#include "cereal/gen/c/arne182.capnp.h"
+
 #define STATUS_STOPPED 0
 #define STATUS_DISENGAGED 1
 #define STATUS_ENGAGED 2
@@ -123,12 +125,6 @@ typedef struct UIScene {
   bool rightBlinker;
   int blinker_blinkingrate;
   char ipAddr[20];
-  bool rightblindspot;
-  float rightblindspotD1;
-  float rightblindspotD2;
-  bool leftblindspot;
-  float leftblindspotD1;
-  float leftblindspotD2
 
   bool is_rhd;
   bool map_valid;

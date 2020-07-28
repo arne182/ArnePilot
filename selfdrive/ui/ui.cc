@@ -16,7 +16,6 @@
 #include "common/params.h"
 #include "common/utilpp.h"
 #include "ui.hpp"
-#include "cereal/gen/cpp/arne182.capnp.h"
 
 static void ui_set_brightness(UIState *s, int brightness) {
   static int last_brightness = -1;
@@ -169,7 +168,7 @@ static void ui_init(UIState *s) {
 
   pthread_mutex_init(&s->lock, NULL);
   s->sm = new SubMaster({"model", "controlsState", "uiLayoutState", "liveCalibration", "radarState", "thermal",
-                         "health", "ubloxGnss", "driverState", "dMonitoringState", "carState", "gpsLocationExternal, ipaddress, arne182"
+                         "health", "ubloxGnss", "driverState", "dMonitoringState", "carState", "gpsLocationExternal, ipaddress"
 #ifdef SHOW_SPEEDLIMIT
                                     , "liveMapData"
 #endif
@@ -404,6 +403,12 @@ void handle_message(UIState *s, SubMaster &sm) {
     s->preview_started = data.getIsPreview();
   }
   //dev ui
+  if (eventarne182d.which == cereal_EventArne182_ipAddress) {
+    struct cereal_IPAddress datad;
+    cereal_read_IPAddress(&datad, eventarne182d.ipAddress);
+    snprintf(s->scene.ipAddr, sizeof(s->scene.ipAddr), "%s", datad.ipAddr.str);
+  }
+
   if (sm.updated("carState")) {
     auto data = sm["carState"].getCarState();
     if(scene.leftBlinker!=data.getLeftBlinker() || scene.rightBlinker!=data.getRightBlinker()){
@@ -433,39 +438,6 @@ void handle_message(UIState *s, SubMaster &sm) {
     update_status(s, STATUS_DISENGAGED);
     s->active_app = cereal::UiLayoutState::App::NONE;
   }
-}
-
-void handle_message_arne182(UIState *s, Message * msg) {
-  struct capn ctxarne182;
-  capn_init_mem(&ctxarne182, (uint8_t*)msg->getData(), msg->getSize(), 0);
-
-  cereal_EventArne182_ptr eventarne182p;
-  eventarne182p.p = capn_getp(capn_root(&ctxarne182), 0, 1);
-  struct cereal_EventArne182 eventarne182d;
-  cereal_read_EventArne182(&eventarne182d, eventarne182p);
-
-  if (eventarne182d.which == cereal_EventArne182_thermalonline) {
-    struct cereal_ThermalOnlineData datad;
-    cereal_read_ThermalOnlineData(&datad, eventarne182d.thermalonline);
-
-    s->scene.pa0 = datad.pa0;
-    s->scene.freeSpace = datad.freeSpace;
-  } else if (eventarne182d.which == cereal_EventArne182_arne182Status) {
-    struct cereal_Arne182Status datad;
-    cereal_read_Arne182Status(&datad, eventarne182d.arne182Status);
-    s->scene.leftblindspot = datad.leftBlindspot;
-    s->scene.leftblindspotD1 = datad.leftBlindspotD1;
-    s->scene.leftblindspotD2 = datad.leftBlindspotD2;
-    s->scene.rightblindspot = datad.rightBlindspot;
-    s->scene.rightblindspotD1 = datad.rightBlindspotD1;
-    s->scene.rightblindspotD2 = datad.rightBlindspotD2;
-  } else if (eventarne182d.which == cereal_EventArne182_ipAddress) {
-    struct cereal_IPAddress datad;
-    cereal_read_IPAddress(&datad, eventarne182d.ipAddress);
-    snprintf(s->scene.ipAddr, sizeof(s->scene.ipAddr), "%s", datad.ipAddr.str);
-  }
-
-  capn_free(&ctxarne182);
 }
 
 static void check_messages(UIState *s) {
