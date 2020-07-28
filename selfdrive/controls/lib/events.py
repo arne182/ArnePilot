@@ -924,28 +924,4 @@ EVENTSARNE182 = {
     ET.NO_ENTRY: NoEntryAlert("Reverse Gear"),
   },
 
-  EventNameArne182.trafficSlow: {
-    ET.WARNING: Alert(
-      "TRAFFIC LIGHT - SLOW DOWN",
-      "Red traffic light ahead",
-      AlertStatus.userPrompt, AlertSize.mid,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, 0.1, 2., 0.2)
-  },
-
-  EventNameArne182.trafficGreen :{
-    ET.WARNING: Alert(
-      "TRAFFIC LIGHT - GREEN",
-      "Green traffic light ahead",
-      AlertStatus.normal, AlertSize.mid,
-      Priority.LOW, VisualAlert.none, AudibleAlert.none, 0., 0., 0.2)
-  },
-
-  EventNameArne182.trafficDead :{
-    ET.WARNING: Alert(
-      "TRAFFICD IS DEAD",
-      "trafficd not responding!",
-      AlertStatus.critical, AlertSize.mid,
-      Priority.HIGHEST, VisualAlert.steerRequired, AudibleAlert.chimeWarning2, 2., .2, 3.)
-  },
-
 }
