@@ -104,11 +104,21 @@ typedef struct UIScene {
   bool world_objects_visible;
   mat4 extrinsic_matrix;      // Last row is 0 so we can use mat4.
 
+  //dev ui
   float speedlimit;
   bool speedlimit_valid;
   float speedlimitaheaddistance;
   bool speedlimitahead_valid;
   float gpsAccuracy;
+  float angleSteersDes;
+  float angleSteers;
+  float pa0;
+  float freeSpace;
+  int lead_status;
+  int lead_status2;
+  float lead_d_rel, lead_y_rel, lead_v_rel;
+  float lead_d_rel2, lead_y_rel2, lead_v_rel2;
+  int engaged;
 
   bool is_rhd;
   bool map_valid;
@@ -137,9 +147,6 @@ typedef struct UIScene {
   cereal::RadarState::LeadData::Reader lead_data[2];
   cereal::ControlsState::Reader controls_state;
   cereal::DriverState::Reader driver_state;
-
-  float angleSteersDes;
-  float angleSteers;
 
 } UIScene;
 
