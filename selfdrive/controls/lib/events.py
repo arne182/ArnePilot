@@ -859,9 +859,41 @@ EVENTS = {
 
 EVENTSARNE182 = {
 
-  EventNameArne182.dfButtonAlert: {
+  "dfButtonAlert": {
     ET.WARNING: Alert(
       "Using profile:",
+      "",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.LOWER, VisualAlert.none, AudibleAlert.chimeWarning1, 0.2, 0., 2.),
+  },
+
+  "dfButtonAlertSilent": {
+    ET.WARNING: Alert(
+      "Using profile:",
+      "",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0.2, 0., 2.),
+  },
+
+  "trafficSlow": {
+    ET.WARNING: Alert(
+      "Traffic slow",
+      "",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.LOWER, VisualAlert.none, AudibleAlert.chimeWarning1, 0.2, 0., 2.),
+  },
+
+  "trafficGreen": {
+    ET.WARNING: Alert(
+      "Traffic Green",
+      "",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.LOWER, VisualAlert.none, AudibleAlert.chimeWarning1, 0.2, 0., 2.),
+  },
+
+  "trafficDead": {
+    ET.WARNING: Alert(
+      "Traffic dead",
       "",
       AlertStatus.normal, AlertSize.mid,
       Priority.LOWER, VisualAlert.none, AudibleAlert.chimeWarning1, 0.2, 0., 2.),

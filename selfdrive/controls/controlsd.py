@@ -464,7 +464,7 @@ class Controls:
       CAMERA_OFFSET = self.op_params.get('camera_offset', 0.06)
 
       l_lane_close = left_lane_visible and (self.sm['pathPlan'].lPoly[3] < (0.9 - CAMERA_OFFSET))
-      r_lane_close = right_lane_visible and (self.sm['pathPlan'].rPoly[3] > -(0.8 + CAMERA_OFFSET))
+      r_lane_close = right_lane_visible and (self.sm['pathPlan'].rPoly[3] > -(0.9 + CAMERA_OFFSET))
 
       CC.hudControl.leftLaneDepart = bool(l_lane_close)  # l_lane_change_prob > LANE_DEPARTURE_THRESHOLD and
       CC.hudControl.rightLaneDepart = bool(r_lane_close)  # r_lane_change_prob > LANE_DEPARTURE_THRESHOLD and

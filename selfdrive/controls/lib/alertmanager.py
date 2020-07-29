@@ -1,6 +1,6 @@
 from cereal import car, log
 from common.realtime import DT_CTRL
-from selfdrive.controls.lib.events import EVENTS
+from selfdrive.controls.lib.events import EVENTSARNE182
 from selfdrive.swaglog import cloudlog
 import copy
 
@@ -23,7 +23,7 @@ class AlertManager():
       self.add(frame, a, enabled=enabled)
 
   def add_custom(self, frame, alert_name, enabled=True, extra_text_1='', extra_text_2=''):
-    alert = EVENTS[alert_name]
+    alert = EVENTSARNE182[alert_name]
     added_alert = copy.copy(alert)
     added_alert.start_time = frame * DT_CTRL
     added_alert.alert_text_1 += extra_text_1
