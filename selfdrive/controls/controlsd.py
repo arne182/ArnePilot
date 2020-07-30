@@ -226,7 +226,7 @@ class Controls:
     if not self.sm.alive['plan'] and self.sm.alive['pathPlan']:
       # only plan not being received: radar not communicating
       self.events.add(EventName.radarCommIssue)
-    elif not self.sm.all_alive_and_valid():
+    elif not self.sm.all_alive_and_valid() and self.sm.frame > 10 / DT_CTRL:
       self.events.add(EventName.commIssue)
     if not self.sm['pathPlan'].mpcSolutionValid:
       self.events.add(EventName.plannerError)
@@ -251,8 +251,8 @@ class Controls:
       self.events.add(EventName.relayMalfunction)
     if self.sm['plan'].fcw:
       self.events.add(EventName.fcw)
-    if self.sm['model'].frameDropPerc > 1:
-      self.events.add(EventName.modeldLagging)
+    #if self.sm['model'].frameDropPerc > 1:
+    #  self.events.add(EventName.modeldLagging)
 
     # Only allow engagement with brake pressed when stopped behind another stopped car
     if CS.brakePressed and self.sm['plan'].vTargetFuture >= STARTING_TARGET_SPEED \
@@ -463,8 +463,8 @@ class Controls:
 
       CAMERA_OFFSET = self.op_params.get('camera_offset', 0.06)
 
-      l_lane_close = left_lane_visible and (self.sm['pathPlan'].lPoly[3] < (0.95 - CAMERA_OFFSET))
-      r_lane_close = right_lane_visible and (self.sm['pathPlan'].rPoly[3] > -(0.65 + CAMERA_OFFSET))
+      l_lane_close = left_lane_visible and (self.sm['pathPlan'].lPoly[3] < (1.0 - CAMERA_OFFSET))
+      r_lane_close = right_lane_visible and (self.sm['pathPlan'].rPoly[3] > -(0.6 + CAMERA_OFFSET))
 
       CC.hudControl.leftLaneDepart = bool(l_lane_close)  # l_lane_change_prob > LANE_DEPARTURE_THRESHOLD and
       CC.hudControl.rightLaneDepart = bool(r_lane_close)  # r_lane_change_prob > LANE_DEPARTURE_THRESHOLD and

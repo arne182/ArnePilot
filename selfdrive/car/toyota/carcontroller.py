@@ -158,15 +158,15 @@ class CarController():
     if not enabled and right_lane_depart and CS.out.vEgo > 12.5 and not CS.out.rightBlinker:
       new_steer = self.last_steer + 3
       new_steer = min(new_steer , 800)
-      print ("right")
-      print (new_steer)
+      #print ("right")
+      #print (new_steer)
       apply_steer_req = 1
 
     if not enabled and left_lane_depart and CS.out.vEgo > 12.5 and not CS.out.leftBlinker:
       new_steer = self.last_steer - 3
       new_steer = max(new_steer , -800)
-      print ("left")
-      print (new_steer)
+      #print ("left")
+      #print (new_steer)
       apply_steer_req = 1
 
     apply_steer = apply_toyota_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, SteerLimitParams)
