@@ -151,9 +151,15 @@ class CarInterfaceBase():
     # we engage when pcm is active (rising edge)
     if pcm_enable:
       if cs_out.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
-        events.add(EventName.pcmEnable)
+        if 0.8 < cs_out.vEgo < 1.2:
+          eventsArne182.add(EventNameArne182.pcmEnable)
+        else:
+          events.add(EventName.pcmEnable)
       elif not cs_out.cruiseState.enabled:
-        events.add(EventName.pcmDisable)
+        if 0.8 < cs_out.vEgo < 1.2:
+          eventsArne182.add(EventNameArne182.pcmDisable)
+        else:
+          events.add(EventName.pcmDisable)
 
     return events, eventsArne182
 

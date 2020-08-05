@@ -858,6 +858,14 @@ EVENTS = {
 }
 
 EVENTSARNE182 = {
+  
+  EventNameArne182.pcmEnable: {
+    ET.ENABLE: EngagementAlert(AudibleAlert.none),
+  },
+
+  EventNameArne182.pcmDisable: {
+    ET.USER_DISABLE: EngagementAlert(AudibleAlert.none),
+  },
 
   "dfButtonAlert": {
     ET.WARNING: Alert(
