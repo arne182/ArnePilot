@@ -530,7 +530,13 @@
         }
       }
     ], 
-    "New York": [
+"New York": [
+	{
+        "speed": "65 mph", 
+        "tags": {
+          "highway": "motorway"
+        }
+      }, 
       {
         "speed": "45 mph", 
         "tags": {
@@ -576,3 +582,4 @@
     ]
   }
 }
+
