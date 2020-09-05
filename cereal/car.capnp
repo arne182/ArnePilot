@@ -422,6 +422,8 @@ struct CarParams {
     kf @4 :Float32;
     kfV @5 :List(Float32);
     kfBP @6 :List(Float32);
+    kdBP @6 :List(Float32);
+    kdV @6 :List(Float32);
   }
 
   struct LongitudinalPIDTuning {
