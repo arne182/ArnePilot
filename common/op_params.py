@@ -96,6 +96,7 @@ class opParams:
                         'uniqueID': Param(None, [type(None), str], 'User\'s unique ID'),
                         'autoUpdate': Param(True, bool, 'Whether to auto-update'),
                         'corolla_tss2_d_tuning': Param(False, bool, 'lateral tuning using PID w/ true derivative'),
+                        'prius_use_pid': Param(False, bool, 'This enables the PID lateral controller with new a experimental derivative tune\nFalse: stock INDI, True: TSS2-tuned PID'),
                         'lat_d': Param(9.0, VT.number, 'The lateral derivative gain, default is 9.0 for TSS2 Corolla. This is active at all speeds', live=True),
                         'ludicrous_mode': Param(False, bool, 'Double overall acceleration!')}
 
