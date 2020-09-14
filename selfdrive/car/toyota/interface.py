@@ -10,7 +10,7 @@ from common.op_params import opParams
 op_params = opParams()
 spairrowtuning = op_params.get('spairrowtuning')
 corolla_tss2_d_tuning = op_params.get('corolla_tss2_d_tuning')
-prius_use_pid = op_params.get('prius_use_pid')
+#prius_use_pid = op_params.get('prius_use_pid')
 
 GearShifter = car.CarState.GearShifter
 
@@ -365,12 +365,12 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.indi.actuatorEffectiveness = 6.0
       #ret.steerActuatorDelay = 0.60
 
-      if prius_use_pid:
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
-        ret.lateralTuning.pid.kdBP = [0.]
-        ret.lateralTuning.pid.kdV = [9.0]  # from birdman6450
-        ret.lateralTuning.pid.kf = 0.00007818594
-        ret.steerActuatorDelay = 0.4  # from birdman6450
+     # if prius_use_pid:
+        #ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
+        #ret.lateralTuning.pid.kdBP = [0.]
+        #ret.lateralTuning.pid.kdV = [9.0]  # from birdman6450
+        #ret.lateralTuning.pid.kf = 0.00007818594
+        #ret.steerActuatorDelay = 0.4  # from birdman6450
 
     ret.steerRateCost = 1.
     ret.centerToFront = ret.wheelbase * 0.44
