@@ -22,6 +22,10 @@ from selfdrive.loggerd.config import get_available_percent
 from selfdrive.pandad import get_expected_version
 from selfdrive.thermald.power_monitoring import PowerMonitoring, get_battery_capacity, get_battery_status, \
                                                 get_battery_current, get_battery_voltage, get_usb_present
+from common.op_params import opParams
+
+op_params = opParams()
+NoctuaMode = op_params.get('NoctuaMode')
 
 FW_SIGNATURE = get_expected_version()
 
@@ -121,6 +125,9 @@ _TEMP_THRS_L = [35.5, 42.5, 50.5, 10000]
 _FAN_SPEEDS = [0, 32768, 32768, 65535]
 # max fan speed only allowed if battery is hot
 _BAT_TEMP_THERSHOLD = 45.
+if NoctuaMode:
+  _FAN_SPEEDS = [65535, 65535, 65535, 65535]
+  _BAT_TEMP_THERSHOLD = 20.
 
 
 def handle_fan_eon(max_cpu_temp, bat_temp, fan_speed, ignition):
