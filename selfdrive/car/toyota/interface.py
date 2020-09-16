@@ -356,17 +356,30 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.70
       ret.steerRatio = 15.74   # unknown end-to-end spec
       tire_stiffness_factor = 0.6371   # hand-tune
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.1]]
       ret.mass = 3115. * CV.LB_TO_KG + STD_CARGO_KG
-      # ret.lateralTuning.init('indi')
-      # ret.lateralTuning.indi.innerLoopGain = 6
-      # ret.lateralTuning.indi.outerLoopGain = 15.0
-      # ret.lateralTuning.indi.timeConstant = 5.5
-      # ret.lateralTuning.indi.actuatorEffectiveness = 6.0
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
-      ret.lateralTuning.pid.kdBP = [0.]
-      ret.lateralTuning.pid.kdV = [9.0]  # from birdman6450
-      ret.lateralTuning.pid.kf = [0.00007818594]
-      ret.steerActuatorDelay = 0.4  # from birdman6450
+      ret.lateralTuning.pid.kfV = [0.00007818594]
+      if spairrowtuning:
+        ret.steerActuatorDelay = 0.60
+        ret.steerRatio = 15.33
+        ret.steerLimitTimer = 5.0
+        tire_stiffness_factor = 0.996  # not optimized yet
+        #ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kpV = [[0.0, 15.5, 21.0, 29.0], [0.13, 0.39, 0.39, 0.6]]
+        #ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kiV = [[0.0, 15.5, 21.0, 29.0], [0.005, 0.015, 0.015, 0.1]]
+        #ret.lateralTuning.pid.kfBP, ret.lateralTuning.pid.kfV = [[0.0, 15.5, 21.0, 29.0], [0.00009, 0.00015, 0.00015, 0.00007818594]]
+        ret.lateralTuning.init('indi')
+        ret.lateralTuning.indi.innerLoopGain = 6
+        ret.lateralTuning.indi.outerLoopGain = 15.0
+        ret.lateralTuning.indi.timeConstant = 5.5
+        ret.lateralTuning.indi.actuatorEffectiveness = 6.0
+
+      if corolla_tss2_d_tuning:
+        ret.steerActuatorDelay = 0.40
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
+        ret.lateralTuning.pid.kdBP = [0.]
+        ret.lateralTuning.pid.kdV = [9.0]
+        ret.lateralTuning.pid.kf = 0.00007818594
+   
 
     ret.steerRateCost = 1.
     ret.centerToFront = ret.wheelbase * 0.44
