@@ -126,7 +126,7 @@ _FAN_SPEEDS = [0, 32768, 32768, 65535]
 # max fan speed only allowed if battery is hot
 _BAT_TEMP_THERSHOLD = 45.
 if NoctuaMode:
-  _FAN_SPEEDS = [65535, 65535, 65535, 65535]
+  _FAN_SPEEDS = [0, 65535, 65535, 65535]
   _BAT_TEMP_THERSHOLD = 20.
 
 
