@@ -10,6 +10,8 @@ from common.op_params import opParams
 op_params = opParams()
 spairrowtuning = op_params.get('spairrowtuning')
 corolla_tss2_d_tuning = op_params.get('corolla_tss2_d_tuning')
+prius_indi = op_params.get('prius_indi')
+prius_d_tuning = op_params.get('prius_d_tuning')
 
 GearShifter = car.CarState.GearShifter
 
@@ -359,7 +361,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.1]]
       ret.mass = 3115. * CV.LB_TO_KG + STD_CARGO_KG
       ret.lateralTuning.pid.kfV = [0.00007818594]
-      if spairrowtuning:
+      if prius_indi:
         ret.steerActuatorDelay = 0.60
         ret.steerRatio = 15.33
         ret.steerLimitTimer = 5.0
@@ -373,13 +375,13 @@ class CarInterface(CarInterfaceBase):
         ret.lateralTuning.indi.timeConstant = 5.5
         ret.lateralTuning.indi.actuatorEffectiveness = 6.0
 
-      if corolla_tss2_d_tuning:
+      if prius_d_tuning:
         ret.steerActuatorDelay = 0.40
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
         ret.lateralTuning.pid.kdBP = [0.]
         ret.lateralTuning.pid.kdV = [9.0]
         ret.lateralTuning.pid.kf = 0.00007818594
-   
+
 
     ret.steerRateCost = 1.
     ret.centerToFront = ret.wheelbase * 0.44
