@@ -100,7 +100,7 @@ class opParams:
                         'ludicrous_mode': Param(False, bool, 'Double overall acceleration!'),
                         'NoctuaMode': Param(False, bool, 'Noctua Fan are super quite and they run at full speed at all time.'),
                         'prius_indi': Param(False, bool, 'INDI Tuning for PRIUS_TSS2'),
-                        'prius_d_tuning': Param(True, bool, 'lateral tuning using PID w/ true derivative')}
+                        'prius_d_tuning': Param(False, bool, 'lateral tuning using PID w/ true derivative')}
 
     self._params_file = '/data/op_params.json'
     self._backup_file = '/data/op_params_corrupt.json'
