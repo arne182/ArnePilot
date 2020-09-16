@@ -278,7 +278,7 @@ class CarState(CarStateBase):
     self.pcm_acc_active = bool(cp.vl["PCM_CRUISE"]['CRUISE_ACTIVE'])
     ret.cruiseState.enabled = self.pcm_acc_active
 
-    if self.CP.carFingerprint in [CAR.PRIUS, CAR.PRIUS_2019]:
+    if self.CP.carFingerprint in [CAR.PRIUS, CAR.PRIUS_2019, CAR.PRIUS_TSS2]:
       ret.genericToggle = cp.vl["AUTOPARK_STATUS"]['STATE'] != 0
     else:
       ret.genericToggle = bool(cp.vl["LIGHT_STALK"]['AUTO_HIGH_BEAM'])
@@ -401,7 +401,7 @@ class CarState(CarStateBase):
       signals.append(("ECON_ON", "GEAR_PACKET2", 0))
 
 
-    if CP.carFingerprint in [CAR.PRIUS, CAR.PRIUS_2019]:
+    if CP.carFingerprint in [CAR.PRIUS, CAR.PRIUS_2019, CAR.PRIUS_TSS2]:
       signals += [("STATE", "AUTOPARK_STATUS", 0)]
 
     # add gas interceptor reading if we are using it
@@ -482,7 +482,7 @@ class CarState(CarStateBase):
     if CP.carFingerprint in [CAR.COROLLAH_TSS2, CAR.LEXUS_ESH_TSS2, CAR.RAV4H_TSS2, CAR.LEXUS_UXH_TSS2]:
       signals.append(("SPORT_ON", "GEAR_PACKET2", 0))
       signals.append(("ECON_ON", "GEAR_PACKET2", 0))
-    if CP.carFingerprint in [CAR.PRIUS, CAR.PRIUS_2019]:
+    if CP.carFingerprint in [CAR.PRIUS, CAR.PRIUS_2019, CAR.PRIUS_TSS2]:
       signals += [("STATE", "AUTOPARK_STATUS", 0)]
 
     # add gas interceptor reading if we are using it
