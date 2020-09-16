@@ -362,8 +362,8 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 3115. * CV.LB_TO_KG + STD_CARGO_KG
       ret.lateralTuning.pid.kfV = [0.00007818594]
       if prius_indi:
-        ret.steerActuatorDelay = 0.60
-        ret.steerRatio = 15.33
+        #ret.steerActuatorDelay = 0.60
+        ret.steerRatio = 15.74
         ret.steerLimitTimer = 5.0
         tire_stiffness_factor = 0.996  # not optimized yet
         #ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kpV = [[0.0, 15.5, 21.0, 29.0], [0.13, 0.39, 0.39, 0.6]]
@@ -376,7 +376,7 @@ class CarInterface(CarInterfaceBase):
         ret.lateralTuning.indi.actuatorEffectiveness = 6.0
 
       if prius_d_tuning:
-        ret.steerActuatorDelay = 0.40
+        #ret.steerActuatorDelay = 0.40
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
         ret.lateralTuning.pid.kdBP = [0.]
         ret.lateralTuning.pid.kdV = [9.0]
