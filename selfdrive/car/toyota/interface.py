@@ -377,7 +377,8 @@ class CarInterface(CarInterfaceBase):
 
       if prius_d_tuning:
         #ret.steerActuatorDelay = 0.40
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
+        ret.lateralTuning.pid.kpV = [0.6]
+        ret.lateralTuning.pid.kiV = [0.1]
         ret.lateralTuning.pid.kdBP = [0.]
         ret.lateralTuning.pid.kdV = [9.0]
         ret.lateralTuning.pid.kf = 0.00007818594
