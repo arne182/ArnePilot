@@ -201,8 +201,8 @@ ALERTS = [
 
   Alert(
       "startup",
-      "Be ready to take over at any time",
-      "Do not forget to PRAY!",
+      "Weclome to Selfdriving",
+      "pay attention to your surroundings",
       AlertStatus.normal, AlertSize.mid,
       Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., 8.),
 
