@@ -359,21 +359,9 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 15.74   # might be a bit lower
       tire_stiffness_factor = 0.6371   # hand-tune
       ret.mass = 3115. * CV.LB_TO_KG + STD_CARGO_KG
-      if prius_indi:
-        #ret.steerActuatorDelay = 0.60
-        ret.steerRatio = 15.74
-        ret.steerLimitTimer = 5.0
-        tire_stiffness_factor = 0.996  # not optimized yet
-        ret.lateralTuning.init('indi')
-        ret.lateralTuning.indi.innerLoopGain = 6
-        ret.lateralTuning.indi.outerLoopGain = 15.0
-        ret.lateralTuning.indi.timeConstant = 5.5
-        ret.lateralTuning.indi.actuatorEffectiveness = 6.0
-      else:
-        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.1]]
-        ret.lateralTuning.pid.kfV = [0.00007818594]
-        if prius_d_tuning:
-          ret.lateralTuning.pid.kdV = [9.0]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
+      ret.lateralTuning.pid.kf = [0.00007818594]
+      ret.steerActuatorDelay = 0.4  # from birdman6450
 
 
     ret.steerRateCost = 1.
