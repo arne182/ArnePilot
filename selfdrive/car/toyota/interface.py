@@ -356,15 +356,28 @@ class CarInterface(CarInterfaceBase):
       stop_and_go = True
       ret.safetyParam = 54
       ret.wheelbase = 2.70
-      ret.steerRatio = 15.74  # unknown end-to-end spec
-      tire_stiffness_factor = 0.6371  # hand-tune
-      ret.mass = 3115. * CV.LB_TO_KG + STD_CARGO_KG
+      ret.steerRatio = 15.74   # unknown end-to-end spec
+      tire_stiffness_factor = 0.6371   # hand-tune
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
-      ret.lateralTuning.pid.kdBP = [0.]
-      ret.lateralTuning.pid.kdV = [2.]
-      ret.lateralTuning.pid.kf = 0.00007818594
-      # ret.steerActuatorDelay = 0.4  # from birdman6450
+      ret.mass = 3115. * CV.LB_TO_KG + STD_CARGO_KG
+      ret.lateralTuning.pid.kfV = [0.00007818594]
+      if spairrowtuning:
+        ret.steerActuatorDelay = 0.12
+        ret.steerRatio = 15.33
+        ret.steerLimitTimer = 5.0
+        tire_stiffness_factor = 0.6371  # hand-tune
+        ret.lateralTuning.init('indi')
+        ret.lateralTuning.indi.innerLoopGain = 6
+        ret.lateralTuning.indi.outerLoopGain = 15.0
+        ret.lateralTuning.indi.timeConstant = 5.5
+        ret.lateralTuning.indi.actuatorEffectiveness = 6.0
 
+      if corolla_tss2_d_tuning:
+        ret.steerActuatorDelay = 0.12
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.1]]
+        ret.lateralTuning.pid.kdBP = [0.]
+        ret.lateralTuning.pid.kdV = [2.0]
+        ret.lateralTuning.pid.kf = 0.00007818594
 
     ret.steerRateCost = 1.
     ret.centerToFront = ret.wheelbase * 0.44
