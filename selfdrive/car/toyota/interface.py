@@ -354,14 +354,16 @@ class CarInterface(CarInterfaceBase):
 
     elif candidate == CAR.PRIUS_TSS2:
       stop_and_go = True
-      ret.safetyParam = 73 # This needs to be checked
+      ret.safetyParam = 54
       ret.wheelbase = 2.70
-      ret.steerRatio = 15.74   # might be a bit lower
-      tire_stiffness_factor = 0.6371   # hand-tune
+      ret.steerRatio = 15.74  # unknown end-to-end spec
+      tire_stiffness_factor = 0.6371  # hand-tune
       ret.mass = 3115. * CV.LB_TO_KG + STD_CARGO_KG
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
-      ret.lateralTuning.pid.kf = [0.00007818594]
-      ret.steerActuatorDelay = 0.4  # from birdman6450
+      ret.lateralTuning.pid.kdBP = [0.]
+      ret.lateralTuning.pid.kdV = [2.]
+      ret.lateralTuning.pid.kf = 0.00007818594
+      # ret.steerActuatorDelay = 0.4  # from birdman6450
 
 
     ret.steerRateCost = 1.
