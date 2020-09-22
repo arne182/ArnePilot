@@ -317,8 +317,8 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 18.6
       tire_stiffness_factor = 0.517
       ret.mass = 3108 * CV.LB_TO_KG + STD_CARGO_KG  # mean between min and max
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.05]]
-      ret.lateralTuning.pid.kfV = [0.00007]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.291], [0.035]]
+      ret.lateralTuning.pid.kfV = [0.00004]
 
     elif candidate == CAR.LEXUS_NXH:
       stop_and_go = True
