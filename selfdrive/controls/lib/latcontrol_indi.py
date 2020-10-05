@@ -36,6 +36,7 @@ class LatControlINDI():
 
     self.RC = CP.lateralTuning.indi.timeConstant
     self.G = CP.lateralTuning.indi.actuatorEffectiveness
+    self.outer_loop_gain = CP.lateralTuning.indi.outerLoopGain
     self.outer_loop_gainV = CP.lateralTuning.indi.outerLoopGainV
     self.outer_loop_gainBP = CP.lateralTuning.indi.outerLoopGainBP
     self.inner_loop_gain = CP.lateralTuning.indi.innerLoopGain
