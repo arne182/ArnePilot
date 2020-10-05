@@ -438,11 +438,11 @@ struct CarParams {
   }
 
   struct LateralINDITuning {
-    outerLoopGainV @0 :Float32;
+    outerLoopGainV @0 :List(Float32);
     innerLoopGain @1 :Float32;
     timeConstant @2 :Float32;
     actuatorEffectiveness @3 :Float32;
-    outerLoopGainBP @4 :Float32;
+    outerLoopGainBP @4 :List(Float32);
   }
 
   struct LateralLQRTuning {
@@ -462,7 +462,7 @@ struct CarParams {
   enum SafetyModel {
     silent @0;
     hondaNidec @1;
-    toyota @2;
+    toyota @2; 
     elm327 @3;
     gm @4;
     hondaBoschGiraffe @5;
