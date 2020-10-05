@@ -67,8 +67,7 @@ class LatControlINDI():
   def update(self, active, CS, CP, path_plan):
     self.outer_loop_gainV = CP.lateralTuning.indi.outerLoopGainV
     self.outer_loop_gainBP = CP.lateralTuning.indi.outerLoopGainBP
-    self.outer_loop_gainV = interp(CP.lateralTuning.indi.outerLoopGainV)
-    self.outer_loop_gainBP = interp(CP.lateralTuning.indi.outerLoopGainBP)
+    self.outer_loop_gain = interp(CS.vEgo, self.outer_loop_gainBP, self.outer_loop_gainV)
     
     # Update Kalman filter
     y = np.matrix([[math.radians(CS.steeringAngle)], [math.radians(CS.steeringRate)]])
