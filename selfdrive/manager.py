@@ -557,6 +557,10 @@ def main():
 
     # disable bluetooth
     os.system('service call bluetooth_manager 8')
+    
+  # Enable Hotspot On Boot
+  if op_params.get('hotspot_on_boot'):
+    os.system("service call wifi 37 i32 0 i32 1 &")
 
   params = Params()
   params.manager_start()
