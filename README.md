@@ -117,6 +117,7 @@ All WIP features can be configured by modifying `python /data/opepilot/op_edit.p
 - OSM tracers logging and uploading anonymously to help improve MapD as well as OSM accuracy. [Arne is currently ranked 8th for overal tracers uploaded](https://www.openstreetmap.org/stats/data_stats.html).
 - Added stats that track meter driven as well as overrides/disengagement. These go to a leaderboard. Please added your name to `python /data/opepilot/op_edit.py` to participate.
 # Licensing
+© OpenStreetMap contributors
 
 ArnePilot is released under the MIT license. Some parts of the software are released under other licenses as specified.
 

@@ -210,7 +210,15 @@ class SubMaster():
     if service_list is None:  # check all
       service_list = self.alive.keys()
     return self.all_alive(service_list=service_list) and self.all_valid(service_list=service_list)
-
+  
+  def print_dead_and_not_valid(self, service_list=None):
+    if service_list is None:  # check all
+      service_list = self.alive.keys()
+    for s in service_list:
+      if not self.valid[s]:
+        print(str(s) + " is not valid!")
+      if not self.alive[s]:
+        print(str(s) +' is not alive!')
 
 class PubMaster():
   def __init__(self, services):

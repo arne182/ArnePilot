@@ -38,9 +38,9 @@ class LoggerThread(threading.Thread):
         self.logger.setLevel(logging.CRITICAL) # set to logging.DEBUG to enable logging
         # self.logger.setLevel(logging.DEBUG) # set to logging.CRITICAL to disable logging
 
-    def save_gps_data(self, gps):
+    def save_gps_data(self, gps, osm_way_id):
         try:
-            location = [gps.speed, gps.bearing, gps.latitude, gps.longitude, gps.altitude, gps.accuracy, time.time()]
+            location = [gps.speed, gps.bearing, gps.latitude, gps.longitude, gps.altitude, gps.accuracy, time.time(), osm_way_id]
             with open("/data/openpilot/selfdrive/data_collection/gps-data", "a") as f:
                 f.write("{}\n".format(location))
         except:
@@ -395,7 +395,7 @@ class MapsdThread(LoggerThread):
 
             if cur_way is not None:
                 dat.liveMapData.wayId = cur_way.id
-
+                self.sharedParams['osm_way_id'] = cur_way.id
                 # Speed limit
                 max_speed = cur_way.max_speed(heading)
                 max_speed_ahead = None
@@ -435,7 +435,8 @@ class MapsdThread(LoggerThread):
                 if curvature is not None:
                     dat.liveMapData.roadCurvatureX = [float(x) for x in dists]
                     dat.liveMapData.roadCurvature = [float(x) for x in curvature]
-
+            else:
+                self.sharedParams['osm_way_id'] = 0
             if self.sharedParams['speedLimittrafficvalid']:
                 if speedLimittraffic > 0.1:
                     dat.liveMapData.speedLimitValid = True
@@ -478,7 +479,7 @@ class MessagedGPSThread(LoggerThread):
             self.sm.update(0)
             if self.sm.updated['gpsLocationExternal']:
                 gps = self.sm['gpsLocationExternal']
-                self.save_gps_data(gps)
+                self.save_gps_data(gps, self.sharedParams['osm_way_id'])
 
             query_lock = self.sharedParams.get('query_lock', None)
 
@@ -577,12 +578,13 @@ def main():
     speedLimittraffic = 0
     speedLimittrafficvalid = False
     speedLimittrafficAdvisory = 0
+    osm_way_id = 0
     speedLimittrafficAdvisoryvalid = False
     sharedParams = {'last_gps' : last_gps, 'query_lock' : query_lock, 'last_query_result' : last_query_result, \
                     'last_query_pos' : last_query_pos, 'cache_valid' : cache_valid, 'traffic_status' : traffic_status, \
                     'traffic_confidence' : traffic_confidence, 'last_not_none_signal' : last_not_none_signal, \
                     'speedLimittraffic' : speedLimittraffic, 'speedLimittrafficvalid' : speedLimittrafficvalid, \
-                    'speedLimittrafficAdvisory' : speedLimittrafficAdvisory, 'speedLimittrafficAdvisoryvalid' : speedLimittrafficAdvisoryvalid}
+                    'speedLimittrafficAdvisory' : speedLimittrafficAdvisory, 'speedLimittrafficAdvisoryvalid' : speedLimittrafficAdvisoryvalid, 'osm_way_id' : osm_way_id}
 
     qt = QueryThread(1, "QueryThread", sharedParams=sharedParams)
     mt = MapsdThread(2, "MapsdThread", sharedParams=sharedParams)

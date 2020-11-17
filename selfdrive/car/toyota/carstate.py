@@ -54,6 +54,7 @@ class CarState(CarStateBase):
     self.smartspeed = 0
     self.rsa_ignored_speed = 0
     self.spdval1 = 0
+    self.distance = 0
     if not travis:
       self.arne_pm = messaging_arne.PubMaster(['liveTrafficData', 'arne182Status'])
       self.arne_sm = messaging_arne.SubMaster(['latControl'])
@@ -107,15 +108,16 @@ class CarState(CarStateBase):
       self.econ_on = cp.vl["GEAR_PACKET"]['ECON_ON']
     except:
       self.econ_on = 0
-    if self.CP.carFingerprint in [CAR.COROLLAH_TSS2, CAR.LEXUS_ESH_TSS2, CAR.RAV4H_TSS2, CAR.LEXUS_UXH_TSS2, CAR.CHRH]:
-      self.econ_on = cp.vl["GEAR_PACKET2"]['ECON_ON']
-
     try:
-      self.sport_on = cp.vl["GEAR_PACKET"]['SPORT_ON']
+      if self.CP.carFingerprint == CAR.RAV4_TSS2:
+        self.sport_on = cp.vl["GEAR_PACKET"]['SPORT_ON_2']
+      else:
+        self.sport_on = cp.vl["GEAR_PACKET"]['SPORT_ON']
     except:
       self.sport_on = 0
-    if self.CP.carFingerprint in [CAR.COROLLAH_TSS2, CAR.LEXUS_ESH_TSS2, CAR.RAV4H_TSS2, CAR.LEXUS_UXH_TSS2, CAR.CHRH]:
+    if self.CP.carFingerprint in [CAR.COROLLAH_TSS2, CAR.LEXUS_ESH_TSS2, CAR.RAV4H_TSS2, CAR.LEXUS_UXH_TSS2, CAR.CHRH, CAR.PRIUS_TSS2, CAR.HIGHLANDERH_TSS2]:
       self.sport_on = cp.vl["GEAR_PACKET2"]['SPORT_ON']
+      self.econ_on = cp.vl["GEAR_PACKET2"]['ECON_ON']
 
     if self.sport_on == 1:
       self.gasbuttonstatus = 1
@@ -155,7 +157,7 @@ class CarState(CarStateBase):
         self.rightblindspot = False
         self.rightblindspotD1 = 0
         self.rightblindspotD2 = 0
-    elif frame > 999 and self.CP.carFingerprint in TSS2_CAR:
+    elif frame > 999 and self.CP.carFingerprint in TSS2_CAR or self.CP.carFingerprint == CAR.AVALON_2021:
       self.leftblindspot = cp.vl["BSM"]['L_ADJACENT'] == 1
       self.leftblindspotD1 = 10.1
       self.leftblindspotD2 = 10.1
@@ -292,12 +294,14 @@ class CarState(CarStateBase):
     #self.barriers = cp_cam.vl["LKAS_HUD"]['BARRIERS']
     #self.rightline = cp_cam.vl["LKAS_HUD"]['RIGHT_LINE']
     #self.leftline = cp_cam.vl["LKAS_HUD"]['LEFT_LINE']
-
+    
+    self.distance = cp_cam.vl["ACC_CONTROL"]['DISTANCE']
+    
     self.tsgn1 = cp_cam.vl["RSA1"]['TSGN1']
     if self.spdval1 != cp_cam.vl["RSA1"]['SPDVAL1']:
       self.rsa_ignored_speed = 0
     self.spdval1 = cp_cam.vl["RSA1"]['SPDVAL1']
-
+    
     self.splsgn1 = cp_cam.vl["RSA1"]['SPLSGN1']
     self.tsgn2 = cp_cam.vl["RSA1"]['TSGN2']
     #self.spdval2 = cp_cam.vl["RSA1"]['SPDVAL2']
@@ -383,9 +387,9 @@ class CarState(CarStateBase):
       ("STEER_ANGLE_SENSOR", 80),
       ("PCM_CRUISE", 33),
       ("STEER_TORQUE_SENSOR", 50),
-      ("EPS_STATUS", 25),
     ]
-
+    if CP.carFingerprint != CAR.AVALON_2021:
+      checks.append(("EPS_STATUS", 25))
     if CP.carFingerprint == CAR.LEXUS_IS:
       signals.append(("MAIN_ON", "DSU_CRUISE", 0))
       signals.append(("SET_SPEED", "DSU_CRUISE", 0))
@@ -396,7 +400,7 @@ class CarState(CarStateBase):
       signals.append(("LOW_SPEED_LOCKOUT", "PCM_CRUISE_2", 0))
       checks.append(("PCM_CRUISE_2", 33))
 
-    if CP.carFingerprint in [CAR.COROLLAH_TSS2, CAR.LEXUS_ESH_TSS2, CAR.RAV4H_TSS2, CAR.LEXUS_UXH_TSS2, CAR.CHRH]:
+    if CP.carFingerprint in [CAR.COROLLAH_TSS2, CAR.LEXUS_ESH_TSS2, CAR.RAV4H_TSS2, CAR.LEXUS_UXH_TSS2, CAR.CHRH, CAR.PRIUS_TSS2, CAR.HIGHLANDERH_TSS2]:
       signals.append(("SPORT_ON", "GEAR_PACKET2", 0))
       signals.append(("ECON_ON", "GEAR_PACKET2", 0))
 
@@ -410,7 +414,7 @@ class CarState(CarStateBase):
       signals.append(("INTERCEPTOR_GAS2", "GAS_SENSOR", 0))
       checks.append(("GAS_SENSOR", 50))
 
-    if CP.carFingerprint in TSS2_CAR:
+    if CP.carFingerprint in TSS2_CAR or CP.carFingerprint == CAR.AVALON_2021:
       signals += [("L_ADJACENT", "BSM", 0)]
       signals += [("R_ADJACENT", "BSM", 0)]
 
@@ -466,9 +470,11 @@ class CarState(CarStateBase):
       ("STEER_ANGLE_SENSOR", 80),
       ("PCM_CRUISE", 33),
       ("STEER_TORQUE_SENSOR", 50),
-      ("EPS_STATUS", 25),
     ]
-
+    if CP.carFingerprint != CAR.AVALON_2021:
+      checks.append(("EPS_STATUS", 25))
+    if CP.carFingerprint == CAR.RAV4_TSS2:
+      signals.append(("SPORT_ON_2", "GEAR_PACKET", 0))
     if CP.carFingerprint == CAR.LEXUS_IS:
       signals.append(("MAIN_ON", "DSU_CRUISE", 0))
       signals.append(("SET_SPEED", "DSU_CRUISE", 0))
@@ -479,7 +485,7 @@ class CarState(CarStateBase):
       signals.append(("LOW_SPEED_LOCKOUT", "PCM_CRUISE_2", 0))
       checks.append(("PCM_CRUISE_2", 33))
 
-    if CP.carFingerprint in [CAR.COROLLAH_TSS2, CAR.LEXUS_ESH_TSS2, CAR.RAV4H_TSS2, CAR.LEXUS_UXH_TSS2]:
+    if CP.carFingerprint in [CAR.COROLLAH_TSS2, CAR.LEXUS_ESH_TSS2, CAR.RAV4H_TSS2, CAR.LEXUS_UXH_TSS2, CAR.CHRH, CAR.PRIUS_TSS2, CAR.HIGHLANDERH_TSS2]:
       signals.append(("SPORT_ON", "GEAR_PACKET2", 0))
       signals.append(("ECON_ON", "GEAR_PACKET2", 0))
     if CP.carFingerprint in [CAR.PRIUS, CAR.PRIUS_2019]:
@@ -490,11 +496,8 @@ class CarState(CarStateBase):
       signals.append(("INTERCEPTOR_GAS", "GAS_SENSOR", 0))
       signals.append(("INTERCEPTOR_GAS2", "GAS_SENSOR", 0))
       checks.append(("GAS_SENSOR", 50))
-    if CP.carFingerprint in TSS2_CAR:
-      signals += [("L_ADJACENT", "BSM", 0)]
-      signals += [("R_ADJACENT", "BSM", 0)]
 
-    if CP.carFingerprint in TSS2_CAR:
+    if CP.carFingerprint in TSS2_CAR or CP.carFingerprint == CAR.AVALON_2021:
       signals += [("L_ADJACENT", "BSM", 0)]
       signals += [("L_APPROACHING", "BSM", 0)]
       signals += [("R_ADJACENT", "BSM", 0)]
@@ -517,6 +520,7 @@ class CarState(CarStateBase):
                ("SPLSGN3", "RSA2", 0),
                ("TSGN4", "RSA2", 0),
                ("SPLSGN4", "RSA2", 0),
+               ("DISTANCE", "ACC_CONTROL", 0),
                #("BARRIERS", "LKAS_HUD", 0),
                #("RIGHT_LINE", "LKAS_HUD", 0),
                #("LEFT_LINE", "LKAS_HUD", 0),

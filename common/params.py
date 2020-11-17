@@ -72,6 +72,7 @@ keys = {
   "GitCommit": [TxType.PERSISTENT],
   "GitRemote": [TxType.PERSISTENT],
   "GithubSshKeys": [TxType.PERSISTENT],
+  "HandsOnWheelMonitoring": [TxType.PERSISTENT],
   "HasAcceptedTerms": [TxType.PERSISTENT],
   "HasCompletedSetup": [TxType.PERSISTENT],
   "IsDriverViewEnabled": [TxType.CLEAR_ON_MANAGER_START],

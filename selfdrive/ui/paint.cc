@@ -21,10 +21,10 @@ const mat3 intrinsic_matrix = (mat3){{
 }};
 
 const uint8_t alert_colors[][4] = {
-  [STATUS_STOPPED] = {0x07, 0x23, 0x39, 0xf1},
-  [STATUS_DISENGAGED] = {0x17, 0x33, 0x49, 0xc8},
-  [STATUS_ENGAGED] = {0x17, 0x86, 0x44, 0x01},
-  [STATUS_WARNING] = {0xDA, 0x6F, 0x25, 0x01},
+  [STATUS_STOPPED] = {0x0, 0x0, 0x0, 0xf1},
+  [STATUS_DISENGAGED] = {0x0, 0x0, 0x0, 0xc8},
+  [STATUS_ENGAGED] = {0x01, 0x50, 0x01, 0x01},
+  [STATUS_WARNING] = {0x80, 0x80, 0x80, 0x0f},
   [STATUS_ALERT] = {0xC9, 0x22, 0x31, 0xf1},
 };
 
@@ -124,7 +124,7 @@ static void draw_lead(UIState *s, const cereal::RadarState::LeadData::Reader &le
     }
     fillAlpha = (int)(fmin(fillAlpha, 255));
   }
-  draw_chevron(s, d_rel, lead.getYRel(), 25, nvgRGBA(201, 34, 49, fillAlpha), COLOR_YELLOW);
+  draw_chevron(s, d_rel, lead.getYRel(), 25, nvgRGBA(20, 20, 20, fillAlpha), nvgRGBA(255, 255, 255, 255));
 }
 
 static void ui_draw_lane_line(UIState *s, const model_path_vertices_data *pvd, NVGcolor color) {
@@ -316,7 +316,7 @@ static void draw_frame(UIState *s) {
     #ifndef QCOM
       // TODO: a better way to do this?
       //printf("%d\n", ((int*)s->priv_hnds[s->cur_vision_idx])[0]);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1164, 874, 0, GL_RGB, GL_UNSIGNED_BYTE, s->priv_hnds[s->cur_vision_idx]);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1164, 874, 0, GL_RED, GL_UNSIGNED_BYTE, s->priv_hnds[s->cur_vision_idx]);
     #endif
   }
 
@@ -369,7 +369,11 @@ static void update_all_lane_lines_data(UIState *s, const PathData &path, model_p
   update_lane_line_data(s, path.points, var, pstart + 2, path.validLen);
 }
 
-static void ui_draw_lane(UIState *s, const PathData *path, model_path_vertices_data *pstart, NVGcolor color) {
+static void ui_draw_lane(UIState *s, const PathData *path, model_path_vertices_data *pstart, float prob) {
+  float lane_pos = std::abs(path->poly[3]);  // get redder when line is closer to car
+  float hue = 332.5 * lane_pos - 332.5;  // equivalent to {1.4, 1.0}: {133, 0} (green to red)
+  hue = fmin(133, fmax(0, hue)) / 360.;  // clip and normalize
+  NVGcolor color = nvgHSLA(hue, 0.73, 0.64, prob * 255);
   ui_draw_lane_line(s, pstart, color);
   color.a /= 25;
   ui_draw_lane_line(s, pstart + 1, color);
@@ -387,13 +391,13 @@ static void ui_draw_vision_lanes(UIState *s) {
   ui_draw_lane(
       s, &scene->model.left_lane,
       pvd,
-      nvgRGBAf(1.0, 1.0, 1.0, scene->model.left_lane.prob));
+      scene->model.left_lane.prob);
 
   // Draw right lane edge
   ui_draw_lane(
       s, &scene->model.right_lane,
       pvd + MODEL_LANE_PATH_CNT,
-      nvgRGBAf(1.0, 1.0, 1.0, scene->model.right_lane.prob));
+      scene->model.right_lane.prob);
 
   if(s->sm->updated("radarState")) {
     update_all_track_data(s);
@@ -483,7 +487,7 @@ static void ui_draw_vision_maxspeed(UIState *s) {
                is_set_over_limit ? nvgRGBA(218, 111, 37, 180) : COLOR_BLACK_ALPHA(100), 30);
 
   // Draw Border
-  NVGcolor color = COLOR_WHITE_ALPHA(100);
+  NVGcolor color = COLOR_WHITE_ALPHA(255);
   if (is_set_over_limit) {
     color = COLOR_OCHRE;
   } else if (is_speedlim_valid) {
@@ -647,10 +651,25 @@ static void ui_draw_vision_event(UIState *s) {
       } else if (is_warning) {
         nvgFillColor(s->vg, COLOR_OCHRE);
       } else if (is_engageable) {
-        nvgFillColor(s->vg, nvgRGBA(23, 51, 73, 255));
+        nvgFillColor(s->vg, nvgRGBA(0, 0, 0, 255));
       }
       nvgFill(s->vg);
       img_wheel_alpha = 1.0f;
+
+      // draw hands on wheel pictogram under wheel pictogram.
+      auto handsOnWheelState = s->scene.dmonitoring_state.getHandsOnWheelState();
+      if (handsOnWheelState >= cereal::DMonitoringState::HandsOnWheelState::WARNING) {
+        NVGcolor color;
+        if (handsOnWheelState == cereal::DMonitoringState::HandsOnWheelState::WARNING) {
+          color = COLOR_OCHRE;
+        } else {
+          color = COLOR_RED;
+        }
+        const int wheel_size = 96;
+        const int wheel_x = viz_event_x + viz_event_w - wheel_size;
+        const int wheel_y = bg_wheel_y + bdr_s + bg_wheel_size + wheel_size;
+        ui_draw_circle_image(s->vg, wheel_x, wheel_y, wheel_size, s->img_hands_on_wheel, color, 1.0f, wheel_y - 25);
+      }
     }
     nvgSave(s->vg);
     nvgTranslate(s->vg,bg_wheel_x,(bg_wheel_y + (bdr_s*1.5)));
@@ -746,7 +765,7 @@ static void ui_draw_df_button(UIState *s) {
   int y_padding = 50;
   int btn_x = 1920 - btn_w - x_padding - 175;
   int btn_y = 1080 - btn_h - y_padding;
-  int btn_colors[4][3] = {{4, 67, 137}, {36, 168, 188}, {252, 255, 75}, {55, 184, 104}};
+  int btn_colors[4][3] = {{178, 102, 255}, {202, 202, 202}, {255, 255, 255}, {0, 0, 0}}; //purple, gray, white, black,
 
   nvgBeginPath(s->vg);
   nvgRoundedRect(s->vg, btn_x-110, btn_y-45, btn_w, btn_h, 100);
@@ -774,9 +793,9 @@ static void ui_draw_ml_button(UIState *s) {
   nvgBeginPath(s->vg);
   nvgRoundedRect(s->vg, btn_x, btn_y, btn_w, btn_h, 25);
   if (s->scene.mlButtonEnabled) {  // change outline color based on status of button
-    nvgStrokeColor(s->vg, nvgRGBA(55, 184, 104, 255));
+    nvgStrokeColor(s->vg, nvgRGBA(202, 202, 202, 255)); //gray on
   } else {
-    nvgStrokeColor(s->vg, nvgRGBA(184, 55, 55, 255));
+    nvgStrokeColor(s->vg, nvgRGBA(0, 0, 0, 255)); //black off
   }
   nvgStrokeWidth(s->vg, 12);
   nvgStroke(s->vg);
@@ -1371,6 +1390,8 @@ void ui_nvg_init(UIState *s) {
 
   s->img_wheel = nvgCreateImage(s->vg, "../assets/img_chffr_wheel.png", 1);
   assert(s->img_wheel != 0);
+  s->img_hands_on_wheel = nvgCreateImage(s->vg, "../assets/img_hands_on_wheel.png", 1);
+  assert(s->img_hands_on_wheel != 0);
   s->img_turn = nvgCreateImage(s->vg, "../assets/img_trafficSign_turn.png", 1);
   assert(s->img_turn != 0);
   s->img_face = nvgCreateImage(s->vg, "../assets/img_driver_face.png", 1);

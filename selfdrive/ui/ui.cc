@@ -295,7 +295,7 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
    printf("ERROR PARSING OPPARAMS JSON!\n");
    s->scene.dfButtonStatus = 0;
  }
-  s->scene.mlButtonEnabled = true;
+  s->scene.mlButtonEnabled = false;
 
   s->rgb_width = back_bufs.width;
   s->rgb_height = back_bufs.height;
@@ -502,6 +502,7 @@ void handle_message(UIState *s, SubMaster &sm) {
   }
   if (sm.updated("dMonitoringState")) {
     auto data = sm["dMonitoringState"].getDMonitoringState();
+    scene.dmonitoring_state = data; 
     scene.is_rhd = data.getIsRHD();
     s->preview_started = data.getIsPreview();
   }

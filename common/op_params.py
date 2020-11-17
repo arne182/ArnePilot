@@ -63,23 +63,30 @@ class opParams:
     self.fork_params = {'awareness_factor': Param(10., VT.number, 'Multiplier for the awareness times'),
                         'alca_min_speed': Param(20, VT.number, 'Speed limit to start ALC in MPH'),
                         'alca_nudge_required': Param(False, bool, "Require nudge to start ALC"),
+                        'autoUpdate': Param(True, bool, 'Whether to auto-update'),
                         'camera_offset': Param(0.06, VT.number, 'Your camera offset to use in lane_planner.py', live=True),
                         'curvature_factor': Param(1.2, VT.number, 'Multiplier for the curvature slowdown. Increase for less braking.'),
                         'cloak': Param(True, bool, "make comma believe you are on their fork"),
+                        'corolla_tss2_d_tuning': Param(False, bool, 'lateral tuning using PID w/ true derivative'),
                         'default_brake_distance': Param(250.0, VT.number, 'Distance in m to start braking for mapped speeds.'),
                         'dynamic_follow': Param('normal', str, "Can be: ('close', 'normal', 'far'): Left to right increases in following distance.\n"
                                                                "All profiles support dynamic follow so you'll get your preferred distance while\n"
                                                                "retaining the smoothness and safety of dynamic follow!", live=True),
+                        'eco_mode': Param(False, bool, "Default to eco instead of normal."),
                         'force_pedal': Param(False, bool, "If openpilot isn't recognizing your comma pedal, set this to True"),
                         'global_df_mod': Param(None, VT.none_or_number, 'The multiplier for the current distance used by dynamic follow. The range is limited from 0.85 to 1.2\n'
                                                                         'Smaller values will get you closer, larger will get you farther\n'
                                                                         'This is multiplied by any profile that\'s active. Set to None to disable', live=True),
                         'hide_auto_df_alerts': Param(True, bool, 'Hides the alert that shows what profile the model has chosen'),
                         'keep_openpilot_engaged': Param(True, bool, 'True is stock behavior in this fork. False lets you use the brake and cruise control stalk to disengage as usual'),
+                        'lat_d': Param(9.0, VT.number, 'The lateral derivative gain, default is 9.0 for TSS2 Corolla. This is active at all speeds', live=True),
                         'limit_rsa': Param(False, bool, "Switch off RSA above rsa_max_speed"),
+                        'ludicrous_mode': Param(False, bool, 'Double overall acceleration!'),
                         'mpc_offset': Param(0.0, VT.number, 'Offset model braking by how many m/s. Lower numbers equals more model braking', live=True),
+                        'NoctuaMode': Param(False, bool, 'Noctua Fan are super quite and they run at full speed at all time.'),
                         'offset_limit': Param(0, VT.number, 'Speed at which apk percent offset will work in m/s'),
                         'osm': Param(True, bool, 'Whether to use OSM for drives'),
+                        'prius_pid': Param(False, bool, 'This enables the PID lateral controller with new a experimental derivative tune\nFalse: stock INDI, True: TSS2-tuned PID'),
                         'rolling_stop': Param(False, bool, 'If you do not want stop signs to go down to 0 kph enable this for 9kph slow down'),
                         'rsa_max_speed': Param(24.5, VT.number, 'Speed limit to ignore RSA in m/s'),
                         'smart_speed': Param(True, bool, 'Whether to use Smart Speed for drives above smart_speed_max_vego'),
@@ -93,11 +100,8 @@ class opParams:
                         'min_TR': Param(None, VT.none_or_number, 'The minimum allowed following distance in seconds. Default is 0.9 seconds.\n'
                                                                  'The range is limited from 0.85 to 1.3. Set to None to disable', live=True),
                         'use_virtual_middle_line': Param(False, bool, 'For roads over 4m wide, hug right. For roads under 2m wide, hug left.'),
-                        'uniqueID': Param(None, [type(None), str], 'User\'s unique ID'),
-                        'autoUpdate': Param(True, bool, 'Whether to auto-update'),
-                        'corolla_tss2_d_tuning': Param(True, bool, 'lateral spairrowtuning using PID w/ true derivative'),
-                        'lat_d': Param(9.0, VT.number, 'The lateral derivative gain, default is 9.0 for TSS2 Corolla. This is active at all speeds', live=True),
-                        'ludicrous_mode': Param(False, bool, 'Double overall acceleration!')}
+                        'uniqueID': Param(None, [type(None), str], 'User\'s unique ID')
+                       }
 
     self._params_file = '/data/op_params.json'
     self._backup_file = '/data/op_params_corrupt.json'

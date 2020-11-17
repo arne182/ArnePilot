@@ -44,7 +44,8 @@ def _address_to_track(address):
     return (address - RADAR_MSGS_C[0]) // 2
   if address in RADAR_MSGS_D:
     return (address - RADAR_MSGS_D[0]) // 2
-  raise ValueError("radar received unexpected address %d" % address)
+  return -1
+  #raise ValueError("radar received unexpected address %d" % address)
 
 class RadarInterface(RadarInterfaceBase):
   def __init__(self, CP):
@@ -57,18 +58,21 @@ class RadarInterface(RadarInterfaceBase):
     vls = self.rcp.update_strings(can_strings)
     self.updated_messages.update(vls)
 
-    if self.trigger_msg not in self.updated_messages:
-      return None
+    # if self.trigger_msg not in self.updated_messages:
+    #   return None
 
     ret = car.RadarData.new_message()
-    errors = []
-    if not self.rcp.can_valid:
-      errors.append("canError")
-    ret.errors = errors
+    # To prevent radar communication issue on Chrysler 300.  Shouldn't affect other vehicles.
+    # errors = []
+    # if not self.rcp.can_valid:
+    #   errors.append("canError")
+    # ret.errors = errors
 
     for ii in self.updated_messages:  # ii should be the message ID as a number
       cpt = self.rcp.vl[ii]
       trackId = _address_to_track(ii)
+      if trackId < 0:
+        continue
 
       if trackId not in self.pts:
         self.pts[trackId] = car.RadarData.RadarPoint.new_message()

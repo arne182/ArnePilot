@@ -219,9 +219,9 @@ class CarController():
       if pcm_cancel_cmd and CS.CP.carFingerprint == CAR.LEXUS_IS:
         can_sends.append(create_acc_cancel_command(self.packer))
       elif CS.CP.openpilotLongitudinalControl:
-        can_sends.append(create_accel_command(self.packer, apply_accel, pcm_cancel_cmd, self.standstill_req, lead))
+        can_sends.append(create_accel_command(self.packer, apply_accel, pcm_cancel_cmd, self.standstill_req, lead, CS.distance))
       else:
-        can_sends.append(create_accel_command(self.packer, 0, pcm_cancel_cmd, False, lead))
+        can_sends.append(create_accel_command(self.packer, 0, pcm_cancel_cmd, False, lead, CS.distance))
 
     if (frame % 2 == 0) and (CS.CP.enableGasInterceptor):
       # send exactly zero if apply_gas is zero. Interceptor will send the max between read value and apply_gas.
@@ -271,7 +271,7 @@ class CarController():
         can_sends.append(make_can_msg(addr, vl, bus))
 
     # Enable blindspot debug mode once
-    if frame > 1000 and not (CS.CP.carFingerprint in TSS2_CAR or CS.CP.carFingerprint == CAR.CAMRY or CS.CP.carFingerprint == CAR.CAMRYH): # 10 seconds after start and not a tss2 car
+    if frame > 1000 and not (CS.CP.carFingerprint in TSS2_CAR or CS.CP.carFingerprint in [CAR.CAMRY, CAR.CAMRYH, CAR.AVALON_2021]): # 10 seconds after start and not a tss2 car
       if BLINDSPOTALWAYSON:
         self.blindspot_blink_counter_left += 1
         self.blindspot_blink_counter_right += 1

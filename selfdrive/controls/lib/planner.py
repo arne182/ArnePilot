@@ -25,6 +25,7 @@ smart_speed = op_params.get('smart_speed')
 smart_speed_max_vego = op_params.get('smart_speed_max_vego')
 offset_limit = op_params.get('offset_limit')
 default_brake_distance = op_params.get('default_brake_distance')
+eco_mode = op_params.get('eco_mode')
 
 if not travis:
   curvature_factor = opParams().get('curvature_factor')
@@ -198,6 +199,8 @@ class Planner():
       self.last_time = self.last_time + 1
 
     gas_button_status = arne_sm['arne182Status'].gasbuttonstatus
+    if eco_mode and gas_button_status == 0:
+      gas_button_status = 2
     v_ego = sm['carState'].vEgo
     blinkers = sm['carState'].leftBlinker or sm['carState'].rightBlinker
     if blinkers:
@@ -230,7 +233,10 @@ class Planner():
     if gas_button_status == 1:
       speed_ahead_distance = 150
     elif gas_button_status == 2:
-      speed_ahead_distance = 350
+      if eco_mode:
+        speed_ahead_distance = default_brake_distance
+      else:
+        speed_ahead_distance = 350
     else:
       speed_ahead_distance = default_brake_distance
 
