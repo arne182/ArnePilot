@@ -297,10 +297,11 @@ class CarInterface(CarInterfaceBase):
         #ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kiV = [[0.0, 15.5, 21.0, 29.0], [0.005, 0.015, 0.015, 0.1]]
         #ret.lateralTuning.pid.kfBP, ret.lateralTuning.pid.kfV = [[0.0, 15.5, 21.0, 29.0], [0.00009, 0.00015, 0.00015, 0.00007818594]]
         ret.lateralTuning.init('indi')
-        ret.lateralTuning.indi.innerLoopGain = 6
-        ret.lateralTuning.indi.outerLoopGain = 6.0
+        ret.lateralTuning.indi.innerLoopGain = 9.0
+        ret.lateralTuning.indi.outerLoopGainBP = [20, 21, 25 ,26]
+        ret.lateralTuning.indi.outerLoopGainV = [5.0, 9.0, 9.0, 15.0]
         ret.lateralTuning.indi.timeConstant = 5.5
-        ret.lateralTuning.indi.actuatorEffectiveness = 6.0
+        ret.lateralTuning.indi.actuatorEffectiveness = 9.0
       else:
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.1]]
         ret.lateralTuning.pid.kfV = [0.00007818594]
@@ -328,10 +329,11 @@ class CarInterface(CarInterfaceBase):
         #ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kiV = [[0.0, 15.5, 21.0, 29.0], [0.005, 0.015, 0.015, 0.1]]
         #ret.lateralTuning.pid.kfBP, ret.lateralTuning.pid.kfV = [[0.0, 15.5, 21.0, 29.0], [0.00009, 0.00015, 0.00015, 0.00007818594]]
         ret.lateralTuning.init('indi')
-        ret.lateralTuning.indi.innerLoopGain = 6
-        ret.lateralTuning.indi.outerLoopGain = 15.0
+        ret.lateralTuning.indi.innerLoopGain = 9.0
+        ret.lateralTuning.indi.outerLoopGainBP = [20, 21, 25 ,26]
+        ret.lateralTuning.indi.outerLoopGainV = [5.0, 9.0, 9.0, 15.0]
         ret.lateralTuning.indi.timeConstant = 5.5
-        ret.lateralTuning.indi.actuatorEffectiveness = 6.0
+        ret.lateralTuning.indi.actuatorEffectiveness = 9.0
       else:
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.1]]
         ret.lateralTuning.pid.kfV = [0.00007818594]
