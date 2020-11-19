@@ -289,6 +289,7 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kpV = [0.4, 0.36, 0.325]  # braking tune from rav4h
       ret.longitudinalTuning.kiV = [0.195, 0.10]
       if spairrowtuning:
+        ret.safetyParam = 53
         ret.steerActuatorDelay = 0.60
         ret.steerRatio = 15.33
         ret.steerLimitTimer = 5.0
@@ -321,6 +322,7 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.444  # not optimized yet
       ret.mass = 3060. * CV.LB_TO_KG + STD_CARGO_KG
       if spairrowtuning:
+        ret.safetyParam = 53
         ret.steerActuatorDelay = 0.60
         ret.steerRatio = 15.33
         ret.steerLimitTimer = 5.0
