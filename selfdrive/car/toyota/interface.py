@@ -224,7 +224,7 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.7933
       ret.mass = 3370. * CV.LB_TO_KG + STD_CARGO_KG
       ret.longitudinalTuning.kpV = [2.1, 1.2, 0.34]
-      ret.longitudinalTuning.kiV = [0.54, 0.34]
+      ret.longitudinalTuning.kiV = [0.54, 0.34]  # advise setting MPC_COST_LONG TTC to 7.6882 in drive_helpers.py for smooth braking with no double stop
       if spairrowtuning:
         ret.steerActuatorDelay = 0.12
         ret.steerRatio = 15.33
