@@ -473,6 +473,22 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.kpBP = [0., 5., 55.]
     ret.longitudinalTuning.kiBP = [0., 55.]
 
+    if candidate in [CAR.COROLLA_TSS2, CAR.COROLLAH_TSS2]: 
+      ret.gasMaxBP = [0., 2.2352, 20.1168, 33.528] # 0, 5, 45, 75 mph 
+      ret.gasMaxV = [0.66, 0.3, 0.2, 0.075] 
+      ret.longitudinalTuning.kpV = [1.4, 1.0, 0.8] 
+      ret.longitudinalTuning.kiV = [0.19, 0.12] 
+    elif ret.enableGasInterceptor: 
+      ret.gasMaxBP = [0., 9., 35] 
+      ret.gasMaxV = [0.2, 0.5, 0.7] 
+      ret.longitudinalTuning.kpV = [1.2, 0.8, 0.5] 
+      ret.longitudinalTuning.kiV = [0.18, 0.12] 
+    else: 
+      ret.gasMaxBP = [0.] 
+      ret.gasMaxV = [0.5] 
+      ret.longitudinalTuning.kpV = [3.6, 2.4, 1.5] 
+      ret.longitudinalTuning.kiV = [0.54, 0.36]
+
     return ret
 
   # returns a car.CarState
