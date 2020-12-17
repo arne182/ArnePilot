@@ -204,29 +204,37 @@ class CarInterface(CarInterfaceBase):
 
     elif candidate == CAR.RAV4_TSS2:
       stop_and_go = True
-      ret.safetyParam = 73
+      ret.safetyParam = 56
       ret.wheelbase = 2.68986
       ret.steerRatio = 14.3
       tire_stiffness_factor = 0.7933
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.15], [0.05]]
       ret.mass = 3370. * CV.LB_TO_KG + STD_CARGO_KG
-      ret.lateralTuning.pid.kf = 0.00004
-
-      for fw in car_fw:
-        if fw.ecu == "eps" and fw.fwVersion == b"8965B42170\x00\x00\x00\x00\x00\x00":
-          ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
-          ret.lateralTuning.pid.kf = 0.00007818594
-          break
+      ret.steerActuatorDelay = 0.12
+      ret.steerLimitTimer = 5.0
+      ret.lateralTuning.init('indi')
+      ret.lateralTuning.indi.innerLoopGain = 15.0
+      ret.lateralTuning.indi.outerLoopGainBP = [20, 21, 25, 26]
+      ret.lateralTuning.indi.outerLoopGainV = [10.0, 17.99, 19, 24]
+      ret.lateralTuning.indi.timeConstantBP = [12, 16, 20, 24]
+      ret.lateralTuning.indi.timeConstantV = [5.0, 5.5, 7.0, 8.0]
+      ret.lateralTuning.indi.actuatorEffectiveness = 15.0
 
     elif candidate == CAR.RAV4H_TSS2:
       stop_and_go = True
-      ret.safetyParam = 73
+      ret.safetyParam = 56
       ret.wheelbase = 2.68986
       ret.steerRatio = 14.3
       tire_stiffness_factor = 0.7933
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.15], [0.05]]
-      ret.mass = 3800. * CV.LB_TO_KG + STD_CARGO_KG
-      ret.lateralTuning.pid.kf = 0.00004
+      ret.mass = 3370. * CV.LB_TO_KG + STD_CARGO_KG
+      ret.steerActuatorDelay = 0.12
+      ret.steerLimitTimer = 5.0
+      ret.lateralTuning.init('indi')
+      ret.lateralTuning.indi.innerLoopGain = 15.0
+      ret.lateralTuning.indi.outerLoopGainBP = [20, 21, 25, 26]
+      ret.lateralTuning.indi.outerLoopGainV = [10.0, 17.99, 19, 24]
+      ret.lateralTuning.indi.timeConstantBP = [12, 16, 20, 24]
+      ret.lateralTuning.indi.timeConstantV = [5.0, 5.5, 7.0, 8.0]
+      ret.lateralTuning.indi.actuatorEffectiveness = 15.0
 
       for fw in car_fw:
         if fw.ecu == "eps" and fw.fwVersion == b"8965B42170\x00\x00\x00\x00\x00\x00":
