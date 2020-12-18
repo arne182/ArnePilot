@@ -75,14 +75,12 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 3.01
       ret.steerRatio = 15
       # dp - indi value from donfyffe
-      ret.steerActuatorDelay = 0.60
-      ret.steerLimitTimer = 5.0
       ret.lateralTuning.init('indi')
       ret.lateralTuning.indi.innerLoopGain = 3.1
-      ret.lateralTuning.indi.outerLoopGainBP = [20, 21, 25, 26]
-      ret.lateralTuning.indi.outerLoopGainV = [1.1, 2.1, 3.1, 4.1]
-      ret.lateralTuning.indi.timeConstantBP = [4.5, 15, 20, 26]
-      ret.lateralTuning.indi.timeConstantV = [1.0, 1.4, 2.5, 3.5]
+      ret.lateralTuning.indi.outerLoopGainBP = []
+      ret.lateralTuning.indi.outerLoopGainV = [2.1]
+      ret.lateralTuning.indi.timeConstantBP = []
+      ret.lateralTuning.indi.timeConstantV = [1.3]
       ret.lateralTuning.indi.actuatorEffectiveness = 1.4
       ret.minSteerSpeed = 32 * CV.MPH_TO_MS
       ret.minEnableSpeed = 10 * CV.MPH_TO_MS
@@ -163,15 +161,15 @@ class CarInterface(CarInterfaceBase):
 
     # Genesis
     elif candidate == CAR.GENESIS_G70:
-      ret.steerActuatorDelay = 0.4
-      ret.steerLimitTimer = 0.4
       ret.lateralTuning.init('indi')
       ret.lateralTuning.indi.innerLoopGain = 2.4
-      ret.lateralTuning.indi.outerLoopGainBP = [20, 21, 25, 26]
-      ret.lateralTuning.indi.outerLoopGainV = [2.0, 3.0, 4.5, 5.99]
-      ret.lateralTuning.indi.timeConstantBP = [4.5, 15, 20, 26]
-      ret.lateralTuning.indi.timeConstantV = [1.0, 1.0, 2.5, 3.5]
+      ret.lateralTuning.indi.outerLoopGainBP = []
+      ret.lateralTuning.indi.outerLoopGainV = [3.0]
+      ret.lateralTuning.indi.timeConstantBP = []
+      ret.lateralTuning.indi.timeConstantV = [1.0]
       ret.lateralTuning.indi.actuatorEffectiveness = 2.0
+      ret.steerActuatorDelay = 0.4 # 0.08 stock
+      ret.steerLimitTimer = 0.4 # down from 0.4
       tire_stiffness_factor = 1.0
       ret.steerRateCost = 1.0
       ret.mass = 1825. + STD_CARGO_KG
@@ -182,15 +180,13 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2060. + STD_CARGO_KG
       ret.wheelbase = 3.01
       ret.steerRatio = 16.5
-      ret.steerActuatorDelay = 0.60
-      ret.steerLimitTimer = 5.0
       ret.lateralTuning.init('indi')
       ret.lateralTuning.indi.innerLoopGain = 3.5
-      ret.lateralTuning.indi.outerLoopGainBP = [20, 21, 25, 26]
-      ret.lateralTuning.indi.outerLoopGainV = [1.1, 2.1, 3.1, 4.1]
-      ret.lateralTuning.indi.timeConstantBP = [4.5, 15, 20, 26]
-      ret.lateralTuning.indi.timeConstantV = [1.0, 1.4, 2.5, 3.5]
-      ret.lateralTuning.indi.actuatorEffectiveness = 2.4
+      ret.lateralTuning.indi.outerLoopGainBP = []
+      ret.lateralTuning.indi.outerLoopGainV = [2.0]
+      ret.lateralTuning.indi.timeConstantBP = []
+      ret.lateralTuning.indi.timeConstantV = [1.4]
+      ret.lateralTuning.indi.actuatorEffectiveness = 2.3
       ret.minSteerSpeed = 60 * CV.KPH_TO_MS
     elif candidate == CAR.GENESIS_G90:
       ret.mass = 2200
