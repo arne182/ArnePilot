@@ -221,9 +221,9 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.init('indi')
       ret.lateralTuning.indi.innerLoopGain = 15.0
       ret.lateralTuning.indi.outerLoopGainBP = [20, 21, 24, 25]
-      ret.lateralTuning.indi.outerLoopGainV = [9.5, 19, 19, 24]
-      ret.lateralTuning.indi.timeConstantBP = [20, 21, 38, 39]
-      ret.lateralTuning.indi.timeConstantV = [5.0, 5.5, 6.0, 8.0]
+      ret.lateralTuning.indi.outerLoopGainV = [9.5, 16, 16, 21]
+      ret.lateralTuning.indi.timeConstantBP = [14, 18, 29, 30]
+      ret.lateralTuning.indi.timeConstantV = [5.0, 5.5, 6.0, 6.5]
       ret.lateralTuning.indi.actuatorEffectiveness = 15.0
 
     elif candidate == CAR.RAV4H_TSS2:
@@ -240,9 +240,9 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.init('indi')
       ret.lateralTuning.indi.innerLoopGain = 15.0
       ret.lateralTuning.indi.outerLoopGainBP = [20, 21, 24, 25]
-      ret.lateralTuning.indi.outerLoopGainV = [9.5, 19, 19, 24]
-      ret.lateralTuning.indi.timeConstantBP = [20, 21, 38, 39]
-      ret.lateralTuning.indi.timeConstantV = [5.0, 5.5, 6.0, 8.0]
+      ret.lateralTuning.indi.outerLoopGainV = [9.5, 16, 16, 21]
+      ret.lateralTuning.indi.timeConstantBP = [14, 18, 29, 30]
+      ret.lateralTuning.indi.timeConstantV = [5.0, 5.5, 6.0, 6.5]
       ret.lateralTuning.indi.actuatorEffectiveness = 15.0
 
     elif candidate in [CAR.COROLLA_TSS2, CAR.COROLLAH_TSS2]:
