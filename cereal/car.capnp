@@ -414,21 +414,23 @@ struct CarParams {
   directAccelControl @30 :Bool; # Does the car have direct accel control or just gas/brake
   stoppingControl @31 :Bool; # Does the car allows full control even at lows speeds when stopping
   startAccel @32 :Float32; # Required acceleraton to overcome creep braking
-  steerRateCost @33 :Float32; # Lateral MPC cost on steering rate
-  steerControlType @34 :SteerControlType;
-  radarOffCan @35 :Bool; # True when radar objects aren't visible on CAN
+  steerRateCostBP @33 :List(Float32); # Lateral MPC cost on steering rate
+  steerRateCostV @34 :List(Float32); # Lateral MPC cost on steering rate
+  steerControlType @35 :SteerControlType;
+  radarOffCan @36 :Bool; # True when radar objects aren't visible on CAN
 
-  steerActuatorDelay @36 :Float32; # Steering wheel actuator delay in seconds
-  openpilotLongitudinalControl @37 :Bool; # is openpilot doing the longitudinal control?
-  carVin @38 :Text; # VIN number queried during fingerprinting
-  isPandaBlack @39: Bool;
-  dashcamOnly @41: Bool;
+  steerActuatorDelay @37 :List(Float32); # Steering wheel actuator delay in seconds
+  steerActuatorDelay @38 :List(Float32); # Steering wheel actuator delay in seconds
+  openpilotLongitudinalControl @39 :Bool; # is openpilot doing the longitudinal control?
+  carVin @40 :Text; # VIN number queried during fingerprinting
+  isPandaBlack @41: Bool;
+  dashcamOnly @42: Bool;
   transmissionType @43 :TransmissionType;
   carFw @44 :List(CarFw);
   radarTimeStep @45: Float32 = 0.05;  # time delta between radar updates, 20Hz is very standard
   communityFeature @46: Bool;  # true if a community maintained feature is detected
-  fingerprintSource @49: FingerprintSource;
-  networkLocation @50 :NetworkLocation;  # Where Panda/C2 is integrated into the car's CAN network
+  fingerprintSource @47: FingerprintSource;
+  networkLocation @48 :NetworkLocation;  # Where Panda/C2 is integrated into the car's CAN network
 
   struct LateralParams {
     torqueBP @0 :List(Int32);
@@ -453,10 +455,12 @@ struct CarParams {
   }
 
   struct LateralINDITuning {
-    outerLoopGain @0 :Float32;
-    innerLoopGain @1 :Float32;
-    timeConstant @2 :Float32;
-    actuatorEffectiveness @3 :Float32;
+    outerLoopGainV @0 :List(Float32);
+    outerLoopGainBP @1 :List(Float32);
+    innerLoopGain @2 :Float32;
+    timeConstantBP @3 :List(Float32);
+    timeConstantV @4:List(Float32);
+    actuatorEffectiveness @5 :Float32;
   }
 
   struct LateralLQRTuning {
