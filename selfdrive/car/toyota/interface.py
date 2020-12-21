@@ -14,7 +14,7 @@ GearShifter = car.CarState.GearShifter
 EventName = car.CarEvent.EventName
 
 op_params = opParams()
-#spairrowtuning = op_params.get('spairrowtuning')
+spairrowtuning = op_params.get('spairrowtuning')
 #corolla_tss2_d_tuning = op_params.get('corolla_tss2_d_tuning')
 prius_pid = op_params.get('prius_pid')
 
@@ -53,8 +53,10 @@ class CarInterface(CarInterfaceBase):
 
       ret.lateralTuning.init('indi')
       ret.lateralTuning.indi.innerLoopGain = 4.0
-      ret.lateralTuning.indi.outerLoopGain = 3.0
-      ret.lateralTuning.indi.timeConstant = 1.0
+      ret.lateralTuning.indi.outerLoopGainBP = [0.]
+      ret.lateralTuning.indi.outerLoopGainV = [3.]
+      ret.lateralTuning.indi.timeConstantBP = [0.]
+      ret.lateralTuning.indi.timeConstantV = [1.]
       ret.lateralTuning.indi.actuatorEffectiveness = 1.0
       ret.steerActuatorDelay = 0.5
 
@@ -76,9 +78,12 @@ class CarInterface(CarInterfaceBase):
       else:
         ret.lateralTuning.init('indi')
         ret.lateralTuning.indi.innerLoopGain = 4.0
-        ret.lateralTuning.indi.outerLoopGain = 3.0
-        ret.lateralTuning.indi.timeConstant = 0.1
+        ret.lateralTuning.indi.outerLoopGainBP = [0.]
+        ret.lateralTuning.indi.outerLoopGainV = [3.]
+        ret.lateralTuning.indi.timeConstantBP = [0.]
+        ret.lateralTuning.indi.timeConstantV = [.1]
         ret.lateralTuning.indi.actuatorEffectiveness = 1.0
+        
 
     elif candidate in [CAR.RAV4, CAR.RAV4H]:
       stop_and_go = True if (candidate in CAR.RAV4H) else False
@@ -234,15 +239,34 @@ class CarInterface(CarInterfaceBase):
           ret.lateralTuning.pid.kf = 0.00007818594
           break
 
-    elif candidate in [CAR.COROLLA_TSS2, CAR.COROLLAH_TSS2]:
+    elif candidate == CAR.COROLLA_TSS2:
       stop_and_go = True
-      ret.safetyParam = 73
+      ret.safetyParam = 55 #safetyparam for corollatss2 needs to be either 50 or 53, needs its own dbc
       ret.wheelbase = 2.63906
       ret.steerRatio = 13.9
       tire_stiffness_factor = 0.444  # not optimized yet
       ret.mass = 3060. * CV.LB_TO_KG + STD_CARGO_KG
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
-      ret.lateralTuning.pid.kf = 0.00007818594
+      ret.longitudinalTuning.kpV = [0.4, 0.36, 0.325]  # braking tune from rav4h
+      ret.longitudinalTuning.kiV = [0.195, 0.10]
+      if spairrowtuning: 
+        ret.steerActuatorDelay = 0.60
+        ret.steerRatio = 15.33
+        ret.steerLimitTimer = 5.0
+        tire_stiffness_factor = 0.996  # not optimized yet
+        ret.lateralTuning.init('indi')
+        ret.lateralTuning.indi.innerLoopGain = 15.0
+        ret.lateralTuning.indi.outerLoopGainBP = [20, 21, 25, 26]
+        ret.lateralTuning.indi.outerLoopGainV = [4., 8.5, 9., 14.99]
+        ret.lateralTuning.indi.timeConstant = 5.5
+        ret.lateralTuning.indi.actuatorEffectiveness = 15.0
+      else:
+        ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.5], [0.1]]
+        ret.lateralTuning.pid.kfV = [0.00007818594]
+        if corolla_tss2_d_tuning:
+          ret.steerActuatorDelay = 0.40
+          ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
+          ret.lateralTuning.pid.kdV = [9.0]
+          ret.lateralTuning.pid.kfV = [0.00007818594]
 
     elif candidate in [CAR.LEXUS_ES_TSS2, CAR.LEXUS_ESH_TSS2]:
       stop_and_go = True
@@ -380,6 +404,22 @@ class CarInterface(CarInterfaceBase):
       ret.gasMaxV = [0.2, 0.5, 0.7]
       ret.longitudinalTuning.kpV = [0.4, 0.36, 0.325]  # braking tune from rav4h
       ret.longitudinalTuning.kiV = [0.195, 0.10]
+      
+    if candidate in [CAR.COROLLA_TSS2, CAR.COROLLAH_TSS2]: 
+      ret.gasMaxBP = [0., 2.2352, 20.1168, 33.528] # 0, 5, 45, 75 mph 
+      ret.gasMaxV = [0.66, 0.3, 0.2, 0.075] 
+      ret.longitudinalTuning.kpV = [1.4, 1.0, 0.8] 
+      ret.longitudinalTuning.kiV = [0.19, 0.12] 
+    elif ret.enableGasInterceptor: 
+      ret.gasMaxBP = [0., 9., 35] 
+      ret.gasMaxV = [0.2, 0.5, 0.7] 
+      ret.longitudinalTuning.kpV = [1.2, 0.8, 0.5] 
+      ret.longitudinalTuning.kiV = [0.18, 0.12] 
+    else: 
+      ret.gasMaxBP = [0.] 
+      ret.gasMaxV = [0.5] 
+      ret.longitudinalTuning.kpV = [3.6, 2.4, 1.5] 
+      ret.longitudinalTuning.kiV = [0.54, 0.36]
 
     return ret
 
