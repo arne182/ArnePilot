@@ -118,14 +118,14 @@ class opParams:
                         #'use_virtual_middle_line': Param(False, bool, 'For roads over 4m wide, hug right. For roads under 2m wide, hug left.'),
                         'uniqueID': Param(None, [type(None), str], 'User\'s unique ID'),
                         'enable_indi_live': Param(False, bool, live=True),
-                        'indi_inner_gain_bp': Param([0, 255, 255], [list, float, int], live=True, depends_on='enable_indi_live'),
-                        'indi_inner_gain_v': Param([6.0, 6.0, 6.0], [list, float, int], live=True, depends_on='enable_indi_live'),
-                        'indi_outer_gain_bp': Param([0, 255, 255], [list, float, int], live=True, depends_on='enable_indi_live'),
-                        'indi_outer_gain_v': Param([15, 15, 15], [list, float, int], live=True, depends_on='enable_indi_live'),
-                        'indi_time_constant_bp': Param([0, 255, 255], [list, float, int], live=True, depends_on='enable_indi_live'),
-                        'indi_time_constant_v': Param([5.5, 5.5, 5.5], [list, float, int], live=True, depends_on='enable_indi_live'),
-                        'indi_actuator_effectiveness_bp': Param([0, 255, 255], [list, float, int], live=True, depends_on='enable_indi_live'),
-                        'indi_actuator_effectiveness_v': Param([6, 6, 6], [list, float, int], live=True, depends_on='enable_indi_live'),
+                        'indi_inner_gain_bp': Param([18, 22, 26], [list, float, int], live=True, depends_on='enable_indi_live'),
+                        'indi_inner_gain_v': Param([5, 10, 15], [list, float, int], live=True, depends_on='enable_indi_live'),
+                        'indi_outer_gain_bp': Param([18, 22, 26], [list, float, int], live=True, depends_on='enable_indi_live'),
+                        'indi_outer_gain_v': Param([4, 9, 14.99], [list, float, int], live=True, depends_on='enable_indi_live'),
+                        'indi_time_constant_bp': Param([18, 22, 26], [list, float, int], live=True, depends_on='enable_indi_live'),
+                        'indi_time_constant_v': Param([2, 4, 5.5], [list, float, int], live=True, depends_on='enable_indi_live'),
+                        'indi_actuator_effectiveness_bp': Param([18, 22, 26], [list, float, int], live=True, depends_on='enable_indi_live'),
+                        'indi_actuator_effectiveness_v': Param([5, 10, 15], [list, float, int], live=True, depends_on='enable_indi_live'),
                         'steer_limit_timer': Param(0.4, VT.number, live=True, depends_on='enable_indi_live')
                        }
 
