@@ -574,8 +574,10 @@ opendbc/toyota_corolla_2017_pt_generated.dbc
 opendbc/lexus_rx_350_2016_pt_generated.dbc
 opendbc/lexus_rx_hybrid_2017_pt_generated.dbc
 opendbc/toyota_nodsu_pt_generated.dbc
+opendbc/toyota_nodsu_pt_generated_corolla_tss2.dbc
 opendbc/toyota_nodsu_pt_generated_rav4.dbc
 opendbc/toyota_nodsu_hybrid_pt_generated.dbc
+opendbc/toyota_nodsu_pt_generated_corollah_tss2.dbc
 opendbc/toyota_camry_hybrid_2018_pt_generated.dbc
 opendbc/toyota_highlander_2017_pt_generated.dbc
 opendbc/toyota_highlander_hybrid_2018_pt_generated.dbc
