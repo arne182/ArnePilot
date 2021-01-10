@@ -19,7 +19,7 @@ Arnepilot has comma logger disabled. This gives a 35% more cpu but at cost of gi
 If you get the [no vehicle](https://cdn.discordapp.com/attachments/538741329799413760/743231854764884067/image0.jpg) after installing Arnepilot completely power cycle your device. If this still doesn't fix the problem look below at panda flashing and run the command. This is a known issue with comma2 users.
 
 ## Panda flashing
-This is done automatically otherwise run `pkill -f boardd; cd /data/openpilot/panda/board; make; reboot` to change the following. Make sure this done while your device is connnect to your car:
+This is done automatically otherwise run `pkill -f boardd; cd /data/openpilot/panda/board; make; ` Make sure this done while your device is connnect to your car:
 - allowing no disengage on brake and gas for Toyota
 - changing acceleration limits for Toyota and
 - adapting lane departure warning where it gives you a slight push back into the middle of the lane without needing to be engaged (not yet complete)
@@ -30,7 +30,7 @@ This is done automatically otherwise run `pkill -f boardd; cd /data/openpilot/pa
 
 `DP08-clean`: Current development branch.
 
-`release4`: this is my old branch, that is compatible with ArnePilot 0.7. Recommend branch until release5 gets better
+`release4`: this is my old branch, that is compatible with ArnePilot 0.7. Recommended branch until release5 gets better
 
 `release3`: this is my old branch, that is compatible with ArnePilot 0.6.
 
