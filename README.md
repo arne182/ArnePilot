@@ -58,6 +58,8 @@ Fork is known to work in both US and Europe
 - [ ] Darkmode and community logo
 
 ## Features
+### Dragonpilot
+Since openpilot v0.8.0 Arne has decide to base his fork on [DragonPilot](https://github.com/dragonpilot-community/dragonpilot). So exect all features transfer over
 - Braking:
     - by angle(carstate),
     - by predicted angle in 2.5s(laneplanner),
@@ -82,17 +84,17 @@ Fork is known to work in both US and Europe
 - Speed sign reading
 - Stock Toyota ldw steering assist
 - Cruise set speed available down to 7 kph
--
 - Virtual lane lines and Lane center. This feature is for European roads and is recommended for used in Europe only.
 
 ### opEdit features
-- Ability to ruduce or Increase curvature Factor from `op_edit.py` (`python /data/openpilot/op_edit.py`) It will also works with eco and sport mode. If using eco mode then it will start breaking early (350 m before) if using sport mode it will slow down little late (150 m).
+all OpEdit features can be manged by running the command `python /data/openpilot/op_edit.py`
+- Ability to ruduce or Increase curvature Factor. It will also works with eco and sport mode. If using eco mode then it will start breaking early (350 m before) if using sport mode it will slow down little late (150 m).
 - Live speedlimit_offset in `op_tune.py`
-- [Dynamic distance profiles](https://github.com/ShaneSmiskol/ArnePilot/tree/stock_additions-devel#dynamic-follow-3-profiles) from Shane (In other word three different dynamic profiles: (`close`, `normal`, `far`, `auto`). Profile can be adjusted from either `python /data/openpilot/op_edit.py` or use live tuner to change the profile live (can take up to 4 sec to for new profile to be adjusted) `python /data/openpilot/op_tune.py`.
-- [Dynamic Gas:](https://github.com/ShaneSmiskol/ArnePilot/tree/stock_additions-devel#dynamic-gas)
+- [Dynamic distance profiles](https://github.com/ShaneSmiskol/ArnePilot/tree/stock_additions-devel#dynamic-follow-3-profiles) from Shane (In other word three different dynamic profiles: (`close`, `normal`, `far`, `auto`). Profile can be adjusted from either op_edit.py or using the on screen buttons(can take up to 4 sec to for new profile to be adjusted).
+- [Dynamic Gas](https://github.com/ShaneSmiskol/ArnePilot/tree/stock_additions-devel#dynamic-gas)
 This aims to provide a smoother driving experience in stop and go traffic (under 20 mph) by modifying the maximum gas that can be applied based on your current velocity and the relative velocity of the lead car. It'll also of course increase the maximum gas when the lead is accelerating to help you get up to speed quicker than stock. And smoother; this eliminates the jerking you get from stock ArnePilot with comma pedal. It tries to coast if the lead is only moving slowly, it doesn't use maximum gas as soon as the lead inches forward :). When you are above 20 mph, relative velocity and the following distance is taken into consideration.
 - 2020 Corolla tuning by Spairrow326
- Added ability to turn on and off RSA at certain speed. `python /data/openpilot/op_edit.py`
+- Added ability to turn on and off RSA at certain speeds.
 
 ### UI Modifications
 - Dev UI toggle in APK setting.
