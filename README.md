@@ -26,8 +26,7 @@ This is done automatically otherwise run `pkill -f boardd; cd /data/openpilot/pa
 - adapting lane departure warning where it gives you a slight push back into the middle of the lane without needing to be engaged (not yet complete)
 - The Panda version is also changed and checked.
 
-## opEdit Demo
-<img src=".media/op_edit.gif?raw=true" width="1000">
+
 
 ## Branches
 
@@ -43,6 +42,9 @@ This is done automatically otherwise run `pkill -f boardd; cd /data/openpilot/pa
 
 # Configuration
 
+## opEdit Demo
+<img src=".media/op_edit.gif?raw=true" width="1000">
+
 - You can turn on or off some of the [Feature](https://github.com/arne182/ArnePilot/blob/81a3258da49e1bb9739a5f1d0a84b38afd10583f/common/op_params.py#L500) by editing `op_edit.py`. Run the following command `python /data/openpilot/op_edit.py`
 
 ## Supported Cars
@@ -53,17 +55,18 @@ Fork is known to work in both US and Europe
 - Prius 2017-2021
 - RX hyrid 2017
 - CT 2018
-- Hyundia is fully supported thank to @xps-genesis
 - Chevrolet Volt 2017
 - Subaru Crosstrek Limited 2019 with 0.8 it will use Eyesight for radar. 
+
 ### Todo
 
 - [ ] add Trafficd
 - [ ] improve tunning
 - [ ] add Dev UI
-- [ ] add OSM and Speed offset toggle
-- [ ] bring back feature is op_edit from 0.7
+- [ ] add OSM and Speed offset apk toggles
+- [ ] bring back feature op_edit from 0.7
 - [ ] Dynamic distance profiles
+- [ ] Darkmode and community
 
 ## Features
 
@@ -81,11 +84,6 @@ Fork is known to work in both US and Europe
 - No fingerprint compatibility problems. A completely different way to combine and split Fingerprints so that they always work I.e. comma is not supporting rav4h 2019 because of this Fingerprint method. Mine is better
 - Custom events and capnp structure so that comma is happy with the drives from my fork
 - Forward collision warning actually brakes for you.
-- Ability to ruduce or Increase curvature Factor from `op_edit.py` (`python /data/openpilot/op_edit.py`) It will also works with eco and sport mode. If using eco mode then it will start breaking early (350 m before) if using sport mode it will slow down little late (150 m).
-- Live speedlimit_offset in `op_tune.py`
-- [Dynamic distance profiles](https://github.com/ShaneSmiskol/ArnePilot/tree/stock_additions-devel#dynamic-follow-3-profiles) from Shane (In other word three different dynamic profiles: (`close`, `normal`, `far`, `auto`). Profile can be adjusted from either `python /data/openpilot/op_edit.py` or use live tuner to change the profile live (can take up to 4 sec to for new profile to be adjusted) `python /data/openpilot/op_tune.py`.
-- [Dynamic Gas:](https://github.com/ShaneSmiskol/ArnePilot/tree/stock_additions-devel#dynamic-gas)
-This aims to provide a smoother driving experience in stop and go traffic (under 20 mph) by modifying the maximum gas that can be applied based on your current velocity and the relative velocity of the lead car. It'll also of course increase the maximum gas when the lead is accelerating to help you get up to speed quicker than stock. And smoother; this eliminates the jerking you get from stock ArnePilot with comma pedal. It tries to coast if the lead is only moving slowly, it doesn't use maximum gas as soon as the lead inches forward :). When you are above 20 mph, relative velocity and the following distance is taken into consideration.
 - We also have enabled commas e2e model which will only work between 11 MPH to 29 MPH. Commas e2e model helps slows down for traffic light, stop sign, etc. e2e, traffic model and mapd all works together to help you stop at the light. All of this can be turned off via `/data/openpilot/op_edit.py`.
 - Smart speed (smart speed is essentially speedlimit which eon will not go over unless you have set custom offset) can be overridden by pressing gas above the current smart speed.
 - Hands on wheel sensing to comply with European driving regulations by [alfhern](https://github.com/move-fast)
@@ -96,8 +94,19 @@ This aims to provide a smoother driving experience in stop and go traffic (under
 - Speed sign reading
 - Stock Toyota ldw steering assist
 - Cruise set speed available down to 7 kph
-- Added ability to turn on and off RSA at certain speed. `python /data/openpilot/op_edit.py`
+-
 - Virtual lane lines and Lane center. This feature is for European roads and is recommended for used in Europe only.
+
+### opEdit features
+
+- Ability to ruduce or Increase curvature Factor from `op_edit.py` (`python /data/openpilot/op_edit.py`) It will also works with eco and sport mode. If using eco mode then it will start breaking early (350 m before) if using sport mode it will slow down little late (150 m).
+- Live speedlimit_offset in `op_tune.py`
+- [Dynamic distance profiles](https://github.com/ShaneSmiskol/ArnePilot/tree/stock_additions-devel#dynamic-follow-3-profiles) from Shane (In other word three different dynamic profiles: (`close`, `normal`, `far`, `auto`). Profile can be adjusted from either `python /data/openpilot/op_edit.py` or use live tuner to change the profile live (can take up to 4 sec to for new profile to be adjusted) `python /data/openpilot/op_tune.py`.
+- [Dynamic Gas:](https://github.com/ShaneSmiskol/ArnePilot/tree/stock_additions-devel#dynamic-gas)
+This aims to provide a smoother driving experience in stop and go traffic (under 20 mph) by modifying the maximum gas that can be applied based on your current velocity and the relative velocity of the lead car. It'll also of course increase the maximum gas when the lead is accelerating to help you get up to speed quicker than stock. And smoother; this eliminates the jerking you get from stock ArnePilot with comma pedal. It tries to coast if the lead is only moving slowly, it doesn't use maximum gas as soon as the lead inches forward :). When you are above 20 mph, relative velocity and the following distance is taken into consideration.
+- 2020 Corolla tuning by Spairrow326
+ Added ability to turn on and off RSA at certain speed. `python /data/openpilot/op_edit.py`
+
 ### UI Modifications
 
 - Dev UI toggle in APK setting.
@@ -110,12 +119,6 @@ This aims to provide a smoother driving experience in stop and go traffic (under
 - Dynamic Follow Button: Now you can change the Dynamic Follow Distance just by tapping the blue button on the bottom right. Now with colorful DF button depending on the profile
 - Smart speed icon
 - e2e button
-
-### Work-in-Progress Features
-
-All WIP features can be configured by modifying `python /data/opepilot/op_edit.py`
-- Traffic light detection from Littlemountainman, shane and brain. To get accurate result make sure your daily commute/area is mapped on [OSM](openstreetmap.org) with right direaction. [For example](https://imgur.com/purBVpd)...  [still dont get it watch the video by mageymoo1](https://youtu.be/7dPaF0tDb7Y).
-- 2020 Corolla tuning by Spairrow326
 
 ## Data collection
 - Loggin has been Disabled by default on this fork. If you would like to record your drive edit the [following line](https://github.com/arne182/ArnePilot/blob/4d66df96a91c9c13491a3d78b9c1c2a9e848724a/selfdrive/manager.py#L480)
