@@ -19,17 +19,13 @@ Arnepilot has comma logger disabled. This gives a 35% more cpu but at cost of gi
 If you get the [no vehicle](https://cdn.discordapp.com/attachments/538741329799413760/743231854764884067/image0.jpg) after installing Arnepilot completely power cycle your device. If this still doesn't fix the problem look below at panda flashing and run the command. This is a known issue with comma2 users.
 
 ## Panda flashing
-
 This is done automatically otherwise run `pkill -f boardd; cd /data/openpilot/panda/board; make; reboot` to change the following. Make sure this done while your device is connnect to your car:
 - allowing no disengage on brake and gas for Toyota
 - changing acceleration limits for Toyota and
 - adapting lane departure warning where it gives you a slight push back into the middle of the lane without needing to be engaged (not yet complete)
 - The Panda version is also changed and checked.
 
-
-
 ## Branches
-
 `release5`: this is the default branch that is most up to date with the ArnePilot 0.8 based off of [dragonpilot](https://github.com/dragonpilot-community/dragonpilot) release branch. This branch is early in development but will only get better
 
 `DP08-clean`: Current development branch.
@@ -40,12 +36,6 @@ This is done automatically otherwise run `pkill -f boardd; cd /data/openpilot/pa
 
 `release2`: this is my old branch, that is compatible with ArnePilot 0.5.
 
-# Configuration
-
-## opEdit Demo
-<img src=".media/op_edit.gif?raw=true" width="1000">
-
-- You can turn on or off some of the [Feature](https://github.com/arne182/ArnePilot/blob/81a3258da49e1bb9739a5f1d0a84b38afd10583f/common/op_params.py#L500) by editing `op_edit.py`. Run the following command `python /data/openpilot/op_edit.py`
 
 ## Supported Cars
 Fork is known to work in both US and Europe
@@ -59,7 +49,6 @@ Fork is known to work in both US and Europe
 - Subaru Crosstrek Limited 2019 with 0.8 it will use Eyesight for radar. 
 
 ### Todo
-
 - [ ] add Trafficd
 - [ ] improve tunning
 - [ ] add Dev UI
@@ -69,7 +58,6 @@ Fork is known to work in both US and Europe
 - [ ] Darkmode and community logo
 
 ## Features
-
 - Braking:
     - by angle(carstate),
     - by predicted angle in 2.5s(laneplanner),
@@ -98,7 +86,6 @@ Fork is known to work in both US and Europe
 - Virtual lane lines and Lane center. This feature is for European roads and is recommended for used in Europe only.
 
 ### opEdit features
-
 - Ability to ruduce or Increase curvature Factor from `op_edit.py` (`python /data/openpilot/op_edit.py`) It will also works with eco and sport mode. If using eco mode then it will start breaking early (350 m before) if using sport mode it will slow down little late (150 m).
 - Live speedlimit_offset in `op_tune.py`
 - [Dynamic distance profiles](https://github.com/ShaneSmiskol/ArnePilot/tree/stock_additions-devel#dynamic-follow-3-profiles) from Shane (In other word three different dynamic profiles: (`close`, `normal`, `far`, `auto`). Profile can be adjusted from either `python /data/openpilot/op_edit.py` or use live tuner to change the profile live (can take up to 4 sec to for new profile to be adjusted) `python /data/openpilot/op_tune.py`.
@@ -108,7 +95,6 @@ This aims to provide a smoother driving experience in stop and go traffic (under
  Added ability to turn on and off RSA at certain speed. `python /data/openpilot/op_edit.py`
 
 ### UI Modifications
-
 - Dev UI toggle in APK setting.
 - GPS Accurecy on the Dev UI
 - Easily view the EON's IP Address.Just look at the sidebar right under wifi singal strength's.
@@ -125,6 +111,7 @@ This aims to provide a smoother driving experience in stop and go traffic (under
 - Offline crash logging. sentry does not catches all the error. now if their is no internet it will still log error in `/data/community/crashes`
 - OSM tracers logging and uploading anonymously to help improve MapD as well as OSM accuracy. [Arne is currently ranked 8th for overal tracers uploaded](https://www.openstreetmap.org/stats/data_stats.html).
 - Added stats that track meter driven as well as overrides/disengagement. These go to a leaderboard. Please added your name to `python /data/opepilot/op_edit.py` to participate.
+
 # Licensing
 © OpenStreetMap contributors
 
@@ -138,10 +125,4 @@ NO WARRANTY EXPRESSED OR IMPLIED.**
 
 ---
 
-<img src="https://d1qb2nb5cznatu.cloudfront.net/startups/i/1061157-bc7e9bf3b246ece7322e6ffe653f6af8-medium_jpg.jpg?buster=1458363130" width="75"></img> <img src="https://cdn-images-1.medium.com/max/1600/1*C87EjxGeMPrkTuVRVWVg4w.png" width="225"></img>
-
-[![openpilot tests](https://github.com/commaai/openpilot/workflows/openpilot%20tests/badge.svg?event=push)](https://github.com/commaai/openpilot/actions)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/commaai/openpilot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/commaai/openpilot/alerts/)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/commaai/openpilot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/commaai/openpilot/context:python)
-[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/commaai/openpilot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/commaai/openpilot/context:cpp)
-[![codecov](https://codecov.io/gh/commaai/openpilot/branch/master/graph/badge.svg)](https://codecov.io/gh/commaai/openpilot)
+<img src="https://raw.githubusercontent.com/brianandyt/ArnePilot/release4/selfdrive/assets/images/button_home.png" width="75"></img> <img src="https://cdn-images-1.medium.com/max/1600/1*C87EjxGeMPrkTuVRVWVg4w.png" width="225"></img>
