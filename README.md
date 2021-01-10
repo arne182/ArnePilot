@@ -66,7 +66,7 @@ Fork is known to work in both US and Europe
 - [ ] add OSM and Speed offset apk toggles
 - [ ] bring back feature op_edit from 0.7
 - [ ] Dynamic distance profiles
-- [ ] Darkmode and community
+- [ ] Darkmode and community logo
 
 ## Features
 
