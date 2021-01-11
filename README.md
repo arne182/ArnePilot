@@ -56,11 +56,11 @@ Fork is known to work in both US and Europe
 - [ ] bring back feature op_edit from 0.7
 - [ ] Dynamic distance profiles
 - [ ] e2e UI button
-- [ ] Hands on wheel suport
+- [ ] Hands on wheel support
 
 ## Features
 ### Dragonpilot
-Since openpilot v0.8.0 Arne has decide to base his fork on [DragonPilot](https://github.com/dragonpilot-community/dragonpilot). So exect all features transfer over
+Since openpilot v0.8.0 Arne has decide to base his fork on [DragonPilot](https://github.com/dragonpilot-community/dragonpilot). So expect all your favorite features to work
 - Braking:
     - by angle(carstate),
     - by predicted angle in 2.5s(laneplanner),
@@ -86,7 +86,7 @@ Since openpilot v0.8.0 Arne has decide to base his fork on [DragonPilot](https:/
 - Virtual lane lines and Lane center. This feature is for European roads and is recommended for used in Europe only.
 - Dashcam recording ( it will save video's to the `/sdcard/media/dashcam`)
 
-### opEdit features
+### OpEdit features
 all OpEdit features can be manged by running the command `python /data/openpilot/op_edit.py`
 - Ability to ruduce or Increase curvature Factor. It will also works with eco and sport mode. If using eco mode then it will start breaking early (350 m before) if using sport mode it will slow down little late (150 m).
 - Live speedlimit_offset in `op_tune.py`
