@@ -52,7 +52,7 @@ Fork is known to work in both US and Europe
 - [ ] add Trafficd
 - [ ] improve tunning
 - [ ] add Dev UI
-- [ ] add OSM and Speed offset apk toggles
+- [ ] Once QT drops add OSM and Speed offset apk toggles
 - [ ] bring back feature op_edit from 0.7
 - [ ] Dynamic distance profiles
 - [ ] e2e UI button
