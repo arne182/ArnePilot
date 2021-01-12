@@ -1,4 +1,6 @@
-This README describes the custom features build by me (Arne Schwarck) on top of [ArnePilot](http://github.com/commaai/ArnePilot) of [comma.ai](http://comma.ai). This fork is optimized for the Toyota RAV4 Hybrid 2016 and for driving in Germany but also works with other cars and in other countries. If you would like to support the developement on this project feel free to https://www.patreon.com/arneschwarck
+![kumar's testing_closet](https://github.com/arne182/ArnePilot/workflows/kumar's%20testing_closet/badge.svg?branch=DP08-clean)
+
+This README describes the custom features build by me (Arne Schwarck) on top of [ArnePilot](http://github.com/commaai/ArnePilot) of [comma.ai](http://comma.ai). This fork is optimized for the Toyota RAV4 Hybrid 2016 and Prius TSS2 and for driving in Germany but also works with other cars and in other countries. If you would like to support the developement on this project feel free to https://www.patreon.com/arneschwarck
 
 
 [![demo of ArnePilot with this branch](https://img.youtube.com/vi/WKwSq8TPdpo/0.jpg)](https://www.youtube.com/playlist?list=PL3CGUyxys8DuTE1JTkdZwY93ejSfAGxyV)
@@ -8,6 +10,9 @@ For a demo of this version of ArnePilot
 Find me on Discord https://discord.gg/Ebgn8Mr
 
 # Installation
+
+**IF YOU ARE USING DP08X-CLEAN DO NOT TURN ON `ENABLE LOGGER, ENABLE UPLOADER, ENABLE ATHENAD` UNDER DRAGONPILOT APK SETTING. TURNING ON WILL RESULT IN DEVICE BAN.
+
 Put this URL in the custom URL field after uninstalling through the UI
 https://tinyurl.com/arne-dp
 or if you want to use the command line or https://github.com/jfrux/workbench
@@ -49,14 +54,12 @@ Fork is known to work in both US and Europe
 - Subaru Crosstrek Limited 2019 with 0.8 it will use Eyesight for radar. 
 
 ### Todo
-- [ ] add Trafficd
-- [ ] improve tunning
-- [ ] add Dev UI
 - [ ] Once QT drops add OSM and Speed offset apk toggles
 - [ ] bring back feature op_edit from 0.7
 - [ ] Dynamic distance profiles
 - [ ] e2e UI button
 - [ ] Hands on wheel support
+- [ ] Change cruise speed by +- 5MPH
 
 ## Features
 ### Dragonpilot
@@ -74,7 +77,6 @@ Since openpilot v0.8.0 Arne has decide to base his fork on [DragonPilot](https:/
 - No disengage for seat belt remove and door opened. Practical for when stopping and then someone opens a door so that the car does not drive into the lead
 - No fingerprint compatibility problems. A completely different way to combine and split Fingerprints so that they always work I.e. comma is not supporting rav4h 2019 because of this Fingerprint method. Mine is better
 - Forward collision warning actually brakes for you.
-- We also have enabled commas e2e model which will only work between 11 MPH to 29 MPH. Commas e2e model helps slows down for traffic light, stop sign, etc. e2e, traffic model and mapd all works together to help you stop at the light. All of this can be turned off via `/data/openpilot/op_edit.py`.
 - Smart speed (smart speed is essentially speedlimit which eon will not go over unless you have set custom offset) can be overridden by pressing gas above the current smart speed.
 - Hands on wheel sensing to comply with European driving regulations by [alfhern](https://github.com/move-fast)
 - Blind Spot Monitoring for all of the toyota which will be added to control ALC(vision based lane change from comma.ai). For right now it is always on. It will flash rapidly when stopped and if the object is detected.
@@ -84,7 +86,7 @@ Since openpilot v0.8.0 Arne has decide to base his fork on [DragonPilot](https:/
 - Stock Toyota ldw steering assist
 - Cruise set speed available down to 7 kph
 - Virtual lane lines and Lane center. This feature is for European roads and is recommended for used in Europe only.
-- Dashcam recording ( it will save video's to the `/sdcard/media/dashcam`)
+- Alwasys on Dashcam recording ( it will save video's to the `/sdcard/media/dashcam`)
 
 ### OpEdit features
 all OpEdit features can be manged by running the command `python /data/openpilot/op_edit.py`
@@ -96,13 +98,17 @@ This aims to provide a smoother driving experience in stop and go traffic (under
 - 2020 Corolla tuning by Spairrow326
 - Added ability to turn on and off RSA at certain speeds.
 - Control 3 gas profiles with sport eco and normal buttons on car (only on limited car) 
+- Ability to change the SpeedLimit Offset directly
+- Able to stop using RSA after certain mph. 
+- Live indi tune toggle thanks @jamcar23
+- cloak mode: which will make comma think you are using their fork. Avoid bans.
+
 
 ### UI Modifications
 - Dev UI toggle in APK setting.
-- GPS Accurecy on the Dev UI
+- GPS Accurecy on the SideBar
 - Battery has percentage instead of the battery icon.
-- Ability to change the SpeedLimit Offset directly from APK. It is based in percentages. For Example, if -1% at 60mph, it will be  approx. 59.4mph, -10% is roughly 54mph etc. (Thank you eFini for the help)
-- Dynamic Follow Button: Now you can change the Dynamic Follow Distance just by tapping the blue button on the bottom right. Now with colorful DF button depending on the profile
+- Dynamic Follow Button
 - Smart speed icon
 - e2e button
 
