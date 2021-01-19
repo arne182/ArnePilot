@@ -295,7 +295,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.indi.actuatorEffectivenessBP = [18, 22, 26]
       ret.lateralTuning.indi.actuatorEffectivenessV = [9, 12, 15]  
 
-    elif candidate in [CAR.ALPHARD_TSS2, CAR.ALPHARDH_TSS2]:
+    elif candidate == CAR.ALPHARDH_TSS2:
       stop_and_go = True
       ret.safetyParam = 73
       ret.wheelbase = 3.0
