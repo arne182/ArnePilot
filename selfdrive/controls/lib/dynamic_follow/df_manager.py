@@ -31,7 +31,6 @@ class dfManager:
 
     self.cur_model_profile = 0
     self.alert_duration = 2.0
-
     self.offset = self.cur_user_profile
     self.profile_pred = None
     self.change_time = sec_since_boot()

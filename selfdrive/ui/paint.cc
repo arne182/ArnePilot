@@ -629,7 +629,6 @@ static void ui_draw_df_button(UIState *s) {
   nvgText(s->vg, btn_x - 34, btn_y + 50 + 15, "profile", NULL);
 }
 
-
 static void ui_draw_vision_header(UIState *s) {
   const Rect &viz_rect = s->scene.viz_rect;
   if (!s->scene.dpFullScreenApp) {
