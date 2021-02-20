@@ -310,7 +310,8 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiBP = [0.0]
       ret.lateralTuning.pid.kpV = [0.028]
       ret.lateralTuning.pid.kiV = [0.0012]
-      ret.lateralTuning.pid.kf = 0.000153263811757641 #0.0001732615365632912  # hardcoded in latcontrol_pid, this does nothing for now
+      ret.lateralTuning.pid.kf = 0.000153263811757641 # hardcoded in latcontrol_pid, this does nothing for now
+      ret.lateralTuning.pid.newKfTuned = True
 
     elif candidate in [CAR.LEXUS_ES_TSS2, CAR.LEXUS_ESH_TSS2]:
       stop_and_go = True
