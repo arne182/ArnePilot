@@ -10,6 +10,7 @@ class LatControlPID():
                             (CP.lateralTuning.pid.kiBP, CP.lateralTuning.pid.kiV),
                             k_f=CP.lateralTuning.pid.kf, pos_limit=1.0, neg_limit=-1.0,
                             sat_limit=CP.steerLimitTimer)
+    self.new_kf_tuned = CP.lateralTuning.pid.newKfTuned
     self.angle_steers_des = 0.
 
   def reset(self):
