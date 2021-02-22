@@ -20,6 +20,7 @@ class CarInterface(CarInterfaceBase):
     ret.safetyModel = car.CarParams.SafetyModel.ford
     ret.dashcamOnly = True
     ret.lateralTuning.init('pid')
+    ret.lateralTuning.pid.newKfTuned = False
 
     ret.wheelbase = 2.85
     ret.steerRatio = 14.8
