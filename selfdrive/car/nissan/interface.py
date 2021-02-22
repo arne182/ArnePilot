@@ -22,6 +22,7 @@ class CarInterface(CarInterfaceBase):
     ret.carName = "nissan"
     ret.safetyModel = car.CarParams.SafetyModel.nissan
     ret.lateralTuning.init('pid')
+    ret.lateralTuning.pid.newKfTuned = False
 
     # Nissan port is a community feature, since we don't own one to test
     ret.communityFeature = True
