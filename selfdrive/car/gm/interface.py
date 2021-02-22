@@ -23,6 +23,7 @@ class CarInterface(CarInterfaceBase):
     ret.safetyModel = car.CarParams.SafetyModel.gm
     ret.enableCruise = False  # stock cruise control is kept off
     ret.lateralTuning.init('pid')
+    ret.lateralTuning.pid.newKfTuned = False
 
     # GM port is a community feature
     # TODO: make a port that uses a car harness and it only intercepts the camera
