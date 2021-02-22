@@ -18,6 +18,7 @@ class CarInterface(CarInterfaceBase):
     ret.carName = "subaru"
     ret.radarOffCan = True
     ret.lateralTuning.init('pid')
+    ret.lateralTuning.pid.newKfTuned = False
 
     if candidate in PREGLOBAL_CARS:
       ret.safetyModel = car.CarParams.SafetyModel.subaruLegacy
