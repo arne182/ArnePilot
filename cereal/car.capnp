@@ -132,6 +132,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
 
     #arnepilot
     longControlDisabled @102;
+    waitingMode @103;
   }
 }
 
