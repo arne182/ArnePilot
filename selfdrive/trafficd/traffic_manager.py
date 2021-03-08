@@ -1,10 +1,36 @@
 #!/usr/bin/env python3
 
 from common.numpy_fast import clip
+from common.basedir import BASEDIR
+from common.realtime import sec_since_boot
 import cereal.messaging as messaging
 import numpy as np
 import time
-from common.realtime import sec_since_boot
+import subprocess
+import os
+import signal
+
+
+class TrafficdThread:
+  def __init__(self):
+    self.proc_path = 'selfdrive/trafficd/trafficd'
+    self.proc = None
+    self.started = False
+
+  def start(self):
+    if not self.started:
+      self.proc = subprocess.Popen(os.path.join(BASEDIR, self.proc_path), cwd=os.path.join(BASEDIR, os.path.dirname(self.proc_path)))
+      self.started = True
+    else:
+      print('trafficd already started')
+
+  def stop(self):
+    if self.proc is not None and self.started:
+      self.proc.send_signal(signal.SIGINT)
+      self.started = False
+    else:
+      print('trafficd not started, can\'t stop')
+
 
 
 class Traffic:
