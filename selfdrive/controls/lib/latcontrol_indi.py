@@ -5,7 +5,7 @@ from cereal import log
 from common.realtime import DT_CTRL
 from common.numpy_fast import clip, interp
 from common.op_params import opParams
-from selfdrive.car.toyota.values import SteerLimitParams
+from selfdrive.car.toyota.values import CarControllerParams
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.controls.lib.drive_helpers import get_steer_max
 
@@ -29,6 +29,8 @@ class LatControlINDI():
                   [7.29394177e+00, 1.39159419e-02],
                   [1.71022442e+01, 3.38495381e-02]])
 
+    self.speed = 0.
+
     self.K = K
     self.A_K = A - np.dot(K, C)
     self.x = np.array([[0.], [0.], [0.]])
@@ -42,10 +44,27 @@ class LatControlINDI():
     self.sat_count_rate = 1.0 * DT_CTRL
     self.reset()
 
+  @property
+  def RC(self):
+    return interp(self.speed, self._RC[0], self._RC[1])
+
+  @property
+  def G(self):
+    return interp(self.speed, self._G[0], self._G[1])
+
+  @property
+  def outer_loop_gain(self):
+    return interp(self.speed, self._outer_loop_gain[0], self._outer_loop_gain[1])
+
+  @property
+  def inner_loop_gain(self):
+    return interp(self.speed, self._inner_loop_gain[0], self._inner_loop_gain[1])
+
   def reset(self):
     self.delayed_output = 0.
     self.output_steer = 0.
     self.sat_count = 0.0
+    self.speed = 0.
 
   def _check_saturation(self, control, check_saturation, limit):
     saturated = abs(control) == limit
@@ -59,7 +78,7 @@ class LatControlINDI():
 
     return self.sat_count > self.sat_limit
 
-  def update(self, active, CS, CP, path_plan):
+  def update(self, active, CS, CP, lat_plan):
     if self.op_params.get('enable_indi_live'):
       self.sat_limit = self.op_params.get('steer_limit_timer')
 
@@ -90,27 +109,28 @@ class LatControlINDI():
     self.alpha = 1. - DT_CTRL / (self.RC + DT_CTRL)
 
     # Update Kalman filter
-    y = np.array([[math.radians(CS.steeringAngle)], [math.radians(CS.steeringRate)]])
+    y = np.array([[math.radians(CS.steeringAngleDeg)], [math.radians(CS.steeringRateDeg)]])
     self.x = np.dot(self.A_K, self.x) + np.dot(self.K, y)
 
     indi_log = log.ControlsState.LateralINDIState.new_message()
-    indi_log.steerAngle = math.degrees(self.x[0])
-    indi_log.steerRate = math.degrees(self.x[1])
-    indi_log.steerAccel = math.degrees(self.x[2])
+    indi_log.steeringAngleDeg = math.degrees(self.x[0])
+    indi_log.steeringRateDeg = math.degrees(self.x[1])
+    indi_log.steeringAccelDeg = math.degrees(self.x[2])
 
     if CS.vEgo < 0.3 or not active:
       indi_log.active = False
       self.output_steer = 0.0
       self.delayed_output = 0.0
     else:
-      self.angle_steers_des = path_plan.angleSteers
-      self.rate_steers_des = path_plan.rateSteers
+      self.angle_steers_des = lat_plan.steeringAngleDeg
+      self.rate_steers_des = lat_plan.steeringRateDeg
 
       steers_des = math.radians(self.angle_steers_des)
       rate_des = math.radians(self.rate_steers_des)
 
       # Expected actuator value
-      self.delayed_output = self.delayed_output * self.alpha + self.output_steer * (1. - self.alpha)
+      alpha = 1. - DT_CTRL / (self.RC + DT_CTRL)
+      self.delayed_output = self.delayed_output * alpha + self.output_steer * (1. - alpha)
 
       # Compute acceleration error
       rate_sp = self.outer_loop_gain * (steers_des - self.x[0]) + rate_des
@@ -127,10 +147,10 @@ class LatControlINDI():
 
       # Enforce rate limit
       if self.enforce_rate_limit:
-        steer_max = float(SteerLimitParams.STEER_MAX)
+        steer_max = float(CarControllerParams.STEER_MAX)
         new_output_steer_cmd = steer_max * (self.delayed_output + delta_u)
         prev_output_steer_cmd = steer_max * self.output_steer
-        new_output_steer_cmd = apply_toyota_steer_torque_limits(new_output_steer_cmd, prev_output_steer_cmd, prev_output_steer_cmd, SteerLimitParams)
+        new_output_steer_cmd = apply_toyota_steer_torque_limits(new_output_steer_cmd, prev_output_steer_cmd, prev_output_steer_cmd, CarControllerParams)
         self.output_steer = new_output_steer_cmd / steer_max
       else:
         self.output_steer = self.delayed_output + delta_u

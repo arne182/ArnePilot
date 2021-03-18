@@ -35,7 +35,7 @@ This is done automatically otherwise run `pkill -f boardd; cd /data/openpilot/pa
 # Branches
 `release5`: this is the default branch that is most up to date with the ArnePilot 0.8 based off of [dragonpilot](https://github.com/dragonpilot-community/dragonpilot) release branch.
 
-`DP08-clean`: Current development branch.
+`DP082-clean`: Current development branch.
 
 `release4`: this is my old branch, that is compatible with ArnePilot 0.7.
 
@@ -44,14 +44,14 @@ This is done automatically otherwise run `pkill -f boardd; cd /data/openpilot/pa
 `release2`: this is my old branch, that is compatible with ArnePilot 0.5.
 
 ### Todo
-this for the 0.8.0 version
+this for the 0.8.2 version
 - [ ] Once QT drops add OSM and Speed offset apk toggles
 - [ ] bring back feature op_edit from 0.7
 - [ ] e2e UI button (most liekly will not happen.)
 - [ ] Virtual lane lines and Lane center
 
 ## Supported Cars
-Fork is known to work in both US and Europe
+Fork is known to work best in both US and Europe
 - RAV4 Hybrid 2016-19
 - RAV4 2017-19
 - Corolla 2019-21

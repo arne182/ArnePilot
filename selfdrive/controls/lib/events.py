@@ -41,6 +41,7 @@ class ET:
 # get event name from enum
 EVENT_NAME = {v: k for k, v in EventName.schema.enumerants.items()}
 
+
 class Events:
   def __init__(self):
     self.events = []
@@ -200,7 +201,7 @@ def calibration_incomplete_alert(CP: car.CarParams, sm: messaging.SubMaster, met
     Priority.LOWEST, VisualAlert.none, AudibleAlert.none, 0., 0., .2)
 
 def no_gps_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool) -> Alert:
-  gps_integrated = sm['health'].hwType in [log.HealthData.HwType.uno, log.HealthData.HwType.dos]
+  gps_integrated = sm['pandaState'].pandaType in [log.PandaState.PandaType.uno, log.PandaState.PandaType.dos]
   return Alert(
     _("Poor GPS reception"),
     _("If sky is visible, contact support") if gps_integrated else _("Check GPS antenna placement"),
@@ -255,6 +256,14 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       _("Dashcam mode for unsupported car"),
       _("Always keep hands on wheel and eyes on road"),
       AlertStatus.normal, AlertSize.mid,
+      Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., 15.),
+  },
+
+  EventName.startupOneplus: {
+    ET.PERMANENT: Alert(
+      "WARNING: Original EON deprecated",
+      "Device will no longer update",
+      AlertStatus.userPrompt, AlertSize.mid,
       Priority.LOWER, VisualAlert.none, AudibleAlert.none, 0., 0., 15.),
   },
 
@@ -489,6 +498,10 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
     ET.PERMANENT: NormalPermanentAlert("Camera Malfunction", "Contact Support"),
   },
 
+  EventName.gpsMalfunction: {
+    ET.PERMANENT: NormalPermanentAlert("GPS Malfunction", "Contact Support"),
+  },
+
   # ********** events that affect controls state transitions **********
 
   EventName.pcmEnable: {
@@ -632,15 +645,9 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
                               audible_alert=AudibleAlert.chimeDisengage),
   },
 
-  EventName.radarCommIssue: {
-    ET.SOFT_DISABLE: SoftDisableAlert(_("Radar Communication Issue")),
-    ET.NO_ENTRY: NoEntryAlert(_("Radar Communication Issue"),
-                              audible_alert=AudibleAlert.chimeDisengage),
-  },
-
-  EventName.radarCanError: {
-    ET.SOFT_DISABLE: SoftDisableAlert(_("Radar Error: Restart the Car")),
-    ET.NO_ENTRY: NoEntryAlert(_("Radar Error: Restart the Car")),
+  EventName.processNotRunning: {
+    ET.NO_ENTRY: NoEntryAlert(_("System Malfunction: Reboot Your Device",
+                              audible_alert=AudibleAlert.chimeDisengage)),
   },
 
   EventName.radarFault: {
@@ -718,7 +725,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
     ET.IMMEDIATE_DISABLE: ImmediateDisableAlert(_("Reverse Gear")),
     ET.NO_ENTRY: NoEntryAlert(_("Reverse Gear")),
   },
-  
+
   EventName.reverseGearArne: {
     ET.WARNING: Alert(
       "REVERSING",
@@ -727,7 +734,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.none, 2.2, 3., 4.),
     ET.NO_ENTRY: NoEntryAlert("Reverse Gear"),
   },
-  
+
   EventName.wrongGearArne: {
     ET.WARNING: Alert(
       "TAKE CONTROL IMMEDIATELY",
@@ -735,7 +742,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       AlertStatus.critical, AlertSize.full,
       Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.none, .1, 2., 2.),
   },
-  
+
   EventName.cruiseDisabled: {
     ET.IMMEDIATE_DISABLE: ImmediateDisableAlert(_("Cruise Is Off")),
   },
@@ -781,13 +788,6 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       Priority.LOW, VisualAlert.none, AudibleAlert.chimeError, .4, 2., 3.),
   },
 
-  # TODO: this is unclear, update check only happens offroad
-  EventName.internetConnectivityNeeded: {
-    ET.PERMANENT: NormalPermanentAlert(_("Connect to Internet"), _("An Update Check Is Required to Engage")),
-    ET.NO_ENTRY: NoEntryAlert(_("Connect to Internet"),
-                              audible_alert=AudibleAlert.chimeDisengage),
-  },
-
   EventName.lowSpeedLockout: {
     ET.PERMANENT: Alert(
       _("Cruise Fault: Restart the car to engage"),
@@ -812,7 +812,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       AlertStatus.normal, AlertSize.small,
       Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, .4, 2., 0.2),
   },
-  
+
   EventName.waitingMode: {
     ET.WARNING: Alert(
       "WAITING...",

@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-import ctypes
-import inspect
 import json
 import os
 import random
@@ -13,7 +11,7 @@ import traceback
 import requests
 
 from cereal import log
-from common.hardware import HARDWARE
+import cereal.messaging as messaging
 from common.api import Api
 from common.params import Params
 from selfdrive.loggerd.xattr_cache import getxattr, setxattr
@@ -23,7 +21,7 @@ from common.dp_time import LAST_MODIFIED_UPLOADER
 from common.dp_common import get_last_modified, param_get_if_updated
 from selfdrive.data_collection import gps_uploader
 
-NetworkType = log.ThermalData.NetworkType
+NetworkType = log.DeviceState.NetworkType
 UPLOAD_ATTR_NAME = 'user.upload'
 UPLOAD_ATTR_VALUE = b'1'
 
@@ -31,28 +29,6 @@ allow_sleep = bool(os.getenv("UPLOADER_SLEEP", "1"))
 force_wifi = os.getenv("FORCEWIFI") is not None
 fake_upload = os.getenv("FAKEUPLOAD") is not None
 
-
-def raise_on_thread(t, exctype):
-  '''Raises an exception in the threads with id tid'''
-  for ctid, tobj in threading._active.items():
-    if tobj is t:
-      tid = ctid
-      break
-  else:
-    raise Exception("Could not find thread")
-
-  if not inspect.isclass(exctype):
-    raise TypeError("Only types can be raised (not instances)")
-
-  res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(tid),
-                                                   ctypes.py_object(exctype))
-  if res == 0:
-    raise ValueError("invalid thread id")
-  elif res != 1:
-    # "if it returns a number greater than one, you're in trouble,
-    # and you should call it again with exc=NULL to revert the effect"
-    ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
-    raise SystemError("PyThreadState_SetAsyncExc failed")
 
 def get_directory_sort(d):
   return list(map(lambda s: s.rjust(10, '0'), d.rsplit('--', 1)))
@@ -76,8 +52,6 @@ def clear_locks(root):
     except OSError:
       cloudlog.exception("clear_locks failed")
 
-def is_on_wifi():
-  return HARDWARE.get_network_type() == NetworkType.wifi
 
 def is_on_hotspot():
   try:
@@ -100,6 +74,7 @@ class Uploader():
     self.last_resp = None
     self.last_exc = None
 
+    self.immediate_folders = ["crash/", "boot/"]
     self.immediate_priority = {"qlog.bz2": 0, "qcamera.ts": 1}
     self.high_priority = {"rlog.bz2": 0, "fcamera.hevc": 1, "dcamera.hevc": 2, "ecamera.hevc": 3}
 
@@ -140,7 +115,7 @@ class Uploader():
 
     # try to upload qlog files first
     for name, key, fn in upload_files:
-      if name in self.immediate_priority:
+      if name in self.immediate_priority or any(f in fn for f in self.immediate_folders):
         return (key, fn)
 
     if with_raw:
@@ -243,6 +218,7 @@ def uploader_fn(exit_event):
   else:
     dongle_id = dongle_id.decode('utf8')
 
+  sm = messaging.SubMaster(['deviceState'])
   uploader = Uploader(dongle_id, ROOT)
 
   # dp
@@ -259,6 +235,8 @@ def uploader_fn(exit_event):
   counter = 0
   should_upload = False
   while not exit_event.is_set():
+    sm.update(0)
+    on_wifi = force_wifi or sm['deviceState'].networkType == NetworkType.wifi
     offroad = params.get("IsOffroad") == b'1'
     allow_raw_upload = (params.get("IsUploadRawEnabled") != b"0") and offroad
     check_network = (counter % 12 == 0 if offroad else True)

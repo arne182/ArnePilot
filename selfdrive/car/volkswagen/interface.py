@@ -37,27 +37,10 @@ class CarInterface(CarInterfaceBase):
     ret.communityFeature = True
     ret.lateralTuning.pid.kdBP, ret.lateralTuning.pid.kdV = [[0.], [0.]]
 
-    # Set global default parameters
-    ret.radarOffCan = True
-    ret.enableCamera = True  # Stock camera detection doesn't apply to VW
-    ret.steerRateCost = 1.0
-    ret.steerActuatorDelay = 0.05  # Hopefully all racks are similar here
-    ret.steerLimitTimer = 0.4
-    
-    ret.lateralTuning.init('pid')
-    # Override these per-car as necessary
-    ret.lateralTuning.pid.kpBP = [0.]
-    ret.lateralTuning.pid.kiBP = [0.]
-    ret.lateralTuning.pid.kpV = [0.6]
-    ret.lateralTuning.pid.kiV = [0.2]
-    ret.lateralTuning.pid.kfV = [0.00006]
-    ret.lateralTuning.pid.newKfTuned = False
-
-    # PER-PLATFORM PARAMETERS - DO NOT EDIT HERE TO TUNE INDIVIDUAL VEHICLES
-    ret.carName = "volkswagen"
-
-    if candidate in MQB_CARS:
-      # Configurations shared between all MQB vehicles
+    if candidate in [CAR.GOLF, CAR.AUDI_A3]:
+      # Set common MQB parameters that will apply globally
+      ret.carName = "volkswagen"
+      ret.radarOffCan = True
       ret.safetyModel = car.CarParams.SafetyModel.volkswagen
 
       # Determine installed network location and trans type from fingerprint

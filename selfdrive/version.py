@@ -62,6 +62,7 @@ comma_remote: bool = False
 tested_branch: bool = False
 origin = get_git_remote()
 branch = get_git_full_branchname()
+commit = get_git_commit()
 
 if (origin is not None) and (branch is not None):
   try:

@@ -37,8 +37,8 @@ if (origin is not None) and (branch is not None):
 dirty = not arne_remote
 dirty = dirty or (subprocess.call(["git", "diff-index", "--quiet", branch, "--"]) != 0)
 
+from selfdrive.hardware import PC
 from selfdrive.swaglog import cloudlog
-from common.hardware import PC
 
 def save_exception(exc_text):
   i = 0
@@ -98,8 +98,8 @@ else:
     ip = requests.get('https://checkip.amazonaws.com/').text.strip()
   except Exception:
     ip = "255.255.255.255"
-  error_tags = {'dirty': dirty, 'dongle_id': dongle_id, 'branch': branch, 'remote': origin, 
-                'distance_traveled': distance_traveled, 'distance_traveled_engaged': distance_traveled_engaged, 
+  error_tags = {'dirty': dirty, 'dongle_id': dongle_id, 'branch': branch, 'remote': origin,
+                'distance_traveled': distance_traveled, 'distance_traveled_engaged': distance_traveled_engaged,
                 'distance_traveled_override': distance_traveled_override}
   #uniqueID = op_params.get('uniqueID')
   username = opParams().get('username')

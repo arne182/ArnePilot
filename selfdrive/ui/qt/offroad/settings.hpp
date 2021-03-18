@@ -3,25 +3,32 @@
 #include <QWidget>
 #include <QFrame>
 #include <QTimer>
-#include <QCheckBox>
+#include <QPushButton>
+#include <QButtonGroup>
 #include <QStackedLayout>
 
+#include "networking.hpp"
+
+// *** settings widgets ***
 
 class ParamsToggle : public QFrame {
   Q_OBJECT
 
 public:
-  explicit ParamsToggle(QString param, QString title, QString description, QString icon, QWidget *parent = 0);
+  explicit ParamsToggle(QString param, QString title, QString description,
+                        QString icon, QWidget *parent = 0);
 
 private:
-  QCheckBox *checkbox;
   QString param;
 
 public slots:
   void checkboxClicked(int state);
 };
 
-class SettingsWindow : public QWidget {
+
+// *** settings window ***
+
+class SettingsWindow : public QFrame {
   Q_OBJECT
 
 public:
@@ -29,11 +36,16 @@ public:
 
 signals:
   void closeSettings();
+  void sidebarPressed();
 
 private:
+  QPushButton *sidebar_alert_widget;
+  QWidget *sidebar_widget;
   std::map<QString, QWidget *> panels;
+  QButtonGroup *nav_btns;
   QStackedLayout *panel_layout;
+  QFrame* panel_frame;
 
-private slots:
+public slots:
   void setActivePanel();
 };

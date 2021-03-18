@@ -10,10 +10,10 @@ LongCtrlState = log.ControlsState.LongControlState
 
 STOPPING_EGO_SPEED = 0.5
 STOPPING_TARGET_SPEED_OFFSET = 0.01
-STARTING_TARGET_SPEED = 0.8
+STARTING_TARGET_SPEED = 0.5
 BRAKE_THRESHOLD_TO_PID = 0.2
 
-BRAKE_STOPPING_TARGET = 0.8  # apply at least this amount of brake to maintain the vehicle stationary
+BRAKE_STOPPING_TARGET = 0.5  # apply at least this amount of brake to maintain the vehicle stationary
 
 RATE = 100.0
 

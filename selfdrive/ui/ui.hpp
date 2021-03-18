@@ -7,25 +7,28 @@
 #define nvgCreate nvgCreateGL3
 #else
 #include <GLES3/gl3.h>
-#include <EGL/egl.h>
 #define NANOVG_GLES3_IMPLEMENTATION
 #define nvgCreate nvgCreateGLES3
 #endif
 
 #include <atomic>
 #include <map>
+#include <memory>
 #include <string>
 #include <sstream>
 
 #include "nanovg.h"
 
 #include "common/mat.h"
-#include "common/visionipc.h"
 #include "common/visionimg.h"
 #include "common/framebuffer.h"
 #include "common/modeldata.h"
 #include "common/params.h"
+#include "common/glutil.h"
+#include "common/transformations/orientation.hpp"
 #include "sound.hpp"
+#include "visionipc.h"
+#include "visionipc_client.h"
 
 #define COLOR_BLACK nvgRGBA(0, 0, 0, 255)
 #define COLOR_BLACK_ALPHA(x) nvgRGBA(0, 0, 0, x)
@@ -42,6 +45,7 @@
 typedef struct Rect {
   int x, y, w, h;
   int centerX() const { return x + w / 2; }
+  int centerY() const { return y + h / 2; }
   int right() const { return x + w; }
   int bottom() const { return y + h; }
   bool ptInRect(int px, int py) const {
@@ -59,23 +63,6 @@ const Rect home_btn = {60, 1080 - 180 - 40, 180, 180};
 
 const int UI_FREQ = 20;   // Hz
 
-const int MODEL_PATH_MAX_VERTICES_CNT = TRAJECTORY_SIZE*2;
-const int TRACK_POINTS_MAX_CNT = TRAJECTORY_SIZE*4;
-
-const int SET_SPEED_NA = 255;
-
-// dp - dynamic follow btn
-const int df_btn_h = 180;
-const int df_btn_w = 180;
-const int df_btn_x = 1650;
-const int df_btn_y = 750;
-// dp - accel profile btn
-const int ap_btn_h = 180;
-const int ap_btn_w = 180;
-const int ap_btn_x = 1450;
-const int ap_btn_y = 750;
-const int info_bar_h = 80;
-
 typedef enum NetStatus {
   NET_CONNECTED,
   NET_DISCONNECTED,
@@ -91,23 +78,29 @@ typedef enum UIStatus {
 } UIStatus;
 
 static std::map<UIStatus, NVGcolor> bg_colors = {
+#ifdef QCOM
+  {STATUS_OFFROAD, nvgRGBA(0x07, 0x23, 0x39, 0xf1)},
+#else
   {STATUS_OFFROAD, nvgRGBA(0x0, 0x0, 0x0, 0xff)},
-  {STATUS_DISENGAGED, nvgRGBA(0x0, 0x0, 0x0, 0xff)},
-  {STATUS_ENGAGED, nvgRGBA(0x01, 0x50, 0x01, 0x01)},
-  {STATUS_WARNING, nvgRGBA(0x80, 0x80, 0x80, 0x0f)},
-  {STATUS_ALERT, nvgRGBA(0xC9, 0x22, 0x31, 0xff)},
+#endif
+  {STATUS_DISENGAGED, nvgRGBA(0x17, 0x33, 0x49, 0xc8)},
+  {STATUS_ENGAGED, nvgRGBA(0x17, 0x86, 0x44, 0xf1)},
+  {STATUS_WARNING, nvgRGBA(0xDA, 0x6F, 0x25, 0xf1)},
+  {STATUS_ALERT, nvgRGBA(0xC9, 0x22, 0x31, 0xf1)},
 };
 
 typedef struct {
-  float x[TRAJECTORY_SIZE];
-  float y[TRAJECTORY_SIZE];
-  float z[TRAJECTORY_SIZE];
-} line;
+  float x, y;
+} vertex_data;
 
+typedef struct {
+  vertex_data v[TRAJECTORY_SIZE * 2];
+  int cnt;
+} line_vertices_data;
 
 typedef struct UIScene {
 
-  mat4 extrinsic_matrix;      // Last row is 0 so we can use mat4.
+  mat3 view_from_calib;
   bool world_objects_visible;
 
   float speedlimit;
@@ -118,122 +111,53 @@ typedef struct UIScene {
 
   bool is_rhd;
   bool frontview;
-  bool uilayout_sidebarcollapsed;
-  // responsive layout
-  Rect viz_rect;
-  int ui_viz_ro;
 
   std::string alert_text1;
   std::string alert_text2;
   std::string alert_type;
+  float alert_blinking_rate;
   cereal::ControlsState::AlertSize alert_size;
 
-  cereal::HealthData::HwType hwType;
-  int satelliteCount;
+  cereal::PandaState::PandaType pandaType;
   NetStatus athenaStatus;
 
-  cereal::ThermalData::Reader thermal;
+  cereal::DeviceState::Reader deviceState;
   cereal::RadarState::LeadData::Reader lead_data[2];
+  cereal::CarState::Reader car_state;
   cereal::ControlsState::Reader controls_state;
   cereal::DriverState::Reader driver_state;
-  cereal::DMonitoringState::Reader dmonitoring_state;
-  cereal::ModelDataV2::Reader model;
-  line path;
-  line outer_left_lane_line;
-  line left_lane_line;
-  line right_lane_line;
-  line outer_right_lane_line;
-  line left_road_edge;
-  line right_road_edge;
-  float max_distance;
+  cereal::DriverMonitoringState::Reader dmonitoring_state;
+
+  // gps
+  int satelliteCount;
+  bool gpsOK;
+
+  // modelV2
   float lane_line_probs[4];
   float road_edge_stds[2];
+  line_vertices_data track_vertices;
+  line_vertices_data lane_line_vertices[4];
+  line_vertices_data road_edge_vertices[2];
 
-  // dp
-  bool dpDashcam;
-  bool dpFullScreenApp;
-  bool dpDrivingUi;
-  bool dpUiScreenOffReversing;
-  bool dpUiScreenOffDriving;
-  bool dpUiSpeed;
-  bool dpUiEvent;
-  bool dpUiMaxSpeed;
-  bool dpUiFace;
-  bool dpUiLane;
-  bool dpUiPath;
-  bool dpUiLead;
-  bool dpUiDev;
-  bool dpUiDevMini;
-  bool dpUiBlinker;
-  int dpUiBrightness;
-  int dpUiVolumeBoost;
-  std::string dpIpAddr;
-  // for minimal UI
-  float angleSteersDes;
-  float angleSteers;
-  // for black screen on reversing
-  bool isReversing;
-  // for blinker, from kegman
-  bool leftBlinker;
-  bool rightBlinker;
-  bool brakeLights;
-  int blinker_blinkingrate;
-  bool steerOverride;
-  float output_scale;
-  // for blind spot
-  bool leftBlindspot;
-  bool rightBlindspot;
-  int engineRPM;
-
-  // for updating icon
-  int dp_alert_rate;
-  int dp_alert_type;
-  std::string dpLocale;
-  bool dpIsUpdating;
-  bool dpAthenad;
-  int dpDynamicFollow;
-  int dpAccelProfile;
+  // lead
+  vertex_data lead_vertices[2];
 } UIScene;
 
-typedef struct {
-  float x, y;
-} vertex_data;
-
-typedef struct {
-  vertex_data v[MODEL_PATH_MAX_VERTICES_CNT];
-  int cnt;
-} line_vertices_data;
-
-typedef struct {
-  vertex_data v[TRACK_POINTS_MAX_CNT];
-  int cnt;
-} track_vertices_data;
-
-
 typedef struct UIState {
+  VisionIpcClient * vipc_client;
+  VisionIpcClient * vipc_client_front;
+  VisionIpcClient * vipc_client_rear;
+  VisionBuf * last_frame;
+
   // framebuffer
-  FramebufferState *fb;
+  std::unique_ptr<FrameBuffer> fb;
   int fb_w, fb_h;
 
   // NVG
   NVGcontext *vg;
 
-  // fonts and images
-  int font_courbd;
-  int font_sans_regular;
-  int font_sans_semibold;
-  int font_sans_bold;
-  int img_wheel;
-  int img_hands_on_wheel;
-  int img_turn;
-  int img_face;
-  int img_button_settings;
-  int img_button_home;
-  int img_battery;
-  int img_battery_charging;
-  int img_network[6];
-  int img_map;
-  int img_speed;
+  // images
+  std::map<std::string, int> images;
 
   SubMaster *sm;
 
@@ -242,18 +166,10 @@ typedef struct UIState {
   UIScene scene;
   cereal::UiLayoutState::App active_app;
 
-  // vision state
-  bool vision_connected;
-  VisionStream stream;
-
   // graphics
-  GLuint frame_program;
-  GLuint frame_texs[UI_BUF_COUNT];
-  EGLImageKHR khr[UI_BUF_COUNT];
-  void *priv_hnds[UI_BUF_COUNT];
+  std::unique_ptr<GLShader> gl_shader;
+  std::unique_ptr<EGLImageTexture> texture[UI_BUF_COUNT];
 
-  GLint frame_pos_loc, frame_texcoord_loc;
-  GLint frame_texture_loc, frame_transform_loc;
   GLuint frame_vao[2], frame_vbo[2], frame_ibo[2];
   mat4 rear_frame_mat, front_frame_mat;
 
@@ -265,20 +181,11 @@ typedef struct UIState {
   bool ignition;
   bool is_metric;
   bool longitudinal_control;
-  bool limit_set_speed;
-  bool is_ego_over_limit;
-  float speed_lim_off;
-  uint64_t last_athena_ping;
   uint64_t started_frame;
 
-  bool alert_blinked;
-  float alert_blinking_alpha;
-
-  track_vertices_data track_vertices;
-  line_vertices_data lane_line_vertices[4];
-  line_vertices_data road_edge_vertices[2];
-
-  Rect video_rect;
+  bool sidebar_collapsed;
+  Rect video_rect, viz_rect;
+  float car_space_transform[6];
 } UIState;
 
 void ui_init(UIState *s);

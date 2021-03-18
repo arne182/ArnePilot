@@ -28,21 +28,24 @@ class LongitudinalMpc():
     self.new_lead = False
     self.sm = messaging.SubMaster(['dragonConf'])
     self.last_cloudlog_t = 0.0
+    self.n_its = 0
+    self.duration = 0
 
-  def send_mpc_solution(self, pm, qp_iterations, calculation_time):
-    qp_iterations = max(0, qp_iterations)
-    dat = messaging.new_message('liveLongitudinalMpc')
-    dat.liveLongitudinalMpc.xEgo = list(self.mpc_solution[0].x_ego)
-    dat.liveLongitudinalMpc.vEgo = list(self.mpc_solution[0].v_ego)
-    dat.liveLongitudinalMpc.aEgo = list(self.mpc_solution[0].a_ego)
-    dat.liveLongitudinalMpc.xLead = list(self.mpc_solution[0].x_l)
-    dat.liveLongitudinalMpc.vLead = list(self.mpc_solution[0].v_l)
-    dat.liveLongitudinalMpc.cost = self.mpc_solution[0].cost
-    dat.liveLongitudinalMpc.aLeadTau = self.a_lead_tau
-    dat.liveLongitudinalMpc.qpIterations = qp_iterations
-    dat.liveLongitudinalMpc.mpcId = self.mpc_id
-    dat.liveLongitudinalMpc.calculationTime = calculation_time
-    pm.send('liveLongitudinalMpc', dat)
+  def publish(self, pm):
+    if LOG_MPC:
+      qp_iterations = max(0, self.n_its)
+      dat = messaging.new_message('liveLongitudinalMpc')
+      dat.liveLongitudinalMpc.xEgo = list(self.mpc_solution[0].x_ego)
+      dat.liveLongitudinalMpc.vEgo = list(self.mpc_solution[0].v_ego)
+      dat.liveLongitudinalMpc.aEgo = list(self.mpc_solution[0].a_ego)
+      dat.liveLongitudinalMpc.xLead = list(self.mpc_solution[0].x_l)
+      dat.liveLongitudinalMpc.vLead = list(self.mpc_solution[0].v_l)
+      dat.liveLongitudinalMpc.cost = self.mpc_solution[0].cost
+      dat.liveLongitudinalMpc.aLeadTau = self.a_lead_tau
+      dat.liveLongitudinalMpc.qpIterations = qp_iterations
+      dat.liveLongitudinalMpc.mpcId = self.mpc_id
+      dat.liveLongitudinalMpc.calculationTime = self.duration
+      pm.send('liveLongitudinalMpc', dat)
 
   def setup_mpc(self):
     ffi, self.libmpc = libmpc_py.get_libmpc(self.mpc_id)
@@ -59,7 +62,7 @@ class LongitudinalMpc():
     self.cur_state[0].v_ego = v
     self.cur_state[0].a_ego = a
 
-  def update(self, pm, CS, lead):
+  def update(self, CS, lead):
     v_ego = CS.vEgo
     self.sm.update(0)
     # Setup current mpc state
@@ -101,11 +104,11 @@ class LongitudinalMpc():
       TR = self.dynamic_follow.update(CS, self.libmpc, self.sm['dragonConf'].dpDynamicFollow)  # update dynamic follow
     else:
       TR = 1.8
-    n_its = self.libmpc.run_mpc(self.cur_state, self.mpc_solution, self.a_lead_tau, a_lead, TR)
-    duration = int((sec_since_boot() - t) * 1e9)
+    self.n_its = self.libmpc.run_mpc(self.cur_state, self.mpc_solution, self.a_lead_tau, a_lead, TR)
+    self.duration = int((sec_since_boot() - t) * 1e9)
 
     if LOG_MPC:
-      self.send_mpc_solution(pm, n_its, duration)
+      self.send_mpc_solution(pm, self.n_its, self.duration)
 
     # Get solution. MPC timestep is 0.2 s, so interpolation to 0.05 s is needed
     self.v_mpc = self.mpc_solution[0].v_ego[1]

@@ -3,36 +3,37 @@
 #include <iostream>
 
 #include <QString>
+#include <QTransform>
 #include <QGridLayout>
 #include <QApplication>
-#include <QDesktopWidget>
-
-#ifdef QCOM2
-#include <qpa/qplatformnativeinterface.h>
-#include <QPlatformSurfaceEvent>
-#include <wayland-client-protocol.h>
-#endif
 
 #include "spinner.hpp"
-
+#include "qt_window.hpp"
 
 Spinner::Spinner(QWidget *parent) {
   QGridLayout *main_layout = new QGridLayout();
   main_layout->setSpacing(0);
   main_layout->setContentsMargins(200, 200, 200, 200);
 
-  const int img_size = 360;
-
   comma = new QLabel();
-  comma->setPixmap(QPixmap("../assets/img_spinner_comma.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-  comma->setFixedSize(img_size, img_size);
+  comma->setPixmap(QPixmap("../assets/img_spinner_comma.png").scaled(spinner_size, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  comma->setFixedSize(spinner_size);
   main_layout->addWidget(comma, 0, 0, Qt::AlignHCenter | Qt::AlignVCenter);
 
-  track_img = QPixmap("../assets/img_spinner_track.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   track = new QLabel();
-  track->setPixmap(track_img);
-  track->setFixedSize(img_size, img_size);
+  track->setFixedSize(spinner_size);
   main_layout->addWidget(track, 0, 0, Qt::AlignHCenter | Qt::AlignVCenter);
+
+  // pre-compute all the track imgs. make this a gif instead?
+  track_idx = 0;
+  QTransform transform;
+  QPixmap track_img = QPixmap("../assets/img_spinner_track.png").scaled(spinner_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  for (auto &img : track_imgs) {
+    QPixmap r = track_img.transformed(transform.rotate(360/spinner_fps), Qt::SmoothTransformation);
+    int x = (r.width() - track->width()) / 2;
+    int y = (r.height() - track->height()) / 2;
+    img = r.copy(x, y, track->width(), track->height());
+  }
 
   text = new QLabel();
   text->setVisible(false);
@@ -67,7 +68,7 @@ Spinner::Spinner(QWidget *parent) {
   )");
 
   rotate_timer = new QTimer(this);
-  rotate_timer->start(1000/30.);
+  rotate_timer->start(1000./spinner_fps);
   QObject::connect(rotate_timer, SIGNAL(timeout()), this, SLOT(rotate()));
 
   notifier = new QSocketNotifier(fileno(stdin), QSocketNotifier::Read);
@@ -75,12 +76,8 @@ Spinner::Spinner(QWidget *parent) {
 };
 
 void Spinner::rotate() {
-  transform.rotate(5);
-
-  QPixmap r = track_img.transformed(transform.rotate(5), Qt::SmoothTransformation);
-  int x = (r.width() - track->width()) / 2;
-  int y = (r.height() - track->height()) / 2;
-  track->setPixmap(r.copy(x, y, track->width(), track->height()));
+  track_idx = (track_idx+1) % track_imgs.size();
+  track->setPixmap(track_imgs[track_idx]);
 };
 
 void Spinner::update(int n) {
@@ -100,25 +97,7 @@ void Spinner::update(int n) {
 
 int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
-
-  Spinner *spinner = new Spinner();
-
-  // TODO: get size from QScreen, doesn't work on tici
-#ifdef QCOM2
-  int w = 2160, h = 1080;
-#else
-  int w = 1920, h = 1080;
-#endif
-  spinner->setFixedSize(w, h);
-  spinner->show();
-
-#ifdef QCOM2
-  QPlatformNativeInterface *native = QGuiApplication::platformNativeInterface();
-  wl_surface *s = reinterpret_cast<wl_surface*>(native->nativeResourceForWindow("surface", spinner->windowHandle()));
-  wl_surface_set_buffer_transform(s, WL_OUTPUT_TRANSFORM_270);
-  wl_surface_commit(s);
-  spinner->showFullScreen();
-#endif
-
+  Spinner spinner;
+  setMainWindow(&spinner);
   return a.exec();
 }

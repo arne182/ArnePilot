@@ -31,6 +31,13 @@ class CarInterface(CarInterfaceBase):
     ret.steerLimitTimer = 0.4
     tire_stiffness_factor = 1.
 
+    ret.maxSteeringAngleDeg = 90.
+
+    eps_modified = False
+    for fw in car_fw:
+      if fw.ecu == "eps" and b"," in fw.fwVersion:
+        eps_modified = True
+
     if candidate == CAR.SANTA_FE:
       ret.lateralTuning.pid.kfV = [0.00005]
       ret.mass = 3982. * CV.LB_TO_KG + STD_CARGO_KG
@@ -48,8 +55,8 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.65
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kfBP = [[0.], [0.], [0.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
-    elif candidate == CAR.SONATA_2019:
-      ret.lateralTuning.pid.kfV = [0.00005]
+    elif candidate == CAR.SONATA_LF:
+      ret.lateralTuning.pid.kf = [0.00005]
       ret.mass = 4497. * CV.LB_TO_KG
       ret.wheelbase = 2.804
       ret.steerRatio = 13.27 * 1.15   # 15% higher at the center seems reasonable
@@ -61,7 +68,9 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.90
       ret.steerRatio = 13.75 * 1.15
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kfBP = [[0.], [0.], [0.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.05]]
+      if eps_modified:
+        ret.maxSteeringAngleDeg = 1000.
     elif candidate in [CAR.ELANTRA, CAR.ELANTRA_GT_I30]:
       ret.lateralTuning.pid.kfV = [0.00006]
       ret.mass = 1275. + STD_CARGO_KG
@@ -77,16 +86,15 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 15
       # dp - indi value from donfyffe
       ret.lateralTuning.init('indi')
-      ret.lateralTuning.indi.innerLoopGainBP = [0]
-      ret.lateralTuning.indi.innerLoopGainV = [3.1]
-      ret.lateralTuning.indi.outerLoopGainBP = [0]
-      ret.lateralTuning.indi.outerLoopGainV = [2.1]
-      ret.lateralTuning.indi.timeConstantBP = [0]
-      ret.lateralTuning.indi.timeConstantV = [1.3]
-      ret.lateralTuning.indi.actuatorEffectivenessBP = [0]
-      ret.lateralTuning.indi.actuatorEffectivenessV = [1.4]
-      ret.minSteerSpeed = 32 * CV.MPH_TO_MS
-      ret.minEnableSpeed = 10 * CV.MPH_TO_MS
+      ret.lateralTuning.indi.innerLoopGainBP = [0.]
+      ret.lateralTuning.indi.innerLoopGainV = [3.5]
+      ret.lateralTuning.indi.outerLoopGainBP = [0.]
+      ret.lateralTuning.indi.outerLoopGainV = [2.0]
+      ret.lateralTuning.indi.timeConstantBP = [0.]
+      ret.lateralTuning.indi.timeConstantV = [1.4]
+      ret.lateralTuning.indi.actuatorEffectivenessBP = [0.]
+      ret.lateralTuning.indi.actuatorEffectivenessV = [2.3]
+      ret.minSteerSpeed = 60 * CV.KPH_TO_MS
     elif candidate == CAR.KONA:
       ret.lateralTuning.pid.kfV = [0.00005]
       ret.mass = 1275. + STD_CARGO_KG
@@ -103,15 +111,16 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.385
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kfBP = [[0.], [0.], [0.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
-    elif candidate in [CAR.IONIQ, CAR.IONIQ_EV_LTD]:
-      ret.lateralTuning.pid.kfV = [0.00006]
+    elif candidate in [CAR.IONIQ, CAR.IONIQ_EV_LTD, CAR.IONIQ_EV_2020]:
+      ret.lateralTuning.pid.kf = [0.00006]
       ret.mass = 1490. + STD_CARGO_KG  # weight per hyundai site https://www.hyundaiusa.com/ioniq-electric/specifications.aspx
       ret.wheelbase = 2.7
       ret.steerRatio = 13.73  # Spec
       tire_stiffness_factor = 0.385
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kfBP = [[0.], [0.], [0.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
-      ret.minSteerSpeed = 32 * CV.MPH_TO_MS
+      if candidate != CAR.IONIQ_EV_2020:
+        ret.minSteerSpeed = 32 * CV.MPH_TO_MS
     elif candidate == CAR.VELOSTER:
       ret.lateralTuning.pid.kfV = [0.00005]
       ret.mass = 3558. * CV.LB_TO_KG
@@ -165,21 +174,18 @@ class CarInterface(CarInterfaceBase):
     # Genesis
     elif candidate == CAR.GENESIS_G70:
       ret.lateralTuning.init('indi')
-      ret.lateralTuning.indi.innerLoopGainBP = [0]
-      ret.lateralTuning.indi.innerLoopGainV = [2.4]
-      ret.lateralTuning.indi.outerLoopGainBP = [0]
-      ret.lateralTuning.indi.outerLoopGainV = [3.0]
-      ret.lateralTuning.indi.timeConstantBP = [0]
-      ret.lateralTuning.indi.timeConstantV = [1.0]
-      ret.lateralTuning.indi.actuatorEffectivenessBP = [0]
-      ret.lateralTuning.indi.actuatorEffectivenessV = [2.0]
-      ret.steerActuatorDelay = 0.4 # 0.08 stock
-      ret.steerLimitTimer = 0.4 # down from 0.4
-      tire_stiffness_factor = 1.0
-      ret.steerRateCost = 1.0
-      ret.mass = 1825. + STD_CARGO_KG
-      ret.wheelbase = 2.906
-      ret.steerRatio = 14.4
+      ret.lateralTuning.indi.innerLoopGainBP = [0.]
+      ret.lateralTuning.indi.innerLoopGainV = [2.5]
+      ret.lateralTuning.indi.outerLoopGainBP = [0.]
+      ret.lateralTuning.indi.outerLoopGainV = [3.5]
+      ret.lateralTuning.indi.timeConstantBP = [0.]
+      ret.lateralTuning.indi.timeConstantV = [1.4]
+      ret.lateralTuning.indi.actuatorEffectivenessBP = [0.]
+      ret.lateralTuning.indi.actuatorEffectivenessV = [1.8]
+      ret.steerActuatorDelay = 0.1
+      ret.mass = 1640.0 + STD_CARGO_KG
+      ret.wheelbase = 2.84
+      ret.steerRatio = 13.56
     elif candidate == CAR.GENESIS_G80:
       ret.lateralTuning.pid.kfV = [0.00005]
       ret.mass = 2060. + STD_CARGO_KG
@@ -203,7 +209,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.16], [0.01]]
 
     # these cars require a special panda safety mode due to missing counters and checksums in the messages
-    if candidate in [CAR.HYUNDAI_GENESIS, CAR.IONIQ_EV_LTD, CAR.IONIQ, CAR.KONA_EV, CAR.KIA_SORENTO, CAR.SONATA_2019,
+    if candidate in [CAR.HYUNDAI_GENESIS, CAR.IONIQ_EV_2020, CAR.IONIQ_EV_LTD, CAR.IONIQ, CAR.KONA_EV, CAR.KIA_SORENTO, CAR.SONATA_LF,
                      CAR.KIA_NIRO_EV, CAR.KIA_OPTIMA, CAR.VELOSTER, CAR.KIA_STINGER, CAR.GENESIS_G70, CAR.GENESIS_G80]:
       ret.safetyModel = car.CarParams.SafetyModel.hyundaiLegacy
 
@@ -237,6 +243,7 @@ class CarInterface(CarInterfaceBase):
     if ret.vEgo >= self.CP.minSteerSpeed:
       ret.cruiseState.enabled = common_interface_atl(ret, dragonconf.dpAtl)
     ret.canValid = self.cp.can_valid and self.cp_cam.can_valid
+    ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
 
     events = self.create_common_events(ret)
     # TODO: addd abs(self.CS.angle_steers) > 90 to 'steerTempUnavailable' event
