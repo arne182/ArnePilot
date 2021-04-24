@@ -1,4 +1,4 @@
-[![selfdrive](https://github.com/arneschwarck/openpilot/actions/workflows/selfdrive_tests.yaml/badge.svg)](https://github.com/arneschwarck/openpilot/actions/workflows/selfdrive_tests.yaml)
+[![selfdrive](https://github.com/arneschwarck/openpilot/actions/workflows/selfdrive_tests.yaml/badge.svg)](https://github.com/arneschwarck/openpilot/actions/workflows/selfdrive_tests.yaml) 
 [![CI Release](https://github.com/arneschwarck/openpilot/actions/workflows/ci_release.yaml/badge.svg)](https://github.com/arneschwarck/openpilot/actions/workflows/ci_release.yaml)
 
 
