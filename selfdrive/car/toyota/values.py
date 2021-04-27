@@ -1525,7 +1525,7 @@ DBC = {
   CAR.HIGHLANDERH_TSS2: dbc_dict('toyota_nodsu_hybrid_pt_generated', 'toyota_tss2_adas'),
   CAR.AVALON: dbc_dict('toyota_avalon_2017_pt_generated', 'toyota_adas'),
   CAR.AVALON_2021: dbc_dict('toyota_avalon_2021_pt_generated', 'toyota_adas'),
-  CAR.RAV4_TSS2: dbc_dict('toyota_nodsu_pt_generated_rav4', 'toyota_tss2_adas'),
+  CAR.RAV4_TSS2: dbc_dict('toyota_nodsu_pt_generated', 'toyota_tss2_adas'),
   CAR.COROLLA_TSS2: dbc_dict('toyota_nodsu_pt_generated_corolla_tss2', 'toyota_tss2_adas'),
   CAR.COROLLAH_TSS2: dbc_dict('toyota_nodsu_pt_generated_corollah_tss2', 'toyota_tss2_adas'),
   CAR.LEXUS_ES_TSS2: dbc_dict('toyota_nodsu_pt_generated', 'toyota_tss2_adas'),
