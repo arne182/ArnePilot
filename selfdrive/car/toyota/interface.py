@@ -310,7 +310,7 @@ class CarInterface(CarInterfaceBase):
       ret.safetyParam = 73
       ret.wheelbase = 2.68986
       tire_stiffness_factor = 0.7933
-      ret.mass = 3380. * CV.LB_TO_KG + STD_CARGO_KG
+      ret.mass = 3800. * CV.LB_TO_KG + STD_CARGO_KG
       ret.longitudinalTuning.deadzoneBP = [0., 8.05]
       ret.longitudinalTuning.deadzoneV = [.0, .14]
       ret.longitudinalTuning.kpBP = [0., 5., 20.]
