@@ -302,7 +302,7 @@ class CarInterface(CarInterfaceBase):
         ret.lateralTuning.pid.kiBP = [0, 11, 16, 18, 22, 28, 33]
         ret.lateralTuning.pid.kfBP = [0, 11, 16, 18, 22, 28, 33]
         ret.lateralTuning.pid.kpV = [0.45, 0.4, 0.4, 0.4, 0.35, 0.3, 0.15]
-        ret.lateralTuning.pid.kiV = [0.1, 0.1, 0.08, 0.08, 0.05, 0.003, 0.002]
+        ret.lateralTuning.pid.kiV = [0.1, 0.15, 0.15, 0.1, 0.05, 0.003, 0.002]
         ret.lateralTuning.pid.kfV = [0.000153263811757641, 0.000153263811757641, 0.000153263811757641, 0.00007818594, 0.000062548752, 0.000054730158, 0.00004]
 
     elif candidate == CAR.RAV4H_TSS2:
@@ -338,7 +338,7 @@ class CarInterface(CarInterfaceBase):
         ret.lateralTuning.pid.kiBP = [0, 11, 16, 18, 22, 28, 33]
         ret.lateralTuning.pid.kfBP = [0, 11, 16, 18, 22, 28, 33]
         ret.lateralTuning.pid.kpV = [0.45, 0.4, 0.4, 0.4, 0.35, 0.3, 0.15]
-        ret.lateralTuning.pid.kiV = [0.1, 0.1, 0.08, 0.08, 0.05, 0.003, 0.002]
+        ret.lateralTuning.pid.kiV = [0.1, 0.15, 0.15, 0.1, 0.05, 0.003, 0.002]
         ret.lateralTuning.pid.kfV = [0.000153263811757641, 0.000153263811757641, 0.000153263811757641, 0.00007818594, 0.000062548752, 0.000054730158, 0.00004]
 
     elif candidate in [CAR.COROLLA_TSS2, CAR.COROLLAH_TSS2]:
