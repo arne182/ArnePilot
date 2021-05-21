@@ -36,6 +36,7 @@
 #define COLOR_RED_ALPHA(x) nvgRGBA(201, 34, 49, x)
 #define COLOR_OCHRE nvgRGBA(218, 111, 37, 255)
 #define COLOR_OCHRE_ALPHA(x) nvgRGBA(218, 111, 37, x)
+#define COLOR_GREEN_ALPHA(x) nvgRGBA(0, 255, 0, x)
 
 #define UI_BUF_COUNT 4
 
