@@ -35,6 +35,7 @@ procs = [
   PythonProcess("tombstoned", "selfdrive.tombstoned", enabled=not (PC or JETSON), persistent=True),
   PythonProcess("updated", "selfdrive.updated", enabled=not (PC or JETSON), persistent=True),
   PythonProcess("uploader", "selfdrive.loggerd.uploader", enabled=not JETSON, persistent=True),
+  PythonProcess("mapd", "selfdrive.mapd.mapd"),
 ]
 
 managed_processes = {p.name: p for p in procs}
