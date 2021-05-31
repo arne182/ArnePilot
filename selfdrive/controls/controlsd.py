@@ -173,6 +173,7 @@ class Controls:
     self.events.clear()
     self.events.add_from_msg(CS.events)
     self.events.add_from_msg(self.sm['driverMonitoringState'].events)
+    self.events.add_from_msg(self.sm['longitudinalPlan'].eventsDEPRECATED)
 
     # Handle startup event
     if self.startup_event is not None:
@@ -571,6 +572,7 @@ class Controls:
     controlsState.longControlState = self.LoC.long_control_state
     controlsState.vPid = float(self.LoC.v_pid)
     controlsState.vCruise = float(self.v_cruise_kph)
+    controlsState.speedLimit = float(CS.cruiseState.speedLimit)
     controlsState.upAccelCmd = float(self.LoC.pid.p)
     controlsState.uiAccelCmd = float(self.LoC.pid.id)
     controlsState.ufAccelCmd = float(self.LoC.pid.f)
@@ -582,6 +584,7 @@ class Controls:
     controlsState.canErrorCounter = self.can_error_counter
     controlsState.turnControllerState = self.sm['longitudinalPlan'].turnControllerState
     controlsState.turnAcc = float(self.sm['longitudinalPlan'].turnAcc)
+    controlsState.speedLimitControlState = self.sm['longitudinalPlan'].speedLimitControlState
 
     if self.CP.steerControlType == car.CarParams.SteerControlType.angle:
       controlsState.lateralControlState.angleState = lac_log
