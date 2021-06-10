@@ -113,7 +113,7 @@ This aims to provide a smoother driving experience in stop and go traffic (under
 - Dev UI toggle in APK setting.
 - GPS Accurecy on the SideBar
 - Battery has percentage instead of the battery icon.
-- [Dynamic distance profiles](https://github.com/ShaneSmiskol/ArnePilot/tree/stock_additions-devel#dynamic-follow-3-profiles) from Shane (In other word three different dynamic profiles: (`1.9`, `1.2`, `1.5`, `1.8`).
+- [Dynamic distance profiles](https://github.com/ShaneSmiskol/ArnePilot/tree/stock_additions-devel#dynamic-follow-3-profiles) from Shane (In other word three different dynamic profiles: (`0.9`, `1.2`, `1.5`, `1.8`).
 - Control 3 gas profiles with sport eco and normal buttons on car (only on limited car)
 
 ## Data collection
