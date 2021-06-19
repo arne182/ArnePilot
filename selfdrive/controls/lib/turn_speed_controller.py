@@ -10,7 +10,7 @@ _LON_MPC_STEP = 0.2  # Time stemp of longitudinal control (5 Hz)
 _MIN_ADAPTING_BRAKE_ACC = -1.5  # Minimum acceleration allowed when adapting to lower speed limit.
 _MIN_ADAPTING_BRAKE_JERK = -1.0  # Minimum jerk allowed when adapting to lower speed limit.
 _SPEED_OFFSET_TH = -3.0  # m/s Maximum offset between speed limit and current speed for adapting state.
-_LIMIT_ADAPT_TIME_PER_MS = 1.0  # Ideal adapt time(s) to lower speed limit. i.e. braking for every m/s of speed delta.
+_LIMIT_ADAPT_TIME_PER_MS = 3.0  # Ideal adapt time(s) to lower speed limit. i.e. braking for every m/s of speed delta.
 _MIN_SPEED_LIMIT = 8.33  # m/s, Minimum speed limit to provide as solution.
 
 _MAX_MAP_DATA_AGE = 10.0  # s Maximum time to hold to map data, then consider it invalid.

@@ -30,7 +30,7 @@ _MAX_JERK_ACC_INCREASE = 0.5  # Maximum jerk allowed when increasing acceleratio
 
 # Lookup table for maximum lateral acceleration according
 # to R079r4e regulation for M1 category vehicles.
-_A_LAT_REG_MAX_V = [2., 2., 2., 2.]  # Currently all the same for all speed ranges
+_A_LAT_REG_MAX_V = [2.3, 2.7, 3.1, 3.5]  # Currently all the same for all speed ranges
 _A_LAT_REG_MAX_BP = [2.8, 16.7, 27.8, 36.1]  # 10, 60, 100, 130 km/h
 
 # Lookup table for the minimum deceleration during the ENTERING state
