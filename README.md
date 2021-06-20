@@ -89,7 +89,7 @@ This aims to provide a smoother driving experience in stop and go traffic (under
 - Engine profiles button
 - Follow distance button
 - Lane lines toggle Steer Assist
-
+ 
 ### UI Modifications
 - Dev UI toggle in APK setting.
 - GPS Accurecy on the SideBar
